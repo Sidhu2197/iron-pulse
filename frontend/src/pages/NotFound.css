@@ -1,0 +1,27 @@
+.not-found-page {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+.not-found-page .nf-code {
+    font-size: 6rem;
+    font-weight: 800;
+    color: var(--text-accent);
+    line-height: 1;
+    animation: float 3s ease-in-out infinite;
+}
+
+.not-found-page h2 {
+    font-size: var(--font-2xl);
+    margin: var(--space-md) 0 var(--space-sm);
+}
+
+.not-found-page p {
+    color: var(--text-muted);
+    margin-bottom: var(--space-xl);
+}

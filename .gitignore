@@ -1,0 +1,12 @@
+# backend
+spring-security1-master/target/
+
+# frontend
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.idea/
+
+# env
+.env

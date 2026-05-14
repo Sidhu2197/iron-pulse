@@ -1,0 +1,647 @@
+.food-plan-page {
+    animation: fadeIn 0.5s ease;
+}
+
+.food-plan-page>h1 {
+    font-size: var(--font-2xl);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.food-plan-page>.subtitle {
+    color: var(--text-accent);
+    font-size: var(--font-sm);
+    margin-bottom: var(--space-xl);
+}
+
+/* Macro Cards */
+.macro-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+}
+
+.macro-card {
+    padding: var(--space-lg);
+}
+
+.macro-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+
+.macro-card-header .macro-label {
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.macro-card-header .macro-value {
+    font-size: var(--font-sm);
+    font-weight: 600;
+}
+
+.macro-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.macro-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+}
+
+.macro-bar-fill.calories {
+    background: linear-gradient(90deg, #eab308, #f59e0b);
+}
+
+.macro-bar-fill.protein {
+    background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.macro-bar-fill.fats {
+    background: linear-gradient(90deg, #3b82f6, #60a5fa);
+}
+
+/* Log Food Section */
+.log-food-card {
+    padding: var(--space-xl);
+    margin-bottom: var(--space-lg);
+}
+
+.log-food-card h3 {
+    font-size: var(--font-base);
+    font-weight: 600;
+    margin-bottom: var(--space-lg);
+}
+
+.food-success {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--text-accent);
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
+    margin-bottom: var(--space-md);
+    animation: slideDown 0.3s ease;
+}
+
+.food-error {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-sm);
+    margin-bottom: var(--space-md);
+}
+
+.log-food-methods {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+}
+
+.log-method {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.log-method h4 {
+    font-size: var(--font-sm);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.search-hint {
+    font-size: var(--font-xs);
+    color: var(--text-muted);
+}
+
+/* Search Results */
+.search-results {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 240px;
+    overflow-y: auto;
+    animation: slideDown 0.2s ease;
+}
+
+.search-result-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.search-result-item:hover {
+    border-color: var(--border-accent);
+    background: rgba(16, 185, 129, 0.06);
+}
+
+.result-name {
+    font-weight: 500;
+    font-size: var(--font-sm);
+    text-transform: capitalize;
+}
+
+.result-meta {
+    display: flex;
+    gap: var(--space-md);
+    font-size: var(--font-xs);
+    color: var(--text-muted);
+}
+
+.result-serving {
+    padding: 1px 8px;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.06);
+    font-size: var(--font-xs);
+}
+
+.upload-area {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-2xl) var(--space-lg);
+    text-align: center;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color var(--transition-fast);
+}
+
+.upload-area:hover {
+    border-color: var(--border-accent);
+}
+
+.upload-area .upload-icon {
+    font-size: 2rem;
+    margin-bottom: var(--space-sm);
+    opacity: 0.5;
+}
+
+/* Today's Meals */
+.meals-card {
+    padding: var(--space-xl);
+}
+
+.meals-card h3 {
+    font-size: var(--font-base);
+    font-weight: 600;
+    margin-bottom: var(--space-lg);
+}
+
+.meals-empty {
+    text-align: center;
+    padding: var(--space-2xl) 0;
+    color: var(--text-muted);
+    font-size: var(--font-sm);
+}
+
+.meals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.meal-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+}
+
+.meal-name {
+    font-weight: 500;
+    font-size: var(--font-sm);
+    text-transform: capitalize;
+}
+
+.meal-stats {
+    display: flex;
+    gap: var(--space-md);
+    font-size: var(--font-xs);
+    color: var(--text-muted);
+}
+
+.meal-cal {
+    color: var(--text-accent);
+    font-weight: 600;
+}
+
+/* ===== Food Plan Generator ===== */
+.food-plan-generator {
+    padding: var(--space-xl);
+    margin-bottom: var(--space-lg);
+}
+
+.food-plan-gen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+}
+
+.food-plan-gen-header h3 {
+    font-size: var(--font-base);
+    font-weight: 600;
+}
+
+.create-plan-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: var(--accent-gradient);
+    color: #fff;
+    font-weight: 600;
+    font-size: var(--font-sm);
+    border-radius: var(--radius-md);
+    transition: transform var(--transition-fast), box-shadow var(--transition-base);
+    box-shadow: var(--shadow-glow);
+}
+
+.create-plan-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.25);
+}
+
+.create-plan-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.food-plan-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-3xl) 0;
+    color: var(--text-muted);
+}
+
+.food-plan-empty-icon {
+    font-size: 3rem;
+    margin-bottom: var(--space-md);
+    opacity: 0.4;
+}
+
+.food-plan-empty .accent {
+    color: var(--text-accent);
+    font-weight: 600;
+}
+
+/* Food Wizard Overlay */
+.fw-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+    padding: 20px;
+}
+
+.fw-card {
+    width: 100%;
+    max-width: 500px;
+    padding: 32px;
+    border-radius: var(--radius-lg);
+    animation: fadeInUp 0.4s ease;
+}
+
+.fw-progress {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 28px;
+    position: relative;
+}
+
+.fw-progress-line {
+    position: absolute;
+    top: 50%;
+    left: 20px;
+    right: 20px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    transform: translateY(-50%);
+    z-index: 0;
+}
+
+.fw-progress-fill {
+    height: 100%;
+    background: var(--accent-gradient);
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+
+.fw-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-xs);
+    font-weight: 700;
+    color: var(--text-muted);
+    background: var(--bg-primary);
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.fw-dot.active {
+    border-color: var(--text-accent);
+    color: var(--text-accent);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+}
+
+.fw-dot.done {
+    background: var(--accent-gradient);
+    border-color: transparent;
+    color: #fff;
+}
+
+.fw-step-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.fw-step-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.fw-step-header h3 {
+    font-size: var(--font-lg);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.fw-step-count {
+    font-size: var(--font-xs);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.fw-step-content {
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.fw-input-wrap {
+    width: 100%;
+    max-width: 300px;
+}
+
+.fw-number-input {
+    position: relative;
+}
+
+.fw-unit {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: var(--font-sm);
+    font-weight: 500;
+    pointer-events: none;
+}
+
+.fw-select-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    width: 100%;
+}
+
+.fw-select-grid.three-col {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.fw-select-card {
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    font-size: var(--font-sm);
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.fw-select-card:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+}
+
+.fw-select-card.selected {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: var(--text-accent);
+    color: var(--text-accent);
+    font-weight: 600;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+}
+
+.fw-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.fw-btn-back {
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    font-size: var(--font-sm);
+    font-weight: 500;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fw-btn-back:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.fw-btn-next {
+    padding: 10px 24px;
+    border-radius: var(--radius-md);
+    font-size: var(--font-sm);
+    font-weight: 600;
+    background: var(--accent-gradient);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-glow);
+}
+
+.fw-btn-next:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
+}
+
+.fw-btn-next:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Food Plan Result */
+.food-plan-result {
+    margin-top: var(--space-md);
+}
+
+.food-plan-summary {
+    display: flex;
+    gap: var(--space-xl);
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--border);
+}
+
+.food-plan-stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.food-plan-stat-value {
+    font-size: var(--font-2xl);
+    font-weight: 700;
+    color: var(--text-accent);
+}
+
+.food-plan-stat-label {
+    font-size: var(--font-xs);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.food-plan-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.food-plan-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    transition: border-color var(--transition-fast);
+}
+
+.food-plan-item:hover {
+    border-color: var(--border-accent);
+}
+
+.food-plan-item-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent-gradient);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-xs);
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.food-plan-item-name {
+    font-weight: 600;
+    font-size: var(--font-sm);
+    margin-bottom: 2px;
+}
+
+.food-plan-item-meta {
+    display: flex;
+    gap: var(--space-md);
+    font-size: var(--font-xs);
+    color: var(--text-muted);
+}
+
+.food-plan-item-serving {
+    padding: 1px 8px;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+@media (max-width: 768px) {
+    .macro-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .log-food-methods {
+        grid-template-columns: 1fr;
+    }
+
+    .food-plan-summary {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
+
+    .fw-card {
+        padding: 20px;
+    }
+
+    .fw-select-grid,
+    .fw-select-grid.three-col {
+        grid-template-columns: 1fr;
+    }
+
+    .fw-progress {
+        gap: 8px;
+    }
+
+    .fw-dot {
+        width: 24px;
+        height: 24px;
+        font-size: 0.6rem;
+    }
+
+    .food-plan-gen-header {
+        flex-direction: column;
+        gap: var(--space-md);
+        align-items: flex-start;
+    }
+}
