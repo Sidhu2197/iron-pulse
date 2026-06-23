@@ -3,6 +3,9 @@ package com.security.spring_security.Service;
 import com.security.spring_security.Model.User;
 import com.security.spring_security.dao.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +18,7 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @CacheEvict(value = "users", allEntries = true)
     public User register(User user) {
         if (repo.findByEmail(user.getEmail()) != null) {
             throw new RuntimeException("An account with this email already exists.");
@@ -27,10 +31,13 @@ public class UserService {
         return repo.save(user);
     }
 
+    // No cache here — username lookups are infrequent and
+    // keeping two keys (email + username) in sync is error-prone
     public User findByUsername(String username) {
         return repo.findByUsername(username);
     }
 
+    @Cacheable(value = "users", key = "#email")
     public User findByEmail(String email) {
         return repo.findByEmail(email);
     }
@@ -48,6 +55,7 @@ public class UserService {
                 && passwordEncoder.matches(answer.trim().toLowerCase(), user.getSecurityAnswer());
     }
 
+    @CacheEvict(value = "users", key = "#email")
     public boolean resetPassword(String email, String securityAnswer, String newPassword) {
         User user = repo.findByEmail(email);
         if (user == null) return false;
@@ -57,6 +65,7 @@ public class UserService {
         return true;
     }
 
+    @CachePut(value = "users", key = "#email")
     public User updateProfile(String email, String username, int age, double height, double weight) {
         User user = repo.findByEmail(email);
         if (user == null) throw new RuntimeException("User not found");
@@ -67,3 +76,5 @@ public class UserService {
         return repo.save(user);
     }
 }
+
+

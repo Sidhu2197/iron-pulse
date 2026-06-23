@@ -7,11 +7,17 @@
 const API_BASE = '/api';
 export const SESSION_AUTH = 'session';
 
-// ---- Helper: Get Basic Auth header from credentials ----
+// ---- Helper: Get Bearer Auth header from credentials ----
 
 function getAuthHeader(credentials) {
     if (!credentials || credentials === SESSION_AUTH) return {};
-    return { Authorization: `Basic ${credentials}` };
+    return { Authorization: `Bearer ${credentials}` };
+}
+
+function checkAuthError(res) {
+    if (res.status === 401) {
+        window.dispatchEvent(new Event('auth-expired'));
+    }
 }
 
 // ---- Auth ----
@@ -30,6 +36,7 @@ export async function signupUser({ username, email, password, age, securityQuest
     }
     
     if (!res.ok) {
+        checkAuthError(res);
         // Handle validation errors specifically
         if (data.errors && data.errors.email) {
             throw new Error(data.errors.email);
@@ -55,13 +62,15 @@ export async function loginUser({ email, password }) {
     }
     
     if (!res.ok) {
+        checkAuthError(res);
         // Handle specific validation errors
         if (data.message && data.message.includes('valid email')) {
             throw new Error(data.message);
         }
         throw new Error(data.message || 'Login failed');
     }
-    const credentials = btoa(`${email}:${password}`);
+    // Extract JWT token from response
+    const credentials = data.token;
     return { credentials, user: data };
 }
 
@@ -69,6 +78,7 @@ export async function fetchProfile(credentials) {
     const res = await fetch(`${API_BASE}/me`, {
         headers: { ...getAuthHeader(credentials) },
     });
+    checkAuthError(res);
     if (!res.ok) {
         throw new Error('Failed to fetch profile');
     }
@@ -95,6 +105,7 @@ export async function updateProfile(credentials, { username, age, height, weight
             weight: weight ? parseFloat(weight) : undefined,
         }),
     });
+    checkAuthError(res);
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Update failed');
     return data;
@@ -106,6 +117,7 @@ export async function fetchDashboard(credentials) {
     const res = await fetch(`${API_BASE}/dashboard`, {
         headers: { ...getAuthHeader(credentials) },
     });
+    checkAuthError(res);
     if (!res.ok) throw new Error('Failed to fetch dashboard');
     return await res.json();
 }
@@ -121,6 +133,7 @@ export async function logWorkout(credentials, { workout_name, duration, calories
         },
         body: JSON.stringify({ workout_name, duration, calories_burned, date }),
     });
+    checkAuthError(res);
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to log workout');
     return data;
@@ -130,6 +143,7 @@ export async function fetchWorkouts(credentials) {
     const res = await fetch(`${API_BASE}/workouts`, {
         headers: { ...getAuthHeader(credentials) },
     });
+    checkAuthError(res);
     if (!res.ok) throw new Error('Failed to fetch workouts');
     return await res.json();
 }
@@ -192,6 +206,7 @@ export async function searchFoods(query, credentials) {
     const res = await fetch(`${API_BASE}/foods/search?q=${encodeURIComponent(query)}`, {
         headers: { ...getAuthHeader(credentials) },
     });
+    checkAuthError(res);
     if (!res.ok) throw new Error('Failed to search foods');
     return await res.json();
 }
@@ -205,6 +220,7 @@ export async function logMeal(credentials, { food_name, calories, protein, fats,
         },
         body: JSON.stringify({ food_name, calories, protein, fats, date }),
     });
+    checkAuthError(res);
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to log meal');
     return data;
@@ -214,6 +230,7 @@ export async function fetchMeals(credentials) {
     const res = await fetch(`${API_BASE}/meals`, {
         headers: { ...getAuthHeader(credentials) },
     });
+    checkAuthError(res);
     if (!res.ok) throw new Error('Failed to fetch meals');
     return await res.json();
 }
@@ -222,69 +239,26 @@ export async function fetchMealSummary(credentials) {
     const res = await fetch(`${API_BASE}/meals/summary`, {
         headers: { ...getAuthHeader(credentials) },
     });
+    checkAuthError(res);
     if (!res.ok) throw new Error('Failed to fetch meal summary');
     return await res.json();
 }
 
-// ---- Food Plan Generation ----
+// ---- Food Plan Generation (ML Model) ----
 
 export async function generateFoodPlan(credentials, { age, gender, height, weight, goal, meal_type, diet_type }) {
-    // Food plan generation — uses predefined food lists
-    const VEG_FOODS = {
-        breakfast: [
-            { food_name: 'Oatmeal with Banana', calories: 260, protein: 8, fats: 4, serving: '1 bowl' },
-            { food_name: 'Paneer Paratha', calories: 320, protein: 12, fats: 14, serving: '2 pieces' },
-            { food_name: 'Idli with Sambar', calories: 220, protein: 7, fats: 3, serving: '3 idlis' },
-            { food_name: 'Greek Yogurt Bowl', calories: 180, protein: 17, fats: 2, serving: '1 cup' },
-        ],
-        lunch: [
-            { food_name: 'Dal Tadka + Rice', calories: 380, protein: 14, fats: 8, serving: '1 plate' },
-            { food_name: 'Rajma Chawal', calories: 420, protein: 16, fats: 7, serving: '1 plate' },
-            { food_name: 'Paneer Butter Masala + Roti', calories: 450, protein: 20, fats: 22, serving: '1 plate' },
-            { food_name: 'Vegetable Biryani', calories: 360, protein: 10, fats: 12, serving: '1 plate' },
-        ],
-        dinner: [
-            { food_name: 'Mixed Vegetable Curry + Chapati', calories: 310, protein: 10, fats: 9, serving: '1 plate' },
-            { food_name: 'Palak Paneer + Rice', calories: 400, protein: 18, fats: 16, serving: '1 plate' },
-            { food_name: 'Moong Dal Khichdi', calories: 280, protein: 12, fats: 5, serving: '1 bowl' },
-            { food_name: 'Curd Rice', calories: 240, protein: 8, fats: 4, serving: '1 bowl' },
-        ],
-    };
-
-    const NONVEG_FOODS = {
-        breakfast: [
-            { food_name: 'Egg Omelette + Toast', calories: 310, protein: 18, fats: 14, serving: '2 eggs' },
-            { food_name: 'Boiled Eggs + Avocado', calories: 280, protein: 16, fats: 18, serving: '2 eggs' },
-            { food_name: 'Chicken Sausage Wrap', calories: 350, protein: 22, fats: 15, serving: '1 wrap' },
-            { food_name: 'Protein Pancakes', calories: 300, protein: 25, fats: 8, serving: '3 pieces' },
-        ],
-        lunch: [
-            { food_name: 'Grilled Chicken Breast + Rice', calories: 450, protein: 38, fats: 8, serving: '1 plate' },
-            { food_name: 'Chicken Biryani', calories: 500, protein: 25, fats: 16, serving: '1 plate' },
-            { food_name: 'Fish Curry + Roti', calories: 380, protein: 30, fats: 12, serving: '1 plate' },
-            { food_name: 'Egg Fried Rice', calories: 420, protein: 15, fats: 14, serving: '1 plate' },
-        ],
-        dinner: [
-            { food_name: 'Salmon Fillet + Salad', calories: 350, protein: 32, fats: 16, serving: '200g' },
-            { food_name: 'Chicken Tikka + Naan', calories: 460, protein: 28, fats: 18, serving: '1 plate' },
-            { food_name: 'Mutton Keema + Chapati', calories: 480, protein: 26, fats: 22, serving: '1 plate' },
-            { food_name: 'Grilled Fish + Veggies', calories: 300, protein: 28, fats: 10, serving: '1 plate' },
-        ],
-    };
-
-    const db = diet_type === 'veg' ? VEG_FOODS : NONVEG_FOODS;
-    const items = db[meal_type] || db.lunch;
-
-    const totalCalories = items.reduce((sum, i) => sum + i.calories, 0);
-    const totalProtein = items.reduce((sum, i) => sum + i.protein, 0);
-    const totalFats = items.reduce((sum, i) => sum + i.fats, 0);
-
-    return {
-        items: [...items],
-        total_calories: totalCalories,
-        total_protein: totalProtein,
-        total_fats: totalFats,
-    };
+    const res = await fetch(`${API_BASE}/food-plan/generate`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader(credentials),
+        },
+        body: JSON.stringify({ age, gender, height, weight, goal, meal_type, diet_type }),
+    });
+    checkAuthError(res);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to generate food plan');
+    return data;
 }
 
 // ---- Calorie Burn Prediction (ML Model) ----
@@ -334,6 +308,7 @@ export async function saveCaloriePrediction(credentials, predictionData) {
         },
         body: JSON.stringify(predictionData),
     });
+    checkAuthError(res);
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to save prediction');
     return data;
@@ -343,6 +318,7 @@ export async function fetchCaloriePredictions(credentials) {
     const res = await fetch(`${API_BASE}/calorie-predictions`, {
         headers: { ...getAuthHeader(credentials) },
     });
+    checkAuthError(res);
     if (!res.ok) throw new Error('Failed to fetch predictions');
     return await res.json();
 }

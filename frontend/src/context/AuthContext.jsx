@@ -49,8 +49,17 @@ export function AuthProvider({ children }) {
             setLoading(false);
         }
 
+        const handleAuthExpired = () => {
+            sessionStorage.removeItem(STORAGE_KEY_CREDS);
+            sessionStorage.removeItem(STORAGE_KEY_USER);
+            setCredentials(null);
+            setUser(null);
+        };
+        window.addEventListener('auth-expired', handleAuthExpired);
+
         return () => {
             active = false;
+            window.removeEventListener('auth-expired', handleAuthExpired);
         };
     }, []);
 

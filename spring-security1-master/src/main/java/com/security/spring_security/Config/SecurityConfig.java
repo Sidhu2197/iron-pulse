@@ -18,6 +18,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -28,6 +29,10 @@ public class SecurityConfig {
 
     @Autowired
     private UserDetailsService userDetailsService;
+
+    @Autowired
+    private JwtAuthFilter jwtAuthFilter;
+
 
     @Value("${app.oauth2.enabled:false}")
     private boolean oauth2Enabled;
@@ -62,27 +67,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(Customizer.withDefaults())
-            .csrf(customizer -> customizer.disable())
-            .authorizeHttpRequests(request -> request
-                .requestMatchers("/register", "/login", "/api/register", "/api/login", "/forgot-password/**", "/api/forgot-password/**", "/csrf-token", "/error").permitAll()
-                .requestMatchers("/api/calorie-predictions/predict", "/api/calorie-predictions/health", "/api/calorie-predictions/exercises", "/api/foods/**").permitAll()
-                .requestMatchers("/**.html", "/**.css", "/**.js").permitAll()
-                .anyRequest().authenticated()
-            )
-            .authenticationProvider(authProvider())
-            .httpBasic(basic -> basic
-                .authenticationEntryPoint((request, response, authException) -> {
-                    response.setContentType("application/json");
-                    response.setStatus(401);
-                    response.getWriter().write("{\"error\": \"Unauthorized\"}");
-                })
-            )
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            );
+                .cors(Customizer.withDefaults())
+                .csrf(customizer -> customizer.disable())
+                .authorizeHttpRequests(request -> request
+                        .requestMatchers("/register", "/login", "/api/register", "/api/login", "/forgot-password/**",
+                                "/api/forgot-password/**", "/api/auth/**", "/csrf-token", "/error")
+                        .permitAll()
+                        .requestMatchers("/api/calorie-predictions/predict", "/api/calorie-predictions/health",
+                                "/api/calorie-predictions/exercises", "/api/foods/**")
+                        .permitAll()
+                        .requestMatchers("/**.html", "/**.css", "/**.js").permitAll()
+                        .anyRequest().authenticated())
+                .authenticationProvider(authProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        // Keep OAuth login opt-in so startup does not fail when client registrations are missing.
+        // Keep OAuth login opt-in so startup does not fail when client registrations
+        // are missing.
         if (oauth2Enabled) {
             http.oauth2Login(oauth -> oauth.defaultSuccessUrl("http://localhost:5173/dashboard", true));
         }
@@ -95,4 +96,3 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 }
-

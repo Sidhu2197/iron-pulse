@@ -103,11 +103,11 @@
 }
 
 .auth-error {
-    background: rgba(239, 68, 68, 0.12);
-    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.08); /* slightly darker/redder background to match image */
+    border: 1px solid #ef4444; /* solid red border */
     color: #ef4444;
-    padding: 10px 16px;
-    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    border-radius: var(--radius-md); /* more rounded corners like the image */
     font-size: var(--font-sm);
     margin-bottom: var(--space-md);
     animation: slideDown 0.3s ease;
@@ -265,4 +265,78 @@
 #signup-security-q,
 #signup-security-a {
     display: block !important;
+}
+
+/* ===== Inbox Confirmation (Forgot Password) ===== */
+.inbox-icon {
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.85; }
+}
+
+.inbox-card {
+    text-align: center;
+}
+
+.inbox-email {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    color: var(--text-accent);
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: var(--font-base);
+    margin-bottom: var(--space-lg);
+    word-break: break-all;
+}
+
+.inbox-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-lg);
+}
+
+.inbox-info-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    color: var(--text-secondary);
+    font-size: var(--font-sm);
+    text-align: left;
+}
+
+.inbox-info-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.resend-btn {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: none !important;
+}
+
+.resend-btn:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: var(--border-hover) !important;
+    box-shadow: none !important;
+}
+
+/* ===== Success Message (Reset Password) ===== */
+.auth-success {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #10b981;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    font-size: var(--font-sm);
+    margin-bottom: var(--space-md);
+    animation: slideDown 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
