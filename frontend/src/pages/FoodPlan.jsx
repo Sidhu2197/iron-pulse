@@ -26,7 +26,7 @@ const MEAL_TYPE_OPTIONS = [
 
 const DIET_TYPE_OPTIONS = [
     { value: 'veg', label: '🥬 Vegetarian' },
-    { value: 'nonveg', label: '🍗 Non-Vegetarian' },
+    { value: 'non-veg', label: '🍗 Non-Vegetarian' },
 ];
 
 export default function FoodPlan() {

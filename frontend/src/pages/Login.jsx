@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { loginUser } from '../api/auth';
-import { validateEmail, getEmailValidationStatus } from '../utils/emailValidation';
 import './Auth.css';
 
 export default function Login() {
@@ -10,27 +9,18 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const [emailValidation, setEmailValidation] = useState({ status: 'empty', message: '' });
     const { login } = useAuth();
     const navigate = useNavigate();
 
     const handleEmailChange = (e) => {
         const value = e.target.value;
         setEmail(value);
-        setEmailValidation(getEmailValidationStatus(value));
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        
-        // Validate email format before submitting
-        const emailValidationResult = validateEmail(email);
-        if (!emailValidationResult.isValid) {
-            setError(emailValidationResult.message);
-            return;
-        }
-        
+
         setLoading(true);
         try {
             const data = await loginUser({ email, password });
@@ -52,7 +42,16 @@ export default function Login() {
             </div>
 
             <form className="glass-card auth-form" onSubmit={handleSubmit}>
-                {error && <div className="auth-error">{error}</div>}
+                {error && (
+                    <div className="auth-error" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        {error}
+                    </div>
+                )}
 
                 <div className="input-group">
                     <label htmlFor="login-email">Email</label>
@@ -67,15 +66,6 @@ export default function Login() {
                             required
                         />
                     </div>
-                    {email && (
-                        <div className={`email-validation ${emailValidation.status}`}>
-                            <span className="check">
-                                {emailValidation.status === 'valid' ? '✓' : 
-                                 emailValidation.status === 'invalid' ? '✗' : ''}
-                            </span>
-                            {emailValidation.message}
-                        </div>
-                    )}
                 </div>
 
                 <div className="input-group">

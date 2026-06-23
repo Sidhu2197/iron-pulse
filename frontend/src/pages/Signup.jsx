@@ -25,7 +25,7 @@ export default function Signup() {
     const update = (field) => (e) => {
         const value = e.target.value;
         setForm({ ...form, [field]: value });
-        
+
         // Real-time email validation
         if (field === 'email') {
             setEmailValidation(getEmailValidationStatus(value));
@@ -41,9 +41,9 @@ export default function Signup() {
         special: /[!@#$%^&*(),.?":{}|<>]/.test(pw),
         match: pw.length > 0 && pw === form.confirmPassword,
     };
-    const allValid = Object.values(checks).every(Boolean) && 
-                    form.securityAnswer.trim().length > 0 && 
-                    emailValidation.status === 'valid';
+    const allValid = Object.values(checks).every(Boolean) &&
+        form.securityAnswer.trim().length > 0 &&
+        emailValidation.status === 'valid';
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -105,8 +105,8 @@ export default function Signup() {
                     {form.email && (
                         <div className={`email-validation ${emailValidation.status}`}>
                             <span className="check">
-                                {emailValidation.status === 'valid' ? '✓' : 
-                                 emailValidation.status === 'invalid' ? '✗' : ''}
+                                {emailValidation.status === 'valid' ? '✓' :
+                                    emailValidation.status === 'invalid' ? '✗' : ''}
                             </span>
                             {emailValidation.message}
                         </div>

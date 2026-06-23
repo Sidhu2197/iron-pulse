@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.security.spring_security.Exceptions.MLPredictionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
@@ -16,7 +17,6 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import jakarta.annotation.PostConstruct;
 
@@ -56,14 +56,8 @@ public class MLPredictionService {
         "Running", "Swimming", "Walking", "Weight Training", "Yoga"
     ));
 
-    @Value("${ml.service.cache.ttl:300}")
-    private long cacheTtlSeconds;
-
     @Autowired
     private RestTemplate restTemplate;
-
-    @Autowired
-    private SimpleCacheService cacheService;
 
     private final ObjectMapper objectMapper;
 
@@ -101,8 +95,8 @@ public class MLPredictionService {
     /**
      * Predicts calories burned based on input parameters.
      * 
-     * <p>This method validates input, checks cache, and calls the external ML model.
-     * Results are cached for improved performance.
+     * <p>This method validates input and calls the external ML model.
+     * Results are cached automatically by Caffeine via @Cacheable.
      * 
      * @param input Map containing required prediction parameters:
      *              age (int), gender (int: 0=Female, 1=Male), weight_kg (double),
@@ -112,15 +106,13 @@ public class MLPredictionService {
      * @return Map containing prediction results including calories_burned, calories_per_min, bmi, etc.
      * @throws MLPredictionException if validation fails, ML service is unavailable, or other errors occur
      */
+    @Cacheable(value = "ml-predictions",
+        key = "T(String).format('pred_%s_%s_%s_%s_%s_%s_%s_%s_%s', " +
+              "#input['age'], #input['gender'], #input['weight_kg'], " +
+              "#input['height_cm'], #input['body_fat_pct'], #input['exercise_type'], " +
+              "#input['duration_min'], #input['intensity'], #input['heart_rate'])")
     public Map<String, Object> predictCalories(Map<String, Object> input) throws MLPredictionException {
         try {
-            // Check cache first
-            String cacheKey = cacheService.generatePredictionKey(input);
-            Object cachedResult = cacheService.get(cacheKey);
-            if (cachedResult != null) {
-                return (Map<String, Object>) cachedResult;
-            }
-
             // Validate input parameters according to API spec
             validateInput(input);
 
@@ -140,12 +132,7 @@ public class MLPredictionService {
             );
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                Map<String, Object> result = response.getBody();
-                
-                // Cache the result
-                cacheService.put(cacheKey, result, cacheTtlSeconds, TimeUnit.SECONDS);
-                
-                return result;
+                return response.getBody();
             } else {
                 throw new MLPredictionException(
                     MLPredictionException.ErrorType.ML_SERVICE_ERROR,
@@ -276,10 +263,12 @@ public class MLPredictionService {
 
     /**
      * Retrieves the list of supported exercises from the ML model.
+     * Cached for 60 minutes via Caffeine.
      * 
      * @return Map containing exercise list and MET values from the ML service
      * @throws RuntimeException if unable to retrieve exercises from ML service
      */
+    @Cacheable(value = "exercises")
     public Map<String, Object> getSupportedExercises() {
         try {
             ResponseEntity<Map> response = restTemplate.getForEntity(mlExercisesUrl, Map.class);

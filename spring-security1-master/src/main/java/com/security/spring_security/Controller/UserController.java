@@ -2,6 +2,7 @@ package com.security.spring_security.Controller;
 
 import com.security.spring_security.Model.User;
 import com.security.spring_security.Service.UserService;
+import com.security.spring_security.Config.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -27,6 +28,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -119,8 +123,8 @@ public class UserController {
         // Basic email format validation
         if (email == null || email.isBlank() || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
             response.put("success", false);
-            response.put("message", "Please provide a valid email address");
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+            response.put("message", "Incorrect email or password. Please try again.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
         try {
@@ -133,11 +137,16 @@ public class UserController {
                 User dbUser = userService.findByEmail(email);
                 if (dbUser == null) {
                     response.put("success", false);
-                    response.put("message", "User not found");
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                    response.put("message", "Incorrect email or password. Please try again.");
+                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
                 }
+                
+                // Generate JWT token
+                String token = jwtUtil.generateToken(dbUser.getEmail());
+                
                 response.put("success", true);
                 response.put("message", "Login successful!");
+                response.put("token", token);
                 response.put("username", dbUser.getUsername());
                 response.put("email", dbUser.getEmail());
                 response.put("age", dbUser.getAge());
@@ -146,12 +155,12 @@ public class UserController {
                 return ResponseEntity.ok(response);
             } else {
                 response.put("success", false);
-                response.put("message", "Login failed!");
+                response.put("message", "Incorrect email or password. Please try again.");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
             }
         } catch (BadCredentialsException e) {
             response.put("success", false);
-            response.put("message", "Invalid email or password.");
+            response.put("message", "Incorrect email or password. Please try again.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
     }
