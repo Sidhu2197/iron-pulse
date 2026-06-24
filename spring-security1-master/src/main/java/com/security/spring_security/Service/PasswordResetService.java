@@ -6,7 +6,7 @@ import com.security.spring_security.dao.PasswordResetTokenRepository;
 import com.security.spring_security.dao.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.CacheManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +29,9 @@ public class PasswordResetService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -102,6 +105,11 @@ public class PasswordResetService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepo.save(user);
 
+        // Evict specific user from cache to prevent stale logins
+        if (cacheManager.getCache("users") != null && user.getEmail() != null) {
+            cacheManager.getCache("users").evict(user.getEmail().toLowerCase());
+        }
+
         // Mark token as used
         resetToken.setUsed(true);
         tokenRepo.save(resetToken);
@@ -109,3 +117,8 @@ public class PasswordResetService {
         return null; // null = success
     }
 }
+
+
+
+
+

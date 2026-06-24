@@ -19,7 +19,8 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @CacheEvict(value = "users", allEntries = true)
+    // No cache eviction needed — a newly registered user has no cache entry yet.
+    // Evicting allEntries would unnecessarily wipe every other user's cached data.
     public User register(User user) {
         if (repo.findByEmail(user.getEmail()) != null) {
             throw new RuntimeException("An account with this email already exists.");
