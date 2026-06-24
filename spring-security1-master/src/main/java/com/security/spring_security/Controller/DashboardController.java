@@ -2,6 +2,7 @@ package com.security.spring_security.Controller;
 
 import com.security.spring_security.Model.Meal;
 import com.security.spring_security.Model.User;
+import com.security.spring_security.Model.UserCacheDTO;
 import com.security.spring_security.Model.Workout;
 import com.security.spring_security.Service.MealService;
 import com.security.spring_security.Service.UserService;
@@ -37,7 +38,7 @@ public class DashboardController {
         }
 
         String email = authentication.getName();
-        User user = userService.findByEmail(email);
+        UserCacheDTO user = userService.findByEmail(email);
         if (user == null) {
             response.put("success", false);
             response.put("message", "User not found");
