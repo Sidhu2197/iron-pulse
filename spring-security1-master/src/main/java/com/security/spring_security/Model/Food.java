@@ -5,13 +5,9 @@ import lombok.Data;
 
 import java.io.Serializable;
 
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-
 @Data
 @Entity
 @Table(name = "foods")
-@Cache(usage = CacheConcurrencyStrategy.READ_ONLY)
 public class Food implements Serializable {
 
     private static final long serialVersionUID = 1L;

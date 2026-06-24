@@ -96,7 +96,7 @@ public class MLPredictionService {
      * Predicts calories burned based on input parameters.
      * 
      * <p>This method validates input and calls the external ML model.
-     * Results are cached automatically by Caffeine via @Cacheable.
+     * Results are cached automatically via Redis @Cacheable.
      * 
      * @param input Map containing required prediction parameters:
      *              age (int), gender (int: 0=Female, 1=Male), weight_kg (double),
@@ -263,7 +263,7 @@ public class MLPredictionService {
 
     /**
      * Retrieves the list of supported exercises from the ML model.
-     * Cached for 60 minutes via Caffeine.
+     * Cached for 60 minutes via Redis.
      * 
      * @return Map containing exercise list and MET values from the ML service
      * @throws RuntimeException if unable to retrieve exercises from ML service

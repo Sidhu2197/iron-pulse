@@ -76,6 +76,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/calorie-predictions/predict", "/api/calorie-predictions/health",
                                 "/api/calorie-predictions/exercises", "/api/foods/**")
                         .permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/**.html", "/**.css", "/**.js").permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(authProvider())

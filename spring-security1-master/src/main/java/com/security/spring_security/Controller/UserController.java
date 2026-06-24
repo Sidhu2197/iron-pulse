@@ -1,6 +1,7 @@
 package com.security.spring_security.Controller;
 
 import com.security.spring_security.Model.User;
+import com.security.spring_security.Model.UserCacheDTO;
 import com.security.spring_security.Service.UserService;
 import com.security.spring_security.Config.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -134,7 +135,7 @@ public class UserController {
             );
 
             if (authentication.isAuthenticated()) {
-                User dbUser = userService.findByEmail(email);
+                User dbUser = userService.findUserEntityByEmail(email);
                 if (dbUser == null) {
                     response.put("success", false);
                     response.put("message", "Incorrect email or password. Please try again.");
@@ -175,7 +176,7 @@ public class UserController {
         }
         // authentication.getName() returns email (since MyUserDetailsService loads by email)
         String email = authentication.getName();
-        User user = userService.findByEmail(email);
+        UserCacheDTO user = userService.findByEmail(email);
         if (user == null) {
             response.put("success", false);
             response.put("message", "User not found");
@@ -208,14 +209,17 @@ public class UserController {
                     ? ((Number) body.get("height")).doubleValue() : 0;
             double weight = body.containsKey("weight") && body.get("weight") != null
                     ? ((Number) body.get("weight")).doubleValue() : 0;
-            User updated = userService.updateProfile(email, username, age, height, weight);
+            User updated = userService.findUserEntityByEmail(email);
+            if (updated == null) throw new RuntimeException("User not found");
+            UserCacheDTO updatedDto = userService.updateProfile(email,
+                    username, age, height, weight);
             response.put("success", true);
             response.put("message", "Profile updated successfully!");
-            response.put("username", updated.getUsername());
-            response.put("email", updated.getEmail());
-            response.put("age", updated.getAge());
-            response.put("height", updated.getHeight());
-            response.put("weight", updated.getWeight());
+            response.put("username", updatedDto.getUsername());
+            response.put("email", updatedDto.getEmail());
+            response.put("age", updatedDto.getAge());
+            response.put("height", updatedDto.getHeight());
+            response.put("weight", updatedDto.getWeight());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);

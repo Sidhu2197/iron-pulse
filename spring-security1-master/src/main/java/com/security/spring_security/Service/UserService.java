@@ -1,6 +1,7 @@
 package com.security.spring_security.Service;
 
 import com.security.spring_security.Model.User;
+import com.security.spring_security.Model.UserCacheDTO;
 import com.security.spring_security.dao.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -37,8 +38,21 @@ public class UserService {
         return repo.findByUsername(username);
     }
 
-    @Cacheable(value = "users", key = "#email")
-    public User findByEmail(String email) {
+    /**
+     * Returns a cached UserCacheDTO (no sensitive fields).
+     * Email keys are normalized to lowercase for consistency.
+     */
+    @Cacheable(value = "users", key = "#email.toLowerCase()")
+    public UserCacheDTO findByEmail(String email) {
+        User user = repo.findByEmail(email);
+        return user != null ? new UserCacheDTO(user) : null;
+    }
+
+    /**
+     * Returns the full User entity directly from the database (uncached).
+     * Use this for operations that need sensitive fields (authentication, security answer verification).
+     */
+    public User findUserEntityByEmail(String email) {
         return repo.findByEmail(email);
     }
 
@@ -55,7 +69,7 @@ public class UserService {
                 && passwordEncoder.matches(answer.trim().toLowerCase(), user.getSecurityAnswer());
     }
 
-    @CacheEvict(value = "users", key = "#email")
+    @CacheEvict(value = "users", key = "#email.toLowerCase()")
     public boolean resetPassword(String email, String securityAnswer, String newPassword) {
         User user = repo.findByEmail(email);
         if (user == null) return false;
@@ -65,16 +79,15 @@ public class UserService {
         return true;
     }
 
-    @CachePut(value = "users", key = "#email")
-    public User updateProfile(String email, String username, int age, double height, double weight) {
+    @CachePut(value = "users", key = "#email.toLowerCase()")
+    public UserCacheDTO updateProfile(String email, String username, int age, double height, double weight) {
         User user = repo.findByEmail(email);
         if (user == null) throw new RuntimeException("User not found");
         if (username != null && !username.isBlank()) user.setUsername(username);
         if (age > 0) user.setAge(age);
         if (height > 0) user.setHeight(height);
         if (weight > 0) user.setWeight(weight);
-        return repo.save(user);
+        User saved = repo.save(user);
+        return new UserCacheDTO(saved);
     }
 }
-
-
