@@ -14,21 +14,22 @@ import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.Map;
 import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import jakarta.annotation.PostConstruct;
 
 /**
- * Service for handling ML model predictions and communication with external ML service.
+ * Service for handling ML model predictions and communication with external ML
+ * service.
  * 
- * <p>This service provides integration with the calorie prediction ML model, including:
+ * <p>
+ * This service provides integration with the calorie prediction ML model,
+ * including:
  * <ul>
- *   <li>Prediction requests with input validation</li>
- *   <li>Health check monitoring</li>
- *   <li>Dynamic exercise type synchronization</li>
- *   <li>Result caching for performance optimization</li>
+ * <li>Prediction requests with input validation</li>
+ * <li>Health check monitoring</li>
+ * <li>Dynamic exercise type synchronization</li>
+ * <li>Result caching for performance optimization</li>
  * </ul>
  * 
  * @author System
@@ -50,11 +51,11 @@ public class MLPredictionService {
     private String mlModelUrl;
     private String mlHealthUrl;
     private String mlExercisesUrl;
-    
-    private final List<String> VALID_EXERCISES = new ArrayList<>(Arrays.asList(
+
+    private volatile List<String> validExercises = List.of(
         "Cycling", "Elliptical", "HIIT", "Jump Rope", "Rowing", 
         "Running", "Swimming", "Walking", "Weight Training", "Yoga"
-    ));
+    );
 
     @Autowired
     private RestTemplate restTemplate;
@@ -70,20 +71,22 @@ public class MLPredictionService {
         this.mlModelUrl = mlServiceBaseUrl + "/predict";
         this.mlHealthUrl = mlServiceBaseUrl + "/health";
         this.mlExercisesUrl = mlServiceBaseUrl + "/exercises";
-        
+
         // Initialize with default exercises, will be updated dynamically
         updateExerciseList();
     }
 
     private void updateExerciseList() {
         try {
-            Map<String, Object> exercisesData = getSupportedExercises();
-            if (exercisesData != null && exercisesData.containsKey("exercises")) {
-                @SuppressWarnings("unchecked")
-                List<String> dynamicExercises = (List<String>) exercisesData.get("exercises");
-                if (dynamicExercises != null && !dynamicExercises.isEmpty()) {
-                    VALID_EXERCISES.clear();
-                    VALID_EXERCISES.addAll(dynamicExercises);
+            ResponseEntity<Map> response = restTemplate.getForEntity(mlExercisesUrl, Map.class);
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                Map<String, Object> exercisesData = response.getBody();
+                if (exercisesData.containsKey("exercises")) {
+                    @SuppressWarnings("unchecked")
+                    List<String> dynamicExercises = (List<String>) exercisesData.get("exercises");
+                    if (dynamicExercises != null && !dynamicExercises.isEmpty()) {
+                        this.validExercises = List.copyOf(dynamicExercises);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -95,22 +98,25 @@ public class MLPredictionService {
     /**
      * Predicts calories burned based on input parameters.
      * 
-     * <p>This method validates input and calls the external ML model.
+     * <p>
+     * This method validates input and calls the external ML model.
      * Results are cached automatically via Redis @Cacheable.
      * 
      * @param input Map containing required prediction parameters:
      *              age (int), gender (int: 0=Female, 1=Male), weight_kg (double),
-     *              height_cm (double), body_fat_pct (double), exercise_type (String),
+     *              height_cm (double), body_fat_pct (double), exercise_type
+     *              (String),
      *              duration_min (int), intensity (int: 1=Low, 2=Medium, 3=High),
      *              heart_rate (int)
-     * @return Map containing prediction results including calories_burned, calories_per_min, bmi, etc.
-     * @throws MLPredictionException if validation fails, ML service is unavailable, or other errors occur
+     * @return Map containing prediction results including calories_burned,
+     *         calories_per_min, bmi, etc.
+     * @throws MLPredictionException if validation fails, ML service is unavailable,
+     *                               or other errors occur
      */
-    @Cacheable(value = "ml-predictions",
-        key = "T(String).format('pred_%s_%s_%s_%s_%s_%s_%s_%s_%s', " +
-              "#input['age'], #input['gender'], #input['weight_kg'], " +
-              "#input['height_cm'], #input['body_fat_pct'], #input['exercise_type'], " +
-              "#input['duration_min'], #input['intensity'], #input['heart_rate'])")
+    @Cacheable(value = "ml-predictions", key = "T(String).format('pred_%s_%s_%s_%s_%s_%s_%s_%s_%s', " +
+            "#input['age'], #input['gender'], #input['weight_kg'], " +
+            "#input['height_cm'], #input['body_fat_pct'], #input['exercise_type'], " +
+            "#input['duration_min'], #input['intensity'], #input['heart_rate'])")
     public Map<String, Object> predictCalories(Map<String, Object> input) throws MLPredictionException {
         try {
             // Validate input parameters according to API spec
@@ -125,60 +131,54 @@ public class MLPredictionService {
 
             // Call ML model with improved error handling
             ResponseEntity<Map> response = restTemplate.exchange(
-                mlModelUrl,
-                HttpMethod.POST,
-                requestEntity,
-                Map.class
-            );
+                    mlModelUrl,
+                    HttpMethod.POST,
+                    requestEntity,
+                    Map.class);
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
                 return response.getBody();
             } else {
                 throw new MLPredictionException(
-                    MLPredictionException.ErrorType.ML_SERVICE_ERROR,
-                    "ML model returned invalid response with status: " + response.getStatusCode()
-                );
+                        MLPredictionException.ErrorType.ML_SERVICE_ERROR,
+                        "ML model returned invalid response with status: " + response.getStatusCode());
             }
 
         } catch (IllegalArgumentException e) {
             throw new MLPredictionException(
-                MLPredictionException.ErrorType.VALIDATION_ERROR,
-                "Invalid input: " + e.getMessage(),
-                e
-            );
+                    MLPredictionException.ErrorType.VALIDATION_ERROR,
+                    "Invalid input: " + e.getMessage(),
+                    e);
         } catch (HttpClientErrorException e) {
             throw new MLPredictionException(
-                MLPredictionException.ErrorType.VALIDATION_ERROR,
-                "ML service rejected input: " + e.getResponseBodyAsString(),
-                e
-            );
+                    MLPredictionException.ErrorType.VALIDATION_ERROR,
+                    "ML service rejected input: " + e.getResponseBodyAsString(),
+                    e);
         } catch (HttpServerErrorException e) {
             throw new MLPredictionException(
-                MLPredictionException.ErrorType.ML_SERVICE_ERROR,
-                "ML service error: " + e.getResponseBodyAsString(),
-                e
-            );
+                    MLPredictionException.ErrorType.ML_SERVICE_ERROR,
+                    "ML service error: " + e.getResponseBodyAsString(),
+                    e);
         } catch (ResourceAccessException e) {
             throw new MLPredictionException(
-                MLPredictionException.ErrorType.NETWORK_ERROR,
-                "Network connectivity issue: " + e.getMessage(),
-                e
-            );
+                    MLPredictionException.ErrorType.NETWORK_ERROR,
+                    "Network connectivity issue: " + e.getMessage(),
+                    e);
         } catch (MLPredictionException e) {
             throw e;
         } catch (Exception e) {
             throw new MLPredictionException(
-                MLPredictionException.ErrorType.UNKNOWN_ERROR,
-                "Unexpected error during ML prediction: " + e.getMessage(),
-                e
-            );
+                    MLPredictionException.ErrorType.UNKNOWN_ERROR,
+                    "Unexpected error during ML prediction: " + e.getMessage(),
+                    e);
         }
     }
 
     private void validateInput(Map<String, Object> input) {
         // Check all required fields according to API spec
-        String[] requiredFields = {"age", "gender", "weight_kg", "height_cm", "body_fat_pct", "exercise_type", "duration_min", "intensity", "heart_rate"};
-        
+        String[] requiredFields = { "age", "gender", "weight_kg", "height_cm", "body_fat_pct", "exercise_type",
+                "duration_min", "intensity", "heart_rate" };
+
         for (String field : requiredFields) {
             if (!input.containsKey(field) || input.get(field) == null) {
                 throw new IllegalArgumentException("Missing required field: " + field);
@@ -241,9 +241,9 @@ public class MLPredictionService {
 
         // Validate exercise type against API's supported exercises
         String exerciseType = (String) input.get("exercise_type");
-        if (!VALID_EXERCISES.contains(exerciseType)) {
+        if (!validExercises.contains(exerciseType)) {
             throw new IllegalArgumentException("Invalid exercise type: " + exerciseType + 
-                ". Valid types are: " + String.join(", ", VALID_EXERCISES));
+                ". Valid types are: " + String.join(", ", validExercises));
         }
     }
 
