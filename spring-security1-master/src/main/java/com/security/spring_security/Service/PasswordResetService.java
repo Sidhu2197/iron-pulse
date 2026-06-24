@@ -73,7 +73,6 @@ public class PasswordResetService {
      * Returns error message on failure, null on success.
      */
     @Transactional
-    @CacheEvict(value = "users", allEntries = true)
     public String resetPassword(String token, String newPassword) {
         Optional<PasswordResetToken> optionalToken = tokenRepo.findByToken(token);
 
