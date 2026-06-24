@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.security.spring_security.Exceptions.MLPredictionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -60,6 +61,10 @@ public class MLPredictionService {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    @Lazy
+    private MLPredictionService self;
+
     private final ObjectMapper objectMapper;
 
     public MLPredictionService() {
@@ -72,26 +77,18 @@ public class MLPredictionService {
         this.mlHealthUrl = mlServiceBaseUrl + "/health";
         this.mlExercisesUrl = mlServiceBaseUrl + "/exercises";
 
-        // Initialize with default exercises, will be updated dynamically
-        updateExerciseList();
-    }
-
-    private void updateExerciseList() {
+        // Call via self-proxy to trigger @Cacheable and warm the Redis cache
         try {
-            ResponseEntity<Map> response = restTemplate.getForEntity(mlExercisesUrl, Map.class);
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                Map<String, Object> exercisesData = response.getBody();
-                if (exercisesData.containsKey("exercises")) {
-                    @SuppressWarnings("unchecked")
-                    List<String> dynamicExercises = (List<String>) exercisesData.get("exercises");
-                    if (dynamicExercises != null && !dynamicExercises.isEmpty()) {
-                        this.validExercises = List.copyOf(dynamicExercises);
-                    }
+            Map<String, Object> exercisesData = self.getSupportedExercises();
+            if (exercisesData != null && exercisesData.containsKey("exercises")) {
+                @SuppressWarnings("unchecked")
+                List<String> dynamicExercises = (List<String>) exercisesData.get("exercises");
+                if (dynamicExercises != null && !dynamicExercises.isEmpty()) {
+                    this.validExercises = List.copyOf(dynamicExercises);
                 }
             }
         } catch (Exception e) {
-            // Keep default exercises if dynamic update fails
-            System.err.println("Failed to update exercise list from ML model: " + e.getMessage());
+            System.err.println("Failed to warm exercise cache at startup: " + e.getMessage());
         }
     }
 
