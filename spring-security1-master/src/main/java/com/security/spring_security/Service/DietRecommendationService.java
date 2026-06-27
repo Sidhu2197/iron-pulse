@@ -2,6 +2,7 @@ package com.security.spring_security.Service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.ResourceAccessException;
@@ -43,6 +44,10 @@ public class DietRecommendationService {
      * Frontend expects: { items: [{ food_name, calories, protein, fats, serving }], total_calories, total_protein, total_fats }
      */
     @SuppressWarnings("unchecked")
+    @Cacheable(value = "diet-recommendations",
+        key = "T(String).format('diet_%s_%s_%s_%s_%s_%s_%s', " +
+              "#input['age'], #input['gender'], #input['weight'], " +
+              "#input['height'], #input['goal'], #input['meal_type'], #input['diet_type'])")
     public Map<String, Object> generateFoodPlan(Map<String, Object> input) {
         // Validate required fields
         validateInput(input);

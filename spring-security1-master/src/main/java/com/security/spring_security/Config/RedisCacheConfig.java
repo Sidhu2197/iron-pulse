@@ -45,6 +45,7 @@ public class RedisCacheConfig implements CachingConfigurer {
         cacheConfigs.put("foods", defaultConfig.entryTtl(Duration.ofMinutes(30)));
         cacheConfigs.put("ml-predictions", defaultConfig.entryTtl(Duration.ofMinutes(5)));
         cacheConfigs.put("exercises", defaultConfig.entryTtl(Duration.ofMinutes(60)));
+        cacheConfigs.put("diet-recommendations", defaultConfig.entryTtl(Duration.ofMinutes(30)));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)
