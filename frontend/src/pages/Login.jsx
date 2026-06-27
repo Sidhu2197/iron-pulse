@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { loginUser } from '../api/auth';
 import './Auth.css';
+import PageReveal from '../components/PageReveal';
+import { Flame, Lock, Mail } from 'lucide-react';
 
 export default function Login() {
     const [email, setEmail] = useState('');
@@ -34,9 +36,9 @@ export default function Login() {
     };
 
     return (
-        <div className="auth-page">
+        <PageReveal className="auth-page">
             <div className="auth-header">
-                <div className="auth-icon">🔥</div>
+                <div className="auth-icon" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}><Flame size={20} /></div>
                 <h1>Welcome Back</h1>
                 <p>Log in to continue your fitness journey</p>
             </div>
@@ -56,7 +58,7 @@ export default function Login() {
                 <div className="input-group">
                     <label htmlFor="login-email">Email</label>
                     <div className="input-field">
-                        <span className="icon">✉</span>
+                        <span className="icon"><Mail size={20} /></span>
                         <input
                             id="login-email"
                             type="email"
@@ -71,7 +73,7 @@ export default function Login() {
                 <div className="input-group">
                     <label htmlFor="login-password">Password</label>
                     <div className="input-field">
-                        <span className="icon">🔒</span>
+                        <span className="icon"><Lock size={20} /></span>
                         <input
                             id="login-password"
                             type="password"
@@ -94,6 +96,6 @@ export default function Login() {
                     Don't have an account? <Link to="/signup">Sign Up</Link>
                 </p>
             </form>
-        </div>
+        </PageReveal>
     );
 }

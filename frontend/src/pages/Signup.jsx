@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { signupUser } from '../api/auth';
 import { validateEmail, getEmailValidationStatus } from '../utils/emailValidation';
 import './Auth.css';
+import PageReveal from '../components/PageReveal';
+import { Lock, User, Cake, Key, CircleHelp, Flame, Mail } from 'lucide-react';
 
 const SECURITY_QUESTIONS = [
     'What is your pet\'s name?',
@@ -75,9 +77,9 @@ export default function Signup() {
     };
 
     return (
-        <div className="auth-page">
+        <PageReveal className="auth-page">
             <div className="auth-header">
-                <div className="auth-icon">🔥</div>
+                <div className="auth-icon" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}><Flame size={20} /></div>
                 <h1>Create Account</h1>
                 <p>Join thousands achieving their fitness goals</p>
             </div>
@@ -89,7 +91,7 @@ export default function Signup() {
                 <div className="input-group">
                     <label htmlFor="signup-username">Username</label>
                     <div className="input-field">
-                        <span className="icon">👤</span>
+                        <span className="icon"><User size={20} /></span>
                         <input id="signup-username" type="text" placeholder="johndoe"
                             value={form.username} onChange={update('username')} required />
                     </div>
@@ -98,7 +100,7 @@ export default function Signup() {
                 <div className="input-group">
                     <label htmlFor="signup-email">Email</label>
                     <div className="input-field">
-                        <span className="icon">✉</span>
+                        <span className="icon"><Mail size={20} /></span>
                         <input id="signup-email" type="email" placeholder="you@example.com"
                             value={form.email} onChange={update('email')} required />
                     </div>
@@ -116,7 +118,7 @@ export default function Signup() {
                 <div className="input-group">
                     <label htmlFor="signup-age">Age</label>
                     <div className="input-field">
-                        <span className="icon">🎂</span>
+                        <span className="icon"><Cake size={20} /></span>
                         <input id="signup-age" type="number" placeholder="25" min="10" max="120"
                             value={form.age} onChange={update('age')} required />
                     </div>
@@ -125,7 +127,7 @@ export default function Signup() {
                 <div className="input-group">
                     <label htmlFor="signup-password">Password</label>
                     <div className="input-field">
-                        <span className="icon">🔒</span>
+                        <span className="icon"><Lock size={20} /></span>
                         <input id="signup-password" type="password" placeholder="••••••••"
                             value={form.password} onChange={update('password')} required />
                     </div>
@@ -150,7 +152,7 @@ export default function Signup() {
                 <div className="input-group">
                     <label htmlFor="signup-confirm">Confirm Password</label>
                     <div className="input-field">
-                        <span className="icon">🔒</span>
+                        <span className="icon"><Lock size={20} /></span>
                         <input id="signup-confirm" type="password" placeholder="••••••••"
                             value={form.confirmPassword} onChange={update('confirmPassword')} required />
                     </div>
@@ -164,7 +166,7 @@ export default function Signup() {
                     <div className="input-group">
                         <label htmlFor="signup-security-q">Security Question</label>
                         <div className="input-field">
-                            <span className="icon">❓</span>
+                            <span className="icon"><CircleHelp size={20} /></span>
                             <select id="signup-security-q" value={form.securityQuestion}
                                 onChange={update('securityQuestion')}
                                 style={{ background: 'transparent', border: 'none', color: 'inherit', width: '100%', outline: 'none', fontSize: 'inherit' }}>
@@ -178,7 +180,7 @@ export default function Signup() {
                     <div className="input-group">
                         <label htmlFor="signup-security-a">Security Answer</label>
                         <div className="input-field">
-                            <span className="icon">🔑</span>
+                            <span className="icon"><Key size={20} /></span>
                             <input id="signup-security-a" type="text" placeholder="Your answer"
                                 value={form.securityAnswer} onChange={update('securityAnswer')} required />
                         </div>
@@ -194,6 +196,6 @@ export default function Signup() {
                     Already have an account? <Link to="/login">Log In</Link>
                 </p>
             </form>
-        </div>
+        </PageReveal>
     );
 }

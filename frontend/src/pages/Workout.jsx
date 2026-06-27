@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { logWorkout, generateWorkoutPlan } from '../api/auth';
+import PageReveal from '../components/PageReveal';
 import './Workout.css';
+import { Dumbbell, Timer, Ruler, User, Activity, Scale, Cake, Flame, Calendar, BarChart2 } from 'lucide-react';
 
 const TABS = ['Live Posture', 'Suggested Plan', 'Log Workout'];
 
@@ -18,11 +20,11 @@ const EQUIPMENT_OPTIONS = [
 ];
 
 const GOAL_OPTIONS = [
-    { value: 'fat_loss', label: '🔥 Fat Loss' },
+    { value: 'fat_loss', label: '<Flame size={20} /> Fat Loss' },
     { value: 'muscle_gain', label: '💪 Muscle Gain' },
-    { value: 'strength', label: '🏋️ Strength' },
+    { value: 'strength', label: '<Dumbbell size={20} /> Strength' },
     { value: 'endurance', label: '🫁 Endurance' },
-    { value: 'general_fitness', label: '🏃 General Fitness' },
+    { value: 'general_fitness', label: '<Activity size={20} /> General Fitness' },
 ];
 
 const GENDER_OPTIONS = [
@@ -33,7 +35,7 @@ const GENDER_OPTIONS = [
 const FITNESS_LEVEL_OPTIONS = [
     { value: 'beginner', label: '🌱 Beginner' },
     { value: 'intermediate', label: '⚡ Intermediate' },
-    { value: 'advanced', label: '🔥 Advanced' },
+    { value: 'advanced', label: '<Flame size={20} /> Advanced' },
 ];
 
 const DAYS_OPTIONS = [1, 2, 3, 4, 5, 6, 7];
@@ -48,15 +50,15 @@ const DURATION_OPTIONS = [
 ];
 
 const WIZARD_STEPS = [
-    { key: 'age', label: 'How old are you?', icon: '🎂' },
-    { key: 'weight', label: 'What\'s your weight?', icon: '⚖️' },
-    { key: 'height', label: 'What\'s your height?', icon: '📏' },
-    { key: 'gender', label: 'What\'s your gender?', icon: '👤' },
-    { key: 'fitnessLevel', label: 'What\'s your fitness level?', icon: '📊' },
-    { key: 'equipment', label: 'What equipment do you have?', icon: '🏋️' },
+    { key: 'age', label: 'How old are you?', icon: '<Cake size={20} />' },
+    { key: 'weight', label: 'What\'s your weight?', icon: '<Scale size={20} />' },
+    { key: 'height', label: 'What\'s your height?', icon: '<Ruler size={20} />' },
+    { key: 'gender', label: 'What\'s your gender?', icon: '<User size={20} />' },
+    { key: 'fitnessLevel', label: 'What\'s your fitness level?', icon: '<BarChart2 size={20} />' },
+    { key: 'equipment', label: 'What equipment do you have?', icon: '<Dumbbell size={20} />' },
     { key: 'goal', label: 'What\'s your fitness goal?', icon: '🎯' },
-    { key: 'daysPerWeek', label: 'How many days per week?', icon: '📅' },
-    { key: 'duration', label: 'Preferred workout duration?', icon: '⏱️' },
+    { key: 'daysPerWeek', label: 'How many days per week?', icon: '<Calendar size={20} />' },
+    { key: 'duration', label: 'Preferred workout duration?', icon: '<Timer size={20} />️' },
 ];
 
 export default function Workout() {
@@ -362,7 +364,7 @@ export default function Workout() {
     };
 
     return (
-        <div className="workout-page">
+        <PageReveal className="workout-page">
             <h1>Workout</h1>
             <p className="subtitle">Track exercises and check your form in real-time</p>
 
@@ -541,7 +543,7 @@ export default function Workout() {
                             <div className="input-group">
                                 <label>Workout Name</label>
                                 <div className="input-field">
-                                    <span className="icon">🏋️</span>
+                                    <span className="icon"><Dumbbell size={20} /></span>
                                     <input type="text" placeholder="e.g. Morning Run" value={logForm.workout_name}
                                         onChange={updateLog('workout_name')} required />
                                 </div>
@@ -549,7 +551,7 @@ export default function Workout() {
                             <div className="input-group">
                                 <label>Duration (minutes)</label>
                                 <div className="input-field">
-                                    <span className="icon">⏱</span>
+                                    <span className="icon"><Timer size={20} /></span>
                                     <input type="number" placeholder="30" value={logForm.duration}
                                         onChange={updateLog('duration')} required min="1" />
                                 </div>
@@ -557,7 +559,7 @@ export default function Workout() {
                             <div className="input-group">
                                 <label>Calories Burned</label>
                                 <div className="input-field">
-                                    <span className="icon">🔥</span>
+                                    <span className="icon"><Flame size={20} /></span>
                                     <input type="number" placeholder="250" value={logForm.calories_burned}
                                         onChange={updateLog('calories_burned')} required min="1" />
                                 </div>
@@ -565,7 +567,7 @@ export default function Workout() {
                             <div className="input-group">
                                 <label>Date</label>
                                 <div className="input-field">
-                                    <span className="icon">📅</span>
+                                    <span className="icon"><Calendar size={20} /></span>
                                     <input type="date" value={logForm.date} onChange={updateLog('date')} />
                                 </div>
                             </div>
@@ -578,6 +580,6 @@ export default function Workout() {
                     </div>
                 )}
             </div>
-        </div>
+        </PageReveal>
     );
 }

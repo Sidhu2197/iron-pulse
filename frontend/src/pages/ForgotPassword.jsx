@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { validateEmail, getEmailValidationStatus } from '../utils/emailValidation';
 import './Auth.css';
+import { Timer, Mail, Key } from 'lucide-react';
 
 const API_BASE = '/api';
 
@@ -52,7 +53,7 @@ export default function ForgotPassword() {
         return (
             <div className="auth-page">
                 <div className="auth-header">
-                    <div className="auth-icon inbox-icon">✉️</div>
+                    <div className="auth-icon inbox-icon"><Mail size={20} />️</div>
                     <h1>Check Your Inbox</h1>
                     <p>We've sent a password reset link to</p>
                 </div>
@@ -61,7 +62,7 @@ export default function ForgotPassword() {
                     <div className="inbox-email">{email}</div>
                     <div className="inbox-info">
                         <div className="inbox-info-item">
-                            <span className="inbox-info-icon">⏱</span>
+                            <span className="inbox-info-icon"><Timer size={20} /></span>
                             <span>Link expires in <strong>30 minutes</strong></span>
                         </div>
                         <div className="inbox-info-item">
@@ -86,7 +87,7 @@ export default function ForgotPassword() {
     return (
         <div className="auth-page">
             <div className="auth-header">
-                <div className="auth-icon">🔑</div>
+                <div className="auth-icon" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}><Key size={20} /></div>
                 <h1>Reset Password</h1>
                 <p>Enter your email to receive a reset link</p>
             </div>
@@ -97,7 +98,7 @@ export default function ForgotPassword() {
                 <div className="input-group">
                     <label htmlFor="fp-email">Email</label>
                     <div className="input-field">
-                        <span className="icon">✉</span>
+                        <span className="icon"><Mail size={20} /></span>
                         <input
                             id="fp-email"
                             type="email"

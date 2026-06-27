@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom';
 import './Landing.css';
+import PageReveal from '../components/PageReveal';
+import { Flame } from 'lucide-react';
 
 export default function Landing() {
     return (
-        <div className="landing">
+        <PageReveal className="landing">
             <section className="landing-hero">
                 <div className="hero-badge">
-                    <span className="badge-icon">🔥</span>
+                    <span className="badge-icon"><Flame size={20} /></span>
                     AI-Powered Fitness Companion
                 </div>
 
@@ -55,6 +57,6 @@ export default function Landing() {
                     <p>Stay consistent with daily workout streaks and progress tracking.</p>
                 </div>
             </section>
-        </div>
+        </PageReveal>
     );
 }

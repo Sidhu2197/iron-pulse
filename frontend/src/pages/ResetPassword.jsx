@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import './Auth.css';
+import { Lock } from 'lucide-react';
 
 const API_BASE = '/api';
 
@@ -56,7 +57,7 @@ export default function ResetPassword() {
     return (
         <div className="auth-page">
             <div className="auth-header">
-                <div className="auth-icon">🔒</div>
+                <div className="auth-icon" style={{ display: "flex", justifyContent: "center", alignItems: "center" }}><Lock size={20} /></div>
                 <h1>Set New Password</h1>
                 <p>Create a strong password for your account</p>
             </div>
@@ -85,7 +86,7 @@ export default function ResetPassword() {
                 <div className="input-group">
                     <label htmlFor="rp-new-pw">New Password</label>
                     <div className="input-field">
-                        <span className="icon">🔒</span>
+                        <span className="icon"><Lock size={20} /></span>
                         <input
                             id="rp-new-pw"
                             type="password"
@@ -117,7 +118,7 @@ export default function ResetPassword() {
                 <div className="input-group">
                     <label htmlFor="rp-confirm-pw">Confirm Password</label>
                     <div className="input-field">
-                        <span className="icon">🔒</span>
+                        <span className="icon"><Lock size={20} /></span>
                         <input
                             id="rp-confirm-pw"
                             type="password"

@@ -27,7 +27,7 @@
 /* Stat Cards Row */
 .stat-cards {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--space-lg);
     margin-bottom: var(--space-xl);
 }
@@ -81,7 +81,7 @@
 /* Chart Row */
 .chart-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: var(--space-lg);
 }
 
