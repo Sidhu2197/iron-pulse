@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import './BMICalculator.css';
+import PageReveal from '../components/PageReveal';
+import { Ruler, User, Scale, Cake, BarChart2 } from 'lucide-react';
 
 const BMI_CATEGORIES = [
     { max: 18.5, label: 'Underweight', color: '#60a5fa', emoji: '🔵', advice: 'Consider a calorie-surplus diet with strength training.' },
@@ -40,19 +42,19 @@ export default function BMICalculator() {
     const gaugePercent = result ? Math.min(Math.max(((parseFloat(result.bmi) - 10) / 30) * 100, 0), 100) : 0;
 
     return (
-        <div className="bmi-page">
+        <PageReveal className="bmi-page">
             <h1>BMI Calculator</h1>
             <p className="subtitle">Calculate your Body Mass Index</p>
 
             <div className="bmi-layout">
                 {/* Form Card */}
                 <div className="glass-card bmi-form-card">
-                    <h3>📊 Enter Your Details</h3>
+                    <h3><BarChart2 size={20} /> Enter Your Details</h3>
                     <form onSubmit={handleCalculate}>
                         <div className="input-group">
                             <label htmlFor="bmi-age">Age</label>
                             <div className="input-field">
-                                <span className="icon">🎂</span>
+                                <span className="icon"><Cake size={20} /></span>
                                 <input id="bmi-age" type="number" placeholder="25"
                                     value={form.age} onChange={update('age')} min="1" max="120" required />
                                 <span className="bmi-unit">years</span>
@@ -62,7 +64,7 @@ export default function BMICalculator() {
                         <div className="input-group">
                             <label htmlFor="bmi-gender">Gender</label>
                             <div className="input-field">
-                                <span className="icon">👤</span>
+                                <span className="icon"><User size={20} /></span>
                                 <select id="bmi-gender" value={form.gender} onChange={update('gender')} required>
                                     <option value="" disabled>Select gender</option>
                                     <option value="male">Male</option>
@@ -74,7 +76,7 @@ export default function BMICalculator() {
                         <div className="input-group">
                             <label htmlFor="bmi-height">Height</label>
                             <div className="input-field">
-                                <span className="icon">📏</span>
+                                <span className="icon"><Ruler size={20} /></span>
                                 <input id="bmi-height" type="number" placeholder="175"
                                     value={form.height} onChange={update('height')} min="1" required />
                                 <span className="bmi-unit">cm</span>
@@ -84,7 +86,7 @@ export default function BMICalculator() {
                         <div className="input-group">
                             <label htmlFor="bmi-weight">Weight</label>
                             <div className="input-field">
-                                <span className="icon">⚖️</span>
+                                <span className="icon"><Scale size={20} /></span>
                                 <input id="bmi-weight" type="number" placeholder="70"
                                     value={form.weight} onChange={update('weight')} min="1" required />
                                 <span className="bmi-unit">kg</span>
@@ -108,7 +110,7 @@ export default function BMICalculator() {
                 <div className="glass-card bmi-result-card">
                     {!result ? (
                         <div className="bmi-empty">
-                            <div className="bmi-empty-icon">⚖️</div>
+                            <div className="bmi-empty-icon"><Scale size={20} /></div>
                             <p>Fill in your details and click <span className="accent">"Calculate BMI"</span> to see your result</p>
                         </div>
                     ) : (
@@ -158,6 +160,7 @@ export default function BMICalculator() {
                     )}
                 </div>
             </div>
-        </div>
+        </PageReveal>
     );
 }
+

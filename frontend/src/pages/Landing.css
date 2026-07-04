@@ -41,7 +41,10 @@
 }
 
 .hero-title .accent {
-    color: var(--text-accent);
+    background: var(--gradient-hero-text);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
     font-style: italic;
 }
 

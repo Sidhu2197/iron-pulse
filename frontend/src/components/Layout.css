@@ -1,19 +1,20 @@
-.layout {
+.layout-wrapper {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background: #000000;
 }
 
-.layout-content {
+.layout-main {
     flex: 1;
-    padding: var(--space-xl) var(--space-xl);
-    max-width: 1200px;
+    padding: 80px 32px 32px;
+    max-width: 1400px;
     width: 100%;
     margin: 0 auto;
 }
 
 @media (max-width: 768px) {
-    .layout-content {
-        padding: var(--space-md);
+    .layout-main {
+        padding: 72px 16px 16px;
     }
 }

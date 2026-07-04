@@ -2,19 +2,20 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { searchFoods, logMeal, fetchMeals, fetchMealSummary, generateFoodPlan } from '../api/auth';
 import './FoodPlan.css';
+import { Search, Ruler, User, Scale, Cake, Flame } from 'lucide-react';
 
 const FOOD_WIZARD_STEPS = [
-    { key: 'age', label: 'How old are you?', icon: '🎂' },
-    { key: 'gender', label: 'What\'s your gender?', icon: '👤' },
-    { key: 'height', label: 'What\'s your height?', icon: '📏' },
-    { key: 'weight', label: 'What\'s your weight?', icon: '⚖️' },
+    { key: 'age', label: 'How old are you?', icon: <Cake size={20} /> },
+    { key: 'gender', label: 'What\'s your gender?', icon: <User size={20} /> },
+    { key: 'height', label: 'What\'s your height?', icon: <Ruler size={20} /> },
+    { key: 'weight', label: 'What\'s your weight?', icon: <Scale size={20} /> },
     { key: 'goal', label: 'What\'s your goal?', icon: '🎯' },
     { key: 'mealType', label: 'Which meal?', icon: '🍽️' },
     { key: 'dietType', label: 'Diet preference?', icon: '🥗' },
 ];
 
 const FOOD_GOAL_OPTIONS = [
-    { value: 'fat_loss', label: '🔥 Fat Loss' },
+    { value: 'fat_loss', label: '<Flame size={20} /> Fat Loss' },
     { value: 'muscle_gain', label: '💪 Muscle Gain' },
 ];
 
@@ -270,7 +271,7 @@ export default function FoodPlan() {
             <div className="macro-cards">
                 <div className="glass-card macro-card">
                     <div className="macro-card-header">
-                        <span className="macro-label">🔥 Calories</span>
+                        <span className="macro-label"><Flame size={20} /> Calories</span>
                         <span className="macro-value">{cal.current} / {cal.target}</span>
                     </div>
                     <div className="macro-bar">
@@ -410,9 +411,9 @@ export default function FoodPlan() {
                 {errorMsg && <div className="food-error">{errorMsg}</div>}
                 <div className="log-food-methods">
                     <div className="log-method">
-                        <h4>🔍 Search by Name</h4>
+                        <h4><Search size={20} /> Search by Name</h4>
                         <div className="input-field">
-                            <span className="icon">🔍</span>
+                            <span className="icon"><Search size={20} /></span>
                             <input
                                 type="text"
                                 placeholder="e.g. Chicken Rice, Banana..."
@@ -478,3 +479,4 @@ export default function FoodPlan() {
         </div>
     );
 }
+

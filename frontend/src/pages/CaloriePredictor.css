@@ -1,7 +1,3 @@
-/* ================================================================
-   Calorie Predictor Page — Premium Glassmorphism Design
-   ================================================================ */
-
 .calorie-predictor-page {
     padding: var(--space-xl) var(--space-lg);
     max-width: 900px;
@@ -9,7 +5,7 @@
     animation: fadeIn 0.5s ease;
 }
 
-.calorie-predictor-page > h1 {
+.calorie-predictor-page>h1 {
     font-size: var(--font-3xl);
     font-weight: 700;
     background: linear-gradient(135deg, #10b981, #34d399, #6ee7b7);
@@ -19,13 +15,13 @@
     margin-bottom: var(--space-xs);
 }
 
-.calorie-predictor-page > .subtitle {
+.calorie-predictor-page>.subtitle {
     color: var(--text-secondary);
     font-size: var(--font-base);
     margin-bottom: var(--space-xl);
 }
 
-/* ---- Prediction Form Card ---- */
+/*Prediction Form Card*/
 .predictor-form-card {
     padding: var(--space-xl);
     margin-bottom: var(--space-xl);
@@ -52,7 +48,7 @@
     }
 }
 
-/* ---- Gender Toggle ---- */
+/*Gender Toggle*/
 .gender-toggle {
     display: flex;
     gap: var(--space-sm);
@@ -83,7 +79,7 @@
     box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
 }
 
-/* ---- Exercise Type Cards ---- */
+/* Exercise Type Cards  */
 .exercise-section {
     grid-column: 1 / -1;
 }
@@ -147,12 +143,12 @@
     box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
 }
 
-/* ---- Intensity Toggle ---- */
+/*Intensity Toggle*/
 .intensity-section {
     grid-column: 1 / -1;
 }
 
-.intensity-section > label {
+.intensity-section>label {
     font-size: var(--font-sm);
     color: var(--text-secondary);
     font-weight: 500;
@@ -201,7 +197,7 @@
     background: linear-gradient(135deg, #ef4444, #dc2626);
 }
 
-/* ---- Submit Button ---- */
+/* Submit Button*/
 .predict-btn-wrap {
     grid-column: 1 / -1;
     display: flex;
@@ -547,7 +543,9 @@
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .predictor-loading p {

@@ -1,0 +1,119 @@
+/* ================================================================
+   Custom Spring Cursor Styles
+   ================================================================ */
+
+/* Hide system cursor globally when custom cursor is active */
+* {
+  cursor: none !important;
+}
+
+/* ── Dot — small white circle, instant tracking ────────────── */
+.cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  margin-top: -3px;
+  background: #fff;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99999;
+  will-change: transform;
+  transition: width 0.2s ease, height 0.2s ease, margin 0.2s ease, background 0.2s ease;
+}
+
+.cursor-dot--hover {
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  margin-top: -4px;
+  background: #00f0ff;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+}
+
+.cursor-dot--hidden {
+  opacity: 0;
+}
+
+/* ── Ring — translucent circle, spring-delayed ─────────────── */
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 36px;
+  height: 36px;
+  margin-left: -18px;
+  margin-top: -18px;
+  border: 1.5px solid rgba(255, 255, 255, 0.30);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 99998;
+  will-change: transform;
+  transition: width 0.25s ease, height 0.25s ease, margin 0.25s ease,
+              border-color 0.25s ease, box-shadow 0.25s ease,
+              background 0.25s ease;
+}
+
+/* Hover: enlarge + sky blue glow */
+.cursor-ring--hover {
+  width: 52px;
+  height: 52px;
+  margin-left: -26px;
+  margin-top: -26px;
+  border-color: rgba(0, 240, 255, 0.45);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.2), 0 0 40px rgba(0, 240, 255, 0.08);
+  background: rgba(0, 240, 255, 0.04);
+}
+
+/* Pressed: compress ring, intensify glow */
+.cursor-ring--pressed {
+  width: 28px;
+  height: 28px;
+  margin-left: -14px;
+  margin-top: -14px;
+  border-color: rgba(0, 240, 255, 0.6);
+  box-shadow: 0 0 24px rgba(0, 240, 255, 0.35);
+}
+
+/* Pressed + not hovering: subtle white */
+.cursor-ring--pressed:not(.cursor-ring--hover) {
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.12);
+}
+
+/* Idle: breathing RGB glow */
+.cursor-ring--idle {
+  animation: cursorBreathe 2.5s ease-in-out infinite;
+}
+
+.cursor-ring--hidden {
+  opacity: 0;
+}
+
+@keyframes cursorBreathe {
+  0%, 100% {
+    border-color: rgba(0, 240, 255, 0.25);
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.1);
+  }
+  33% {
+    border-color: rgba(167, 139, 250, 0.3);
+    box-shadow: 0 0 16px rgba(167, 139, 250, 0.15);
+  }
+  66% {
+    border-color: rgba(236, 72, 153, 0.25);
+    box-shadow: 0 0 14px rgba(236, 72, 153, 0.12);
+  }
+}
+
+/* ── Disable on touch / small screens ──────────────────────── */
+@media (hover: none), (max-width: 768px) {
+  .cursor-dot,
+  .cursor-ring {
+    display: none !important;
+  }
+  * {
+    cursor: auto !important;
+  }
+}

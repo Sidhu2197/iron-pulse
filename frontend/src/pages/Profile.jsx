@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { fetchWorkouts, updateProfile } from '../api/auth';
 import { useNavigate } from 'react-router-dom';
 import './Profile.css';
+import { Edit, LogOut } from 'lucide-react';
 
 export default function Profile() {
     const { user, token, logout, setUser } = useAuth();
@@ -204,7 +205,7 @@ export default function Profile() {
 
             {/* Logout Button */}
             <button className="profile-logout-btn" onClick={handleLogout}>
-                <span>↪</span> Logout
+                <LogOut size={16} style={{marginRight: "8px"}}/> Logout
             </button>
         </div>
     );

@@ -2,198 +2,473 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signupUser } from '../api/auth';
 import { validateEmail, getEmailValidationStatus } from '../utils/emailValidation';
-import './Auth.css';
+import Silk from '../components/Silk';
+import {
+  Flame, User, Mail, Lock, Cake, CircleHelp, ShieldCheck,
+  Check, X, AlertCircle,
+} from 'lucide-react';
 
 const SECURITY_QUESTIONS = [
-    'What is your pet\'s name?',
-    'What city were you born in?',
-    'What is your mother\'s maiden name?',
-    'What was the name of your first school?',
-    'What is your favorite food?',
+  'What is your pet\'s name?',
+  'What city were you born in?',
+  'What is your mother\'s maiden name?',
+  'What was the name of your first school?',
+  'What is your favorite food?',
 ];
 
+/* ── Inline Google SVG logo ───────────────────────────────── */
+function GoogleLogo() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 48 48">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+      <path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.98-6.19a24.04 24.04 0 0 0 0 21.56l7.98-6.19z"/>
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+    </svg>
+  );
+}
+
+/* ── Floating ambient glow circles ────────────────────────── */
+function FloatingGlows() {
+  const glows = [
+    { color: 'rgba(124, 58, 237, 0.15)', size: 130, top: '10%', right: '8%', delay: '0s', duration: '9s' },
+    { color: 'rgba(0, 240, 255, 0.12)', size: 100, top: '60%', left: '5%', delay: '3s', duration: '11s' },
+    { color: 'rgba(236, 72, 153, 0.1)', size: 90, bottom: '15%', right: '20%', delay: '1.5s', duration: '10s' },
+    { color: 'rgba(0, 240, 255, 0.08)', size: 70, top: '35%', left: '70%', delay: '5s', duration: '13s' },
+  ];
+
+  return (
+    <>
+      {glows.map((g, i) => (
+        <div
+          key={i}
+          style={{
+            position: 'fixed',
+            width: g.size,
+            height: g.size,
+            borderRadius: '50%',
+            background: g.color,
+            filter: 'blur(30px)',
+            top: g.top,
+            left: g.left,
+            right: g.right,
+            bottom: g.bottom,
+            animation: `floatGlow ${g.duration} ease-in-out ${g.delay} infinite`,
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+        />
+      ))}
+    </>
+  );
+}
+
 export default function Signup() {
-    const navigate = useNavigate();
-    const [form, setForm] = useState({
-        username: '', email: '', password: '', confirmPassword: '',
-        age: '', securityQuestion: SECURITY_QUESTIONS[0], securityAnswer: '',
-    });
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [emailValidation, setEmailValidation] = useState({ status: 'empty', message: '' });
+  const navigate = useNavigate();
+  const [form, setForm] = useState({
+    username: '', email: '', password: '', confirmPassword: '',
+    age: '', securityQuestion: SECURITY_QUESTIONS[0], securityAnswer: '',
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [emailValidation, setEmailValidation] = useState({ status: 'empty', message: '' });
 
-    const update = (field) => (e) => {
-        const value = e.target.value;
-        setForm({ ...form, [field]: value });
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  const [focusedField, setFocusedField] = useState(null);
 
-        // Real-time email validation
-        if (field === 'email') {
-            setEmailValidation(getEmailValidationStatus(value));
-        }
-    };
+  const update = (field) => (e) => {
+    let value = e.target.value;
+    if (field === 'securityAnswer') {
+      value = value.replace(/[^A-Za-z ]/g, '');
+    }
+    setForm({ ...form, [field]: value });
+    if (field === 'email') {
+      setEmailValidation(getEmailValidationStatus(value));
+    }
+  };
 
-    // Password validation
-    const pw = form.password;
-    const checks = {
-        length: pw.length >= 8,
-        uppercase: /[A-Z]/.test(pw),
-        number: /[0-9]/.test(pw),
-        special: /[!@#$%^&*(),.?":{}|<>]/.test(pw),
-        match: pw.length > 0 && pw === form.confirmPassword,
-    };
-    const allValid = Object.values(checks).every(Boolean) &&
-        form.securityAnswer.trim().length > 0 &&
-        emailValidation.status === 'valid';
+  /* ── Password validation (5 rules) ───────────────────── */
+  const pw = form.password;
+  const checks = {
+    length: pw.length >= 8,
+    uppercase: /[A-Z]/.test(pw),
+    lowercase: /[a-z]/.test(pw),
+    number: /[0-9]/.test(pw),
+    special: /[!@#$%^&*(),.?":{}|<>]/.test(pw),
+  };
+  const passedCount = Object.values(checks).filter(Boolean).length;
+  const passwordsMatch = pw.length > 0 && pw === form.confirmPassword;
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        if (!allValid) {
-            setError('Please meet all password requirements');
-            return;
-        }
-        if (!form.username.trim() || !form.age || !form.securityAnswer.trim()) {
-            setError('Please fill in all fields');
-            return;
-        }
-        setLoading(true);
-        try {
-            await signupUser({
-                username: form.username,
-                email: form.email,
-                password: form.password,
-                age: form.age,
-                securityQuestion: form.securityQuestion,
-                securityAnswer: form.securityAnswer,
-            });
-            navigate('/login');
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const allValid =
+    Object.values(checks).every(Boolean) &&
+    passwordsMatch &&
+    form.securityAnswer.trim().length > 0 &&
+    emailValidation.status === 'valid';
 
-    return (
-        <div className="auth-page">
-            <div className="auth-header">
-                <div className="auth-icon">🔥</div>
-                <h1>Create Account</h1>
-                <p>Join thousands achieving their fitness goals</p>
-            </div>
+  /* ── Strength bar ────────────────────────────────────── */
+  const strengthPercent = (passedCount / 5) * 100;
+  const strengthColor =
+    passedCount <= 1 ? '#ef4444' :
+    passedCount <= 2 ? '#ef4444' :
+    passedCount <= 3 ? '#f59e0b' :
+    passedCount <= 4 ? '#00f0ff' :
+    '#10b981';
+  const strengthLabel =
+    passedCount <= 1 ? 'Weak' :
+    passedCount <= 2 ? 'Weak' :
+    passedCount <= 3 ? 'Fair' :
+    passedCount <= 4 ? 'Good' :
+    'Strong';
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!allValid) {
+      setError('Please meet all password requirements');
+      return;
+    }
+    if (!form.username.trim() || !form.age || !form.securityAnswer.trim()) {
+      setError('Please fill in all fields');
+      return;
+    }
+    setLoading(true);
+    try {
+      await signupUser({
+        username: form.username,
+        email: form.email,
+        password: form.password,
+        age: form.age,
+        securityQuestion: form.securityQuestion,
+        securityAnswer: form.securityAnswer,
+      });
+      navigate('/login');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-            <form className="glass-card auth-form" onSubmit={handleSubmit}>
-                {error && <div className="auth-error">{error}</div>}
+  /* ── Input styles ────────────────────────────────────── */
+  const iconStyle = (field) => ({
+    position: 'absolute',
+    left: '14px',
+    color: focusedField === field ? '#00f0ff' : '#64748b',
+    transition: 'color 0.25s ease',
+    pointerEvents: 'none',
+    zIndex: 2,
+  });
 
-                <div className="input-group">
-                    <label htmlFor="signup-username">Username</label>
-                    <div className="input-field">
-                        <span className="icon">👤</span>
-                        <input id="signup-username" type="text" placeholder="johndoe"
-                            value={form.username} onChange={update('username')} required />
-                    </div>
-                </div>
+  const inputStyle = (field) => ({
+    width: '100%',
+    padding: '13px 16px 13px 44px',
+    background: 'var(--bg-input)',
+    border: `1px solid ${focusedField === field ? 'rgba(0, 240, 255, 0.45)' : 'rgba(255, 255, 255, 0.09)'}`,
+    borderRadius: 'var(--radius-sm)',
+    color: 'var(--text-primary)',
+    fontFamily: 'var(--font-body)',
+    fontSize: '0.9375rem',
+    outline: 'none',
+    transition: 'all 0.25s ease',
+    boxShadow: focusedField === field ? 'var(--shadow-glow-cyan)' : 'none',
+  });
 
-                <div className="input-group">
-                    <label htmlFor="signup-email">Email</label>
-                    <div className="input-field">
-                        <span className="icon">✉</span>
-                        <input id="signup-email" type="email" placeholder="you@example.com"
-                            value={form.email} onChange={update('email')} required />
-                    </div>
-                    {form.email && (
-                        <div className={`email-validation ${emailValidation.status}`}>
-                            <span className="check">
-                                {emailValidation.status === 'valid' ? '✓' :
-                                    emailValidation.status === 'invalid' ? '✗' : ''}
-                            </span>
-                            {emailValidation.message}
-                        </div>
-                    )}
-                </div>
+  const selectStyle = {
+    width: '100%',
+    padding: '13px 32px 13px 44px',
+    background: 'var(--bg-input)',
+    border: `1px solid ${focusedField === 'securityQuestion' ? 'rgba(0, 240, 255, 0.45)' : 'rgba(255, 255, 255, 0.09)'}`,
+    borderRadius: 'var(--radius-sm)',
+    color: 'var(--text-primary)',
+    fontFamily: 'var(--font-body)',
+    fontSize: '0.9375rem',
+    outline: 'none',
+    transition: 'all 0.25s ease',
+    boxShadow: focusedField === 'securityQuestion' ? 'var(--shadow-glow-cyan)' : 'none',
+    appearance: 'none',
+    cursor: 'pointer',
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8.5L1 3.5h10z'/%3E%3C/svg%3E")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 12px center',
+  };
 
-                <div className="input-group">
-                    <label htmlFor="signup-age">Age</label>
-                    <div className="input-field">
-                        <span className="icon">🎂</span>
-                        <input id="signup-age" type="number" placeholder="25" min="10" max="120"
-                            value={form.age} onChange={update('age')} required />
-                    </div>
-                </div>
+  const labelStyle = {
+    textTransform: 'uppercase',
+    fontFamily: 'var(--font-mono)',
+    color: '#8f9bb3',
+    fontSize: '0.75rem',
+    letterSpacing: '0.06em',
+  };
 
-                <div className="input-group">
-                    <label htmlFor="signup-password">Password</label>
-                    <div className="input-field">
-                        <span className="icon">🔒</span>
-                        <input id="signup-password" type="password" placeholder="••••••••"
-                            value={form.password} onChange={update('password')} required />
-                    </div>
-                    {pw.length > 0 && (
-                        <ul className="password-requirements">
-                            <li className={checks.length ? 'valid' : ''}>
-                                <span className="check">{checks.length ? '✓' : '○'}</span> At least 8 characters
-                            </li>
-                            <li className={checks.uppercase ? 'valid' : ''}>
-                                <span className="check">{checks.uppercase ? '✓' : '○'}</span> One uppercase letter
-                            </li>
-                            <li className={checks.number ? 'valid' : ''}>
-                                <span className="check">{checks.number ? '✓' : '○'}</span> One number
-                            </li>
-                            <li className={checks.special ? 'valid' : ''}>
-                                <span className="check">{checks.special ? '✓' : '○'}</span> One special character
-                            </li>
-                        </ul>
-                    )}
-                </div>
+  const checklistRules = [
+    { key: 'length', label: 'At least 8 characters', passed: checks.length },
+    { key: 'uppercase', label: 'One uppercase letter', passed: checks.uppercase },
+    { key: 'lowercase', label: 'One lowercase letter', passed: checks.lowercase },
+    { key: 'number', label: 'One number', passed: checks.number },
+    { key: 'special', label: 'One special character', passed: checks.special },
+  ];
 
-                <div className="input-group">
-                    <label htmlFor="signup-confirm">Confirm Password</label>
-                    <div className="input-field">
-                        <span className="icon">🔒</span>
-                        <input id="signup-confirm" type="password" placeholder="••••••••"
-                            value={form.confirmPassword} onChange={update('confirmPassword')} required />
-                    </div>
-                    {form.confirmPassword.length > 0 && !checks.match && (
-                        <span style={{ color: '#ef4444', fontSize: 'var(--font-xs)' }}>Passwords do not match</span>
-                    )}
-                </div>
+  return (
+    <>
+      {/* Background layers */}
+      <Silk speed={5} scale={1} color="#7B7481" noiseIntensity={1.5} rotation={0} />
+      <FloatingGlows />
 
+      <div className="auth-page page-enter">
 
-                <div className="auth-row">
-                    <div className="input-group">
-                        <label htmlFor="signup-security-q">Security Question</label>
-                        <div className="input-field">
-                            <span className="icon">❓</span>
-                            <select id="signup-security-q" value={form.securityQuestion}
-                                onChange={update('securityQuestion')}
-                                style={{ background: 'transparent', border: 'none', color: 'inherit', width: '100%', outline: 'none', fontSize: 'inherit' }}>
-                                {SECURITY_QUESTIONS.map((q) => (
-                                    <option key={q} value={q} style={{ background: '#1a1a2e' }}>{q}</option>
-                                ))}
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="input-group">
-                        <label htmlFor="signup-security-a">Security Answer</label>
-                        <div className="input-field">
-                            <span className="icon">🔑</span>
-                            <input id="signup-security-a" type="text" placeholder="Your answer"
-                                value={form.securityAnswer} onChange={update('securityAnswer')} required />
-                        </div>
-                    </div>
-                </div>
-
-
-                <button className="auth-submit" type="submit" disabled={loading || !allValid}>
-                    {loading ? 'Creating…' : 'Create Account'} <span>→</span>
-                </button>
-
-                <p className="auth-footer">
-                    Already have an account? <Link to="/login">Log In</Link>
-                </p>
-            </form>
+      {/* Header */}
+      <div className="auth-header" style={{ flexDirection: 'column', alignItems: 'center', zIndex: 2, marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '0.75rem' }}>
+          <Flame size={28} style={{ color: '#00f0ff', filter: 'drop-shadow(0 0 10px rgba(0, 240, 255, 0.4))' }} />
         </div>
-    );
+        <h1
+          style={{
+            fontSize: '2rem',
+            fontWeight: 700,
+            background: 'var(--gradient-hero-text)',
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+            marginBottom: '0.5rem',
+          }}
+        >
+          Create Account
+        </h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9375rem' }}>
+          Join thousands achieving their fitness goals
+        </p>
+      </div>
+
+      {/* Form card */}
+      <form
+        className="glass-panel"
+        onSubmit={handleSubmit}
+        style={{
+          width: '100%',
+          maxWidth: '440px',
+          padding: '2rem',
+          zIndex: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.125rem',
+        }}
+      >
+        {error && (
+          <div className="auth-error">
+            <AlertCircle size={16} />
+            {error}
+          </div>
+        )}
+
+        {/* Username */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+          <label htmlFor="signup-username" style={labelStyle}>Username</label>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <User size={18} style={iconStyle('username')} />
+            <input
+              id="signup-username" type="text" placeholder="johndoe"
+              value={form.username} onChange={update('username')}
+              onFocus={() => setFocusedField('username')}
+              onBlur={() => setFocusedField(null)}
+              style={inputStyle('username')}
+              required
+            />
+          </div>
+        </div>
+
+        {/* Email */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+          <label htmlFor="signup-email" style={labelStyle}>Email</label>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <Mail size={18} style={iconStyle('email')} />
+            <input
+              id="signup-email" type="email" placeholder="you@example.com"
+              value={form.email} onChange={update('email')}
+              onFocus={() => setFocusedField('email')}
+              onBlur={() => setFocusedField(null)}
+              style={inputStyle('email')}
+              required
+            />
+          </div>
+          {form.email && (
+            <div className={`email-validation ${emailValidation.status}`}>
+              <span className="check">
+                {emailValidation.status === 'valid' ? <Check size={14} /> :
+                  emailValidation.status === 'invalid' ? <X size={14} /> : null}
+              </span>
+              {emailValidation.message}
+            </div>
+          )}
+        </div>
+
+        {/* Age */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+          <label htmlFor="signup-age" style={labelStyle}>Age</label>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <Cake size={18} style={iconStyle('age')} />
+            <input
+              id="signup-age" type="number" placeholder="25" min="10" max="120"
+              value={form.age} onChange={update('age')}
+              onFocus={() => setFocusedField('age')}
+              onBlur={() => setFocusedField(null)}
+              style={inputStyle('age')}
+              required
+            />
+          </div>
+        </div>
+
+        {/* Password */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+          <label htmlFor="signup-password" style={labelStyle}>Password</label>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <Lock size={18} style={iconStyle('password')} />
+            <input
+              id="signup-password" type="password" placeholder="••••••••"
+              value={form.password} onChange={update('password')}
+              onFocus={() => { setFocusedField('password'); setIsPasswordFocused(true); }}
+              onBlur={() => { setFocusedField(null); setIsPasswordFocused(false); }}
+              style={inputStyle('password')}
+              required
+            />
+          </div>
+
+          {/* Strength bar */}
+          {(isPasswordFocused || pw.length > 0) && (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.375rem' }}>
+                <div className="password-strength-bar" style={{ flex: 1, marginRight: '12px' }}>
+                  <div
+                    className="password-strength-bar-fill"
+                    style={{
+                      width: `${strengthPercent}%`,
+                      background: strengthColor,
+                    }}
+                  />
+                </div>
+                <span style={{
+                  fontSize: '0.6875rem',
+                  fontFamily: 'var(--font-mono)',
+                  color: strengthColor,
+                  fontWeight: 600,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  flexShrink: 0,
+                }}>
+                  {pw.length > 0 ? strengthLabel : ''}
+                </span>
+              </div>
+
+              {/* Checklist */}
+              <ul className="password-requirements">
+                {checklistRules.map((rule) => (
+                  <li key={rule.key} className={rule.passed ? 'valid' : ''}>
+                    <span className="check">
+                      {rule.passed
+                        ? <Check size={14} style={{ color: '#10b981' }} />
+                        : <X size={14} style={{ color: '#64748b' }} />
+                      }
+                    </span>
+                    {rule.label}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
+
+        {/* Confirm Password */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+          <label htmlFor="signup-confirm" style={labelStyle}>Confirm Password</label>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <ShieldCheck size={18} style={iconStyle('confirmPassword')} />
+            <input
+              id="signup-confirm" type="password" placeholder="••••••••"
+              value={form.confirmPassword} onChange={update('confirmPassword')}
+              onFocus={() => setFocusedField('confirmPassword')}
+              onBlur={() => setFocusedField(null)}
+              style={inputStyle('confirmPassword')}
+              required
+            />
+          </div>
+          {form.confirmPassword.length > 0 && !passwordsMatch && (
+            <span style={{ color: '#ef4444', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <X size={12} /> Passwords do not match
+            </span>
+          )}
+          {passwordsMatch && (
+            <span style={{ color: '#10b981', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Check size={12} /> Passwords match
+            </span>
+          )}
+        </div>
+
+        {/* Security Question */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+          <label htmlFor="signup-security-q" style={labelStyle}>Security Question</label>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <CircleHelp size={18} style={iconStyle('securityQuestion')} />
+            <select
+              id="signup-security-q"
+              value={form.securityQuestion}
+              onChange={update('securityQuestion')}
+              onFocus={() => setFocusedField('securityQuestion')}
+              onBlur={() => setFocusedField(null)}
+              style={selectStyle}
+            >
+              {SECURITY_QUESTIONS.map((q) => (
+                <option key={q} value={q}>{q}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Security Answer */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+          <label htmlFor="signup-security-a" style={labelStyle}>Security Answer</label>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <ShieldCheck size={18} style={iconStyle('securityAnswer')} />
+            <input
+              id="signup-security-a" type="text" placeholder="Your answer (letters only)"
+              value={form.securityAnswer} onChange={update('securityAnswer')}
+              onFocus={() => setFocusedField('securityAnswer')}
+              onBlur={() => setFocusedField(null)}
+              style={inputStyle('securityAnswer')}
+              required
+            />
+          </div>
+        </div>
+
+        {/* Submit */}
+        <button
+          className="btn-futuristic"
+          type="submit"
+          disabled={loading || !allValid}
+          style={{ width: '100%', marginTop: '0.5rem' }}
+        >
+          {loading ? 'Creating…' : 'Create Account'} <span>→</span>
+        </button>
+
+        {/* Divider */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '0.25rem 0' }}>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'var(--font-mono)' }}>
+            or
+          </span>
+          <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+        </div>
+
+        {/* Google Auth */}
+        <a href="/oauth2/authorization/google" className="btn-google" style={{ textDecoration: 'none' }}>
+          <GoogleLogo />
+          Continue with Google
+        </a>
+
+        {/* Footer */}
+        <p className="auth-footer">
+          Already have an account? <Link to="/login">Log In</Link>
+        </p>
+      </form>
+    </div>
+    </>
+  );
 }
