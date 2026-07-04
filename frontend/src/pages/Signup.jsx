@@ -209,10 +209,12 @@ export default function Signup() {
   ];
 
   return (
-    <div className="auth-page page-enter">
+    <>
       {/* Background layers */}
       <Silk speed={5} scale={1} color="#7B7481" noiseIntensity={1.5} rotation={0} />
       <FloatingGlows />
+
+      <div className="auth-page page-enter">
 
       {/* Header */}
       <div className="auth-header" style={{ flexDirection: 'column', alignItems: 'center', zIndex: 2, marginBottom: '1.5rem' }}>
@@ -467,5 +469,6 @@ export default function Signup() {
         </p>
       </form>
     </div>
+    </>
   );
 }
