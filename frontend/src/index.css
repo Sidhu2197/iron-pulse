@@ -1,48 +1,106 @@
 /* ================================================================
-   Iron Pulse — Global Design System
-   Dark theme with emerald green accent, glassmorphism cards
+   Iron Pulse — Cyber-Dark Neon Glassmorphism Design System
+   Tailwind v4 + custom theme tokens
    ================================================================ */
 
-/* ---------- CSS Custom Properties ---------- */
+@import "tailwindcss";
+
+@theme {
+  /* ── Surfaces ─────────────────────────────────────────────── */
+  --color-bg-root: #040814;
+  --color-bg-body: #0c1020;
+  --color-bg-card: rgba(14, 18, 36, 0.3);
+  --color-bg-card-solid: #0e1224;
+  --color-bg-card-hover: rgba(22, 28, 42, 0.45);
+  --color-bg-inset: rgba(8, 10, 18, 0.3);
+  --color-bg-input: rgba(12, 16, 32, 0.3);
+
+  /* ── Accents ──────────────────────────────────────────────── */
+  --color-accent-cyan: #00f0ff;
+  --color-accent-purple: #7c3aed;
+  --color-accent-pink: #ec4899;
+  --color-accent-green: #10b981;
+  --color-accent-red: #ef4444;
+  --color-accent-amber: #f59e0b;
+
+  /* ── Text ─────────────────────────────────────────────────── */
+  --color-text-primary: #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #64748b;
+
+  /* ── Borders ──────────────────────────────────────────────── */
+  --color-border-default: rgba(255, 255, 255, 0.09);
+  --color-border-subtle: rgba(255, 255, 255, 0.04);
+  --color-border-focus: rgba(0, 240, 255, 0.45);
+  --color-border-glow: rgba(0, 240, 255, 0.18);
+
+  /* ── Typography ───────────────────────────────────────────── */
+  --font-display: 'DM Sans', sans-serif;
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* ── Radii ────────────────────────────────────────────────── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+}
+
+/* ── CSS Custom Properties (non-Tailwind) ───────────────────── */
 :root {
-  /* Background */
-  --bg-primary: #0a0a0f;
-  --bg-secondary: #111118;
-  --bg-card: rgba(17, 17, 24, 0.7);
-  --bg-card-hover: rgba(24, 24, 34, 0.85);
-  --bg-input: rgba(255, 255, 255, 0.05);
-
-  /* Accent */
-  --accent: #10b981;
-  --accent-hover: #34d399;
-  --accent-glow: rgba(16, 185, 129, 0.25);
-  --accent-gradient: linear-gradient(135deg, #10b981, #059669);
-
-  /* Text */
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-accent: #10b981;
-
-  /* Border */
-  --border: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 255, 255, 0.15);
-  --border-accent: rgba(16, 185, 129, 0.3);
+  /* Gradients */
+  --gradient-hero-text: linear-gradient(135deg, #00f0ff 0%, #a78bfa 50%, #ec4899 100%);
+  --gradient-btn-primary: linear-gradient(135deg, #00c8d4 0%, #7c3aed 100%);
+  --gradient-btn-hover: linear-gradient(135deg, #00e0ec 0%, #8b5cf6 100%);
+  --gradient-card-border: linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(124, 58, 237, 0.1) 100%);
+  --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
 
   /* Shadows */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
-  --shadow-glow: 0 0 20px rgba(16, 185, 129, 0.15);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --shadow-glow-cyan: 0 0 20px rgba(0, 240, 255, 0.12), 0 0 60px rgba(0, 240, 255, 0.05);
+  --shadow-glow-purple: 0 0 20px rgba(124, 58, 237, 0.12), 0 0 60px rgba(124, 58, 237, 0.05);
+  --shadow-glow-cyan-heavy: 0 0 30px rgba(0, 240, 255, 0.2), 0 0 80px rgba(0, 240, 255, 0.08);
 
-  /* Radius */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-full: 9999px;
+  /* Easings */
+  --ease-out: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --transition-fast: 150ms var(--ease-out);
+  --transition-normal: 250ms var(--ease-out);
+  --transition-slow: 400ms var(--ease-out);
 
-  /* Spacing */
+  /* Legacy aliases for pages that still reference old variable names */
+  --bg-root: #040814;
+  --bg-body: #0c1020;
+  --bg-card: rgba(14, 18, 36, 0.3);
+  --bg-card-solid: #0e1224;
+  --bg-card-hover: rgba(22, 28, 42, 0.45);
+  --bg-inset: rgba(8, 10, 18, 0.3);
+  --bg-input: rgba(12, 16, 32, 0.3);
+  --accent-cyan: #00f0ff;
+  --accent-purple: #7c3aed;
+  --accent-pink: #ec4899;
+  --accent-green: #10b981;
+  --accent-red: #ef4444;
+  --accent-amber: #f59e0b;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-cyan: #00f0ff;
+  --text-purple: #7c3aed;
+  --text-warning: #fbbf24;
+  --text-danger: #f87171;
+  --text-success: #10b981;
+  --border-default: rgba(255, 255, 255, 0.09);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-focus: rgba(0, 240, 255, 0.45);
+  --border-glow: rgba(0, 240, 255, 0.18);
+  --font-display: 'DM Sans', sans-serif;
+  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing (legacy compat) */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
@@ -51,8 +109,7 @@
   --space-2xl: 48px;
   --space-3xl: 64px;
 
-  /* Font */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* Font sizes (legacy compat) */
   --font-xs: 0.75rem;
   --font-sm: 0.875rem;
   --font-base: 1rem;
@@ -63,23 +120,17 @@
   --font-4xl: 2.5rem;
   --font-5xl: 3.5rem;
 
-  /* Transition */
-  --transition-fast: 150ms ease;
-  --transition-base: 250ms ease;
-  --transition-slow: 400ms ease;
-
-  /* Stat card icon backgrounds */
-  --icon-red: rgba(239, 68, 68, 0.15);
-  --icon-green: rgba(16, 185, 129, 0.15);
-  --icon-yellow: rgba(234, 179, 8, 0.15);
-  --icon-purple: rgba(168, 85, 247, 0.15);
-  --icon-red-text: #ef4444;
-  --icon-green-text: #10b981;
-  --icon-yellow-text: #eab308;
-  --icon-purple-text: #a855f7;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
 }
 
-/* ---------- Global Reset ---------- */
+/* ================================================================
+   Global Reset
+   ================================================================ */
+
 *,
 *::before,
 *::after {
@@ -88,13 +139,20 @@
   box-sizing: border-box;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  font-family: var(--font-family);
-  background: var(--bg-primary);
+  font-family: var(--font-body);
+  background: var(--bg-body);
   color: var(--text-primary);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
@@ -102,7 +160,7 @@ body {
   min-height: 100vh;
 }
 
-/* Subtle grid/noise background */
+/* ── Layered radial gradient background ────────────────────── */
 body::before {
   content: '';
   position: fixed;
@@ -111,8 +169,9 @@ body::before {
   width: 100%;
   height: 100%;
   background:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.08), transparent),
-    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(16, 185, 129, 0.04), transparent);
+    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(0, 240, 255, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 90% 80%, rgba(124, 58, 237, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(236, 72, 153, 0.02) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -124,13 +183,13 @@ body::before {
 }
 
 a {
-  color: var(--text-accent);
+  color: var(--accent-cyan);
   text-decoration: none;
   transition: color var(--transition-fast);
 }
 
 a:hover {
-  color: var(--accent-hover);
+  color: #33f3ff;
 }
 
 img {
@@ -139,7 +198,7 @@ img {
 }
 
 button {
-  font-family: var(--font-family);
+  font-family: var(--font-body);
   cursor: pointer;
   border: none;
   outline: none;
@@ -148,7 +207,7 @@ button {
 input,
 select,
 textarea {
-  font-family: var(--font-family);
+  font-family: var(--font-body);
   outline: none;
   border: none;
 }
@@ -165,7 +224,71 @@ input[type="number"] {
   appearance: textfield;
 }
 
-/* ---------- Utility Classes ---------- */
+/* ================================================================
+   Scrollbar (hidden)
+   ================================================================ */
+
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ================================================================
+   Glass Panel Utility
+   ================================================================ */
+
+.glass-panel {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-default);
+  border-top: 1px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+  border-radius: var(--radius-lg);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--gradient-card-border);
+  z-index: 0;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.glass-panel:hover {
+  border-color: var(--border-glow);
+  box-shadow: var(--shadow-glow-cyan);
+}
+
+/* ================================================================
+   Glow Card (simpler version without gradient top border)
+   ================================================================ */
+
+.glow-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-normal);
+}
+
+.glow-card:hover {
+  border-color: var(--border-focus);
+}
+
+/* ================================================================
+   Container Utilities
+   ================================================================ */
+
 .container {
   width: 100%;
   max-width: 1200px;
@@ -173,55 +296,295 @@ input[type="number"] {
   padding: 0 var(--space-lg);
 }
 
-.glass-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  backdrop-filter: blur(12px);
-  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+.ml-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
 }
 
-.glass-card:hover {
-  border-color: var(--border-hover);
-}
+/* ================================================================
+   Futuristic Button (Primary — Shine Effect)
+   ================================================================ */
 
-.btn-primary {
+.btn-futuristic {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: var(--space-sm);
-  padding: 12px 28px;
-  background: var(--accent-gradient);
-  color: #fff;
-  font-weight: 600;
-  font-size: var(--font-base);
-  border-radius: var(--radius-full);
-  transition: transform var(--transition-fast), box-shadow var(--transition-base);
-  box-shadow: var(--shadow-glow);
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
-}
-
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: 12px 28px;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 14px 28px;
   background: transparent;
-  color: var(--text-primary);
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  color: #fff;
+  font-family: var(--font-body);
   font-weight: 600;
-  font-size: var(--font-base);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-full);
-  transition: border-color var(--transition-fast), background var(--transition-fast);
+  font-size: 1rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  z-index: 1;
 }
 
-.btn-secondary:hover {
-  border-color: var(--border-hover);
-  background: rgba(255, 255, 255, 0.05);
+.btn-futuristic:hover {
+  background: rgba(0, 200, 212, 0.85);
+  border-color: var(--accent-cyan);
+  box-shadow: var(--shadow-glow-cyan-heavy);
+  color: #fff;
 }
+
+.btn-futuristic::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -30%;
+  width: 30%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.25);
+  transform: skewX(-20deg);
+  transition: none;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.btn-futuristic:hover::before {
+  opacity: 1;
+  animation: btnShine 0.5s ease forwards;
+}
+
+.btn-futuristic:active {
+  transform: scale(0.97);
+}
+
+.btn-futuristic:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-futuristic:disabled:hover {
+  background: transparent;
+  box-shadow: none;
+}
+
+.btn-futuristic:disabled:hover::before {
+  opacity: 0;
+  animation: none;
+}
+
+@keyframes btnShine {
+  0% {
+    left: -30%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* ================================================================
+   Legacy Button Compat (train-btn)
+   ================================================================ */
+
+.train-btn.clickable {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 14px 28px;
+  background: transparent;
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.train-btn.clickable:hover,
+.train-btn.clickable:focus-visible {
+  background: rgba(0, 200, 212, 0.85);
+  border-color: var(--accent-cyan);
+  box-shadow: var(--shadow-glow-cyan-heavy);
+  outline: none;
+}
+
+.train-btn.clickable::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -30%;
+  width: 30%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.25);
+  transform: skewX(-20deg);
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.train-btn.clickable:hover::before {
+  opacity: 1;
+  animation: btnShine 0.5s ease forwards;
+}
+
+.train-btn.clickable:active {
+  transform: scale(0.97);
+}
+
+/* ================================================================
+   Google Auth Button
+   ================================================================ */
+
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-google:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.06), 0 0 40px rgba(100, 150, 255, 0.04);
+}
+
+.btn-google svg {
+  flex-shrink: 0;
+}
+
+/* ================================================================
+   Form Group (Legacy compat)
+   ================================================================ */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group label {
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  color: #8f9bb3;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+}
+
+.form-group input,
+.form-group select {
+  background: var(--bg-input);
+  border: 1px solid var(--border-default);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-glow-cyan);
+  outline: 2px solid transparent;
+}
+
+.form-group input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Select dropdown dark theme */
+.form-group select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: var(--bg-input);
+  cursor: pointer;
+  padding-right: 28px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8.5L1 3.5h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+.form-group select option {
+  background: #0e1224;
+  color: var(--text-primary);
+  padding: 10px;
+}
+
+.form-group select option:checked {
+  background: rgba(0, 240, 255, 0.15);
+}
+
+.form-group select option:disabled {
+  color: var(--text-muted);
+}
+
+/* ================================================================
+   Double Form Row
+   ================================================================ */
+
+.double-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .ml-grid, .double-form-row {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ================================================================
+   ML Utilities (Legacy compat for pages)
+   ================================================================ */
+
+.ml-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 2rem;
+}
+
+.page-enter {
+  animation: fadeIn 0.5s var(--ease-out) forwards;
+}
+
+.ml-header {
+  display: flex;
+  flex-direction: row;
+}
+
+.ml-title-section h1 {
+  background: var(--gradient-hero-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.ml-form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ================================================================
+   Input Field Utility
+   ================================================================ */
 
 .input-group {
   display: flex;
@@ -240,14 +603,14 @@ input[type="number"] {
   align-items: center;
   gap: var(--space-sm);
   background: var(--bg-input);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   padding: 12px 16px;
   transition: border-color var(--transition-fast);
 }
 
 .input-field:focus-within {
-  border-color: var(--border-accent);
+  border-color: var(--border-focus);
 }
 
 .input-field .icon {
@@ -268,58 +631,88 @@ input[type="number"] {
   color: var(--text-muted);
 }
 
-/* Select dropdown dark theme */
-.input-field select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  background: transparent;
-  cursor: pointer;
-  padding-right: 28px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8.5L1 3.5h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 4px center;
+/* ================================================================
+   Secondary / Back Buttons (Legacy compat)
+   ================================================================ */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 12px 28px;
+  background: var(--gradient-btn-primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: var(--radius-full);
+  transition: transform var(--transition-fast), box-shadow 0.3s ease;
+  box-shadow: var(--shadow-glow-cyan);
 }
 
-.input-field select option {
-  background: #1a1a2e;
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow-cyan-heavy);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 12px 28px;
+  background: transparent;
   color: var(--text-primary);
-  padding: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-full);
+  transition: border-color var(--transition-fast), background var(--transition-fast);
 }
 
-.input-field select option:checked {
-  background: rgba(16, 185, 129, 0.25);
+.btn-secondary:hover {
+  border-color: var(--border-glow);
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.input-field select option:disabled {
-  color: var(--text-muted);
-}
-
-/* ---------- Scrollbar ---------- */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
+.back-btn.clickable {
   background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  padding: 10px 20px;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  cursor: pointer;
 }
 
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
+.back-btn.clickable:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--border-hover);
+/* ================================================================
+   Glass Card (Legacy compat)
+   ================================================================ */
+
+.glass-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(12px);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* ---------- Animations ---------- */
+.glass-card:hover {
+  border-color: var(--border-glow);
+}
+
+/* ================================================================
+   Animations
+   ================================================================ */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(12px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -331,7 +724,6 @@ input[type="number"] {
     opacity: 0;
     transform: translateY(24px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -343,7 +735,6 @@ input[type="number"] {
     opacity: 0;
     transform: translateY(-10px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -351,26 +742,52 @@ input[type="number"] {
 }
 
 @keyframes pulse-glow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
   }
-
   50% {
-    box-shadow: 0 0 35px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 35px rgba(0, 240, 255, 0.3);
   }
 }
 
 @keyframes float {
-
-  0%,
-  100% {
+  0%, 100% {
     transform: translateY(0);
   }
-
   50% {
     transform: translateY(-6px);
+  }
+}
+
+@keyframes floatGlow {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.4;
+  }
+  25% {
+    transform: translate(15px, -20px) scale(1.1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-10px, -35px) scale(0.95);
+    opacity: 0.3;
+  }
+  75% {
+    transform: translate(20px, -15px) scale(1.05);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.4;
+  }
+}
+
+@keyframes profileRingPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.3), 0 0 12px rgba(0, 240, 255, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(0, 240, 255, 0.5), 0 0 24px rgba(0, 240, 255, 0.25);
   }
 }
 
@@ -380,4 +797,335 @@ input[type="number"] {
 
 .animate-fade-in-up {
   animation: fadeInUp 0.6s ease forwards;
+}
+
+/* ================================================================
+   Auth Page Utilities
+   ================================================================ */
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-error {
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  color: #f87171;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.auth-footer a {
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+/* ── Password Strength Bar ─────────────────────────────────── */
+.password-strength-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.password-strength-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease, background 0.4s ease;
+}
+
+/* ── Password Requirements List ────────────────────────────── */
+.password-requirements {
+  list-style: none;
+  padding: 0;
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.password-requirements li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+.password-requirements li.valid {
+  color: var(--accent-green);
+}
+
+.password-requirements li .check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Email Validation ──────────────────────────────────────── */
+.email-validation {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  color: var(--text-muted);
+}
+
+.email-validation.valid {
+  color: var(--accent-green);
+}
+
+.email-validation.invalid {
+  color: var(--accent-red);
+}
+
+/* ================================================================
+   Generate Button (Gradient Primary — design.md §6)
+   ================================================================ */
+
+.generate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #00c8d4 0%, #7c3aed 100%);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(0, 200, 212, 0.2);
+}
+
+.generate-btn:hover {
+  background: linear-gradient(135deg, #00e0ec 0%, #8b5cf6 100%);
+  box-shadow: 0 0 30px rgba(0, 240, 255, 0.2), 0 0 80px rgba(0, 240, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.generate-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.generate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.generate-btn:disabled:hover {
+  background: linear-gradient(135deg, #00c8d4 0%, #7c3aed 100%);
+  box-shadow: 0 4px 16px rgba(0, 200, 212, 0.2);
+  transform: none;
+}
+
+/* ================================================================
+   Shimmer Loader (Loading skeleton animation)
+   ================================================================ */
+
+.shimmer-loader {
+  background: linear-gradient(
+    90deg,
+    rgba(14, 18, 36, 0.3) 25%,
+    rgba(30, 36, 60, 0.5) 50%,
+    rgba(14, 18, 36, 0.3) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ================================================================
+   Auth Form Utilities (ForgotPassword / ResetPassword)
+   ================================================================ */
+
+.auth-form {
+  width: 100%;
+  max-width: 440px;
+  padding: 2rem;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.auth-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(0, 240, 255, 0.08);
+  color: #00f0ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.75rem;
+  filter: drop-shadow(0 0 10px rgba(0, 240, 255, 0.3));
+}
+
+.auth-icon.inbox-icon {
+  background: rgba(16, 185, 129, 0.08);
+  color: #10b981;
+  filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.3));
+}
+
+.auth-submit {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 14px 28px;
+  background: transparent;
+  border: 1px solid rgba(0, 240, 255, 0.35);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.auth-submit:hover {
+  background: rgba(0, 200, 212, 0.85);
+  border-color: var(--accent-cyan);
+  box-shadow: var(--shadow-glow-cyan-heavy);
+}
+
+.auth-submit:active {
+  transform: scale(0.97);
+}
+
+.auth-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.auth-submit:disabled:hover {
+  background: transparent;
+  box-shadow: none;
+}
+
+.auth-submit.resend-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.auth-submit.resend-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.auth-success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Inbox Card (ForgotPassword success state) */
+.inbox-card {
+  text-align: center;
+}
+
+.inbox-email {
+  font-family: var(--font-mono);
+  color: var(--accent-cyan);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  padding: 12px;
+  background: rgba(0, 240, 255, 0.06);
+  border-radius: var(--radius-sm);
+  margin-bottom: 1.25rem;
+}
+
+.inbox-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.inbox-info-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  text-align: left;
+}
+
+.inbox-info-icon {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+/* ================================================================
+   Missing Landing Page CSS Variables
+   ================================================================ */
+
+:root {
+  --border-accent: rgba(0, 240, 255, 0.25);
+  --text-accent: #00f0ff;
+
+  /* Feature icon backgrounds */
+  --icon-green: rgba(16, 185, 129, 0.12);
+  --icon-green-text: #10b981;
+  --icon-red: rgba(239, 68, 68, 0.12);
+  --icon-red-text: #ef4444;
+  --icon-yellow: rgba(245, 158, 11, 0.12);
+  --icon-yellow-text: #f59e0b;
+  --icon-purple: rgba(124, 58, 237, 0.12);
+  --icon-purple-text: #a78bfa;
 }

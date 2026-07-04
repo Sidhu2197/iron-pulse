@@ -6,12 +6,12 @@ import PageReveal from '../components/PageReveal';
 import { Dumbbell, Timer, Ruler, Activity, Scale, Cake, Heart, BarChart2, Calendar } from 'lucide-react';
 
 const EXERCISE_TYPES = [
-    { value: 'Running', emoji: '<Activity size={20} />', label: 'Running' },
+    { value: 'Running', emoji: <Activity size={20} />, label: 'Running' },
     { value: 'Cycling', emoji: '🚴', label: 'Cycling' },
     { value: 'Swimming', emoji: '🏊', label: 'Swimming' },
     { value: 'Walking', emoji: '🚶', label: 'Walking' },
     { value: 'HIIT', emoji: '⚡', label: 'HIIT' },
-    { value: 'Weight Training', emoji: '<Dumbbell size={20} />', label: 'Weights' },
+    { value: 'Weight Training', emoji: <Dumbbell size={20} />, label: 'Weights' },
     { value: 'Yoga', emoji: '🧘', label: 'Yoga' },
     { value: 'Jump Rope', emoji: '🤸', label: 'Jump Rope' },
     { value: 'Rowing', emoji: '🚣', label: 'Rowing' },
@@ -25,8 +25,8 @@ const INTENSITY_OPTIONS = [
 ];
 
 const EXERCISE_EMOJI_MAP = {
-    'Running': '<Activity size={20} />', 'Cycling': '🚴', 'Swimming': '🏊', 'Walking': '🚶',
-    'HIIT': '⚡', 'Weight Training': '<Dumbbell size={20} />', 'Yoga': '🧘', 'Jump Rope': '🤸',
+    'Running': <Activity size={20} />, 'Cycling': '🚴', 'Swimming': '🏊', 'Walking': '🚶',
+    'HIIT': '⚡', 'Weight Training': <Dumbbell size={20} />, 'Yoga': '🧘', 'Jump Rope': '🤸',
     'Rowing': '🚣', 'Elliptical': '🔄',
 };
 
@@ -329,7 +329,7 @@ export default function CaloriePredictor() {
                             <div key={item.id || i} className="history-item">
                                 <div className="history-left">
                                     <div className="history-exercise-icon">
-                                        {EXERCISE_EMOJI_MAP[item.exercise_type] || '<Activity size={20} />'}
+                                        {EXERCISE_EMOJI_MAP[item.exercise_type] || <Activity size={20} />}
                                     </div>
                                     <div>
                                         <div className="history-exercise-name">{item.exercise_type}</div>
@@ -353,3 +353,4 @@ export default function CaloriePredictor() {
         </PageReveal>
     );
 }
+

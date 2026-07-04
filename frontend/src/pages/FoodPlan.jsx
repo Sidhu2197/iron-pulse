@@ -5,10 +5,10 @@ import './FoodPlan.css';
 import { Search, Ruler, User, Scale, Cake, Flame } from 'lucide-react';
 
 const FOOD_WIZARD_STEPS = [
-    { key: 'age', label: 'How old are you?', icon: '<Cake size={20} />' },
-    { key: 'gender', label: 'What\'s your gender?', icon: '<User size={20} />' },
-    { key: 'height', label: 'What\'s your height?', icon: '<Ruler size={20} />' },
-    { key: 'weight', label: 'What\'s your weight?', icon: '<Scale size={20} />' },
+    { key: 'age', label: 'How old are you?', icon: <Cake size={20} /> },
+    { key: 'gender', label: 'What\'s your gender?', icon: <User size={20} /> },
+    { key: 'height', label: 'What\'s your height?', icon: <Ruler size={20} /> },
+    { key: 'weight', label: 'What\'s your weight?', icon: <Scale size={20} /> },
     { key: 'goal', label: 'What\'s your goal?', icon: '🎯' },
     { key: 'mealType', label: 'Which meal?', icon: '🍽️' },
     { key: 'dietType', label: 'Diet preference?', icon: '🥗' },
@@ -479,3 +479,4 @@ export default function FoodPlan() {
         </div>
     );
 }
+

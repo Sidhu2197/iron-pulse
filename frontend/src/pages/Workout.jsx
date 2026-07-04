@@ -50,14 +50,14 @@ const DURATION_OPTIONS = [
 ];
 
 const WIZARD_STEPS = [
-    { key: 'age', label: 'How old are you?', icon: '<Cake size={20} />' },
-    { key: 'weight', label: 'What\'s your weight?', icon: '<Scale size={20} />' },
-    { key: 'height', label: 'What\'s your height?', icon: '<Ruler size={20} />' },
-    { key: 'gender', label: 'What\'s your gender?', icon: '<User size={20} />' },
-    { key: 'fitnessLevel', label: 'What\'s your fitness level?', icon: '<BarChart2 size={20} />' },
-    { key: 'equipment', label: 'What equipment do you have?', icon: '<Dumbbell size={20} />' },
+    { key: 'age', label: 'How old are you?', icon: <Cake size={20} /> },
+    { key: 'weight', label: 'What\'s your weight?', icon: <Scale size={20} /> },
+    { key: 'height', label: 'What\'s your height?', icon: <Ruler size={20} /> },
+    { key: 'gender', label: 'What\'s your gender?', icon: <User size={20} /> },
+    { key: 'fitnessLevel', label: 'What\'s your fitness level?', icon: <BarChart2 size={20} /> },
+    { key: 'equipment', label: 'What equipment do you have?', icon: <Dumbbell size={20} /> },
     { key: 'goal', label: 'What\'s your fitness goal?', icon: '🎯' },
-    { key: 'daysPerWeek', label: 'How many days per week?', icon: '<Calendar size={20} />' },
+    { key: 'daysPerWeek', label: 'How many days per week?', icon: <Calendar size={20} /> },
     { key: 'duration', label: 'Preferred workout duration?', icon: '<Timer size={20} />️' },
 ];
 
@@ -583,3 +583,4 @@ export default function Workout() {
         </PageReveal>
     );
 }
+
