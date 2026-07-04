@@ -10,3 +10,14 @@ frontend/dist/
 
 # env
 .env
+
+# Agents
+.agents/
+agents/
+
+.agents
+.agents/skills*
+
+.claude
+
+design.md
