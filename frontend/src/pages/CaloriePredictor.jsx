@@ -1,30 +1,28 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { predictCalories, saveCaloriePrediction, fetchCaloriePredictions } from '../api/auth';
+import { predictCalories, saveCaloriePrediction, fetchCaloriePredictions, checkMLHealth, getSupportedExercises } from '../api/auth';
 import './CaloriePredictor.css';
+import PageReveal from '../components/PageReveal';
+import { Dumbbell, Timer, Ruler, Activity, Scale, Cake, Heart, BarChart2, Calendar, CheckCircle, XCircle } from 'lucide-react';
 
-const EXERCISE_TYPES = [
-    { value: 'Running', emoji: '🏃', label: 'Running' },
+const DEFAULT_EXERCISE_TYPES = [
+    { value: 'Running', emoji: <Activity size={20} />, label: 'Running' },
     { value: 'Cycling', emoji: '🚴', label: 'Cycling' },
     { value: 'Swimming', emoji: '🏊', label: 'Swimming' },
     { value: 'Walking', emoji: '🚶', label: 'Walking' },
     { value: 'HIIT', emoji: '⚡', label: 'HIIT' },
-    { value: 'Weight Training', emoji: '🏋️', label: 'Weights' },
+    { value: 'Weight Training', emoji: <Dumbbell size={20} />, label: 'Weights' },
     { value: 'Yoga', emoji: '🧘', label: 'Yoga' },
     { value: 'Jump Rope', emoji: '🤸', label: 'Jump Rope' },
     { value: 'Rowing', emoji: '🚣', label: 'Rowing' },
     { value: 'Elliptical', emoji: '🔄', label: 'Elliptical' },
 ];
 
-const INTENSITY_OPTIONS = [
-    { value: 1, label: '🟢 Low', className: 'low' },
-    { value: 2, label: '🟡 Medium', className: 'medium' },
-    { value: 3, label: '🔴 High', className: 'high' },
-];
+
 
 const EXERCISE_EMOJI_MAP = {
-    'Running': '🏃', 'Cycling': '🚴', 'Swimming': '🏊', 'Walking': '🚶',
-    'HIIT': '⚡', 'Weight Training': '🏋️', 'Yoga': '🧘', 'Jump Rope': '🤸',
+    'Running': <Activity size={20} />, 'Cycling': '🚴', 'Swimming': '🏊', 'Walking': '🚶',
+    'HIIT': '⚡', 'Weight Training': <Dumbbell size={20} />, 'Yoga': '🧘', 'Jump Rope': '🤸',
     'Rowing': '🚣', 'Elliptical': '🔄',
 };
 
@@ -48,6 +46,10 @@ export default function CaloriePredictor() {
     const [history, setHistory] = useState([]);
     const [historyLoading, setHistoryLoading] = useState(true);
 
+    const [mlHealth, setMlHealth] = useState(null);
+    const [supportedExercises, setSupportedExercises] = useState(DEFAULT_EXERCISE_TYPES);
+    const [healthLoading, setHealthLoading] = useState(true);
+
     useEffect(() => {
         if (token) {
             fetchCaloriePredictions(token)
@@ -58,6 +60,28 @@ export default function CaloriePredictor() {
             setHistoryLoading(false);
         }
     }, [token]);
+
+    useEffect(() => {
+        // Check ML health and get supported exercises on mount
+        Promise.all([
+            checkMLHealth().catch(() => ({ healthy: false, message: 'Health check failed' })),
+            getSupportedExercises().catch(() => ({ exercises: [] }))
+        ]).then(([health, exercises]) => {
+            setMlHealth(health);
+            if (exercises.exercises && exercises.exercises.length > 0) {
+                const exerciseOptions = exercises.exercises.map(ex => ({
+                    value: ex,
+                    emoji: EXERCISE_EMOJI_MAP[ex] || '🏋️',
+                    label: ex
+                }));
+                setSupportedExercises(exerciseOptions);
+            }
+        }).catch(() => {
+            setMlHealth({ healthy: false, message: 'ML service unavailable' });
+        }).finally(() => {
+            setHealthLoading(false);
+        });
+    }, []);
 
     const updateField = (field, value) => setForm({ ...form, [field]: value });
 
@@ -126,9 +150,19 @@ export default function CaloriePredictor() {
     };
 
     return (
-        <div className="calorie-predictor-page">
-            <h1>Calorie AI</h1>
-            <p className="subtitle">Predict calories burned using our AI model trained on 10,000+ workout sessions</p>
+        <PageReveal className="calorie-predictor-page">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <div>
+                    <h1>Calorie AI</h1>
+                    <p className="subtitle">Predict calories burned using our AI model trained on 10,000+ workout sessions</p>
+                </div>
+                {!healthLoading && mlHealth && (
+                    <div className={`ml-health-status ${mlHealth.healthy ? 'healthy' : 'unhealthy'}`}>
+                        {mlHealth.healthy ? <CheckCircle size={16} /> : <XCircle size={16} />}
+                        <span>{mlHealth.healthy ? 'ML Service Online' : 'ML Service Offline'}</span>
+                    </div>
+                )}
+            </div>
 
             {error && <div className="predictor-error">{error}</div>}
             {saveMsg && <div className="predictor-success">{saveMsg}</div>}
@@ -200,7 +234,7 @@ export default function CaloriePredictor() {
                             <div className="input-group">
                                 <label>Age</label>
                                 <div className="input-field">
-                                    <span className="icon">🎂</span>
+                                    <span className="icon"><Cake size={20} /></span>
                                     <input type="number" placeholder="25" value={form.age}
                                         onChange={(e) => updateField('age', e.target.value)} min="1" max="100" required />
                                 </div>
@@ -221,7 +255,7 @@ export default function CaloriePredictor() {
                             <div className="input-group">
                                 <label>Weight (kg)</label>
                                 <div className="input-field">
-                                    <span className="icon">⚖️</span>
+                                    <span className="icon"><Scale size={20} /></span>
                                     <input type="number" placeholder="70" value={form.weight_kg}
                                         onChange={(e) => updateField('weight_kg', e.target.value)} min="1" required />
                                 </div>
@@ -231,7 +265,7 @@ export default function CaloriePredictor() {
                             <div className="input-group">
                                 <label>Height (cm)</label>
                                 <div className="input-field">
-                                    <span className="icon">📏</span>
+                                    <span className="icon"><Ruler size={20} /></span>
                                     <input type="number" placeholder="170" value={form.height_cm}
                                         onChange={(e) => updateField('height_cm', e.target.value)} min="1" required />
                                 </div>
@@ -241,7 +275,7 @@ export default function CaloriePredictor() {
                             <div className="input-group">
                                 <label>Body Fat % (optional)</label>
                                 <div className="input-field">
-                                    <span className="icon">📊</span>
+                                    <span className="icon"><BarChart2 size={20} /></span>
                                     <input type="number" placeholder="20" value={form.body_fat_pct}
                                         onChange={(e) => updateField('body_fat_pct', e.target.value)} min="1" max="60" />
                                 </div>
@@ -251,7 +285,7 @@ export default function CaloriePredictor() {
                             <div className="input-group">
                                 <label>Duration (min)</label>
                                 <div className="input-field">
-                                    <span className="icon">⏱️</span>
+                                    <span className="icon"><Timer size={20} />️</span>
                                     <input type="number" placeholder="30" value={form.duration_min}
                                         onChange={(e) => updateField('duration_min', e.target.value)} min="1" required />
                                 </div>
@@ -261,7 +295,7 @@ export default function CaloriePredictor() {
                             <div className="input-group">
                                 <label>Heart Rate (BPM)</label>
                                 <div className="input-field">
-                                    <span className="icon">❤️</span>
+                                    <span className="icon"><Heart size={20} /></span>
                                     <input type="number" placeholder="120" value={form.heart_rate}
                                         onChange={(e) => updateField('heart_rate', e.target.value)} min="40" max="220" required />
                                 </div>
@@ -271,7 +305,7 @@ export default function CaloriePredictor() {
                             <div className="exercise-section">
                                 <label>Exercise Type</label>
                                 <div className="exercise-grid">
-                                    {EXERCISE_TYPES.map((ex) => (
+                                    {supportedExercises.map((ex) => (
                                         <button key={ex.value} type="button"
                                             className={`exercise-card ${form.exercise_type === ex.value ? 'selected' : ''}`}
                                             onClick={() => updateField('exercise_type', ex.value)}>
@@ -286,13 +320,21 @@ export default function CaloriePredictor() {
                             <div className="intensity-section">
                                 <label>Intensity Level</label>
                                 <div className="intensity-toggle">
-                                    {INTENSITY_OPTIONS.map((opt) => (
-                                        <button key={opt.value} type="button"
-                                            className={`intensity-btn ${opt.className} ${form.intensity === opt.value ? 'selected' : ''}`}
-                                            onClick={() => updateField('intensity', opt.value)}>
-                                            {opt.label}
-                                        </button>
-                                    ))}
+                                    <button type="button"
+                                        className={`intensity-btn low ${form.intensity === 1 ? 'selected' : ''}`}
+                                        onClick={() => updateField('intensity', 1)}>
+                                        🟢 Low
+                                    </button>
+                                    <button type="button"
+                                        className={`intensity-btn medium ${form.intensity === 2 ? 'selected' : ''}`}
+                                        onClick={() => updateField('intensity', 2)}>
+                                        🟡 Medium
+                                    </button>
+                                    <button type="button"
+                                        className={`intensity-btn high ${form.intensity === 3 ? 'selected' : ''}`}
+                                        onClick={() => updateField('intensity', 3)}>
+                                        🔴 High
+                                    </button>
                                 </div>
                             </div>
 
@@ -318,7 +360,7 @@ export default function CaloriePredictor() {
                     </div>
                 ) : history.length === 0 ? (
                     <div className="history-empty">
-                        <div className="empty-icon">📊</div>
+                        <div className="empty-icon"><BarChart2 size={20} /></div>
                         <p>No predictions yet. Try your first one above!</p>
                     </div>
                 ) : (
@@ -327,15 +369,15 @@ export default function CaloriePredictor() {
                             <div key={item.id || i} className="history-item">
                                 <div className="history-left">
                                     <div className="history-exercise-icon">
-                                        {EXERCISE_EMOJI_MAP[item.exercise_type] || '🏃'}
+                                        {EXERCISE_EMOJI_MAP[item.exercise_type] || <Activity size={20} />}
                                     </div>
                                     <div>
                                         <div className="history-exercise-name">{item.exercise_type}</div>
                                         <div className="history-exercise-meta">
-                                            <span>⏱ {item.duration_min} min</span>
+                                            <span><Timer size={20} /> {item.duration_min} min</span>
                                             <span>💓 {item.heart_rate} BPM</span>
-                                            <span>📊 {INTENSITY_LABEL[item.intensity] || 'Medium'}</span>
-                                            <span>📅 {item.date}</span>
+                                            <span><BarChart2 size={20} /> {INTENSITY_LABEL[item.intensity] || 'Medium'}</span>
+                                            <span><Calendar size={20} /> {item.date}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -348,6 +390,7 @@ export default function CaloriePredictor() {
                     </div>
                 )}
             </div>
-        </div>
+        </PageReveal>
     );
 }
+

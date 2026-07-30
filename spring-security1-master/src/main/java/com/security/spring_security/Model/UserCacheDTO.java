@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /**
  * Lightweight DTO for Redis caching.
- * Excludes sensitive fields (password, securityQuestion, securityAnswer)
+ * Excludes sensitive fields (password)
  * that should never be stored in an external cache.
  */
 public class UserCacheDTO implements Serializable {

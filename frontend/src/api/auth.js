@@ -18,15 +18,18 @@ function checkAuthError(res) {
     if (res.status === 401) {
         window.dispatchEvent(new Event('auth-expired'));
     }
+    if (res.status === 429) {
+        throw new Error('Too many requests. Please wait a moment and try again.');
+    }
 }
 
 // ---- Auth ----
 
-export async function signupUser({ username, email, password, age, securityQuestion, securityAnswer }) {
+export async function signupUser({ username, email, password, age }) {
     const res = await fetch(`${API_BASE}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password, age: parseInt(age), securityQuestion, securityAnswer }),
+        body: JSON.stringify({ username, email, password, age: parseInt(age) }),
     });
     let data;
     try {
@@ -69,45 +72,50 @@ export async function loginUser({ email, password }) {
         }
         throw new Error(data.message || 'Login failed');
     }
-    // Extract JWT token from response
+    // Extract JWT token and user data from response
     const credentials = data.token;
-    return { credentials, user: data };
+    const user = {
+        username: data.username,
+        email: data.email,
+        age: data.age,
+        height: data.height,
+        weight: data.weight
+    };
+    return { credentials, user };
 }
 
-export async function fetchProfile(credentials) {
-    const res = await fetch(`${API_BASE}/me`, {
-        headers: { ...getAuthHeader(credentials) },
-    });
-    checkAuthError(res);
-    if (!res.ok) {
-        throw new Error('Failed to fetch profile');
-    }
-    let data;
-    try {
-        data = await res.json();
-    } catch {
-        throw new Error('Failed to parse profile data');
-    }
-    return data;
-}
-
-export async function updateProfile(credentials, { username, age, height, weight }) {
-    const res = await fetch(`${API_BASE}/me`, {
-        method: 'PUT',
+export async function changePassword(credentials, { currentPassword, newPassword }) {
+    const res = await fetch(`${API_BASE}/change-password`, {
+        method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             ...getAuthHeader(credentials),
         },
-        body: JSON.stringify({
-            username: username?.trim() || undefined,
-            age: age ? parseInt(age) : undefined,
-            height: height ? parseFloat(height) : undefined,
-            weight: weight ? parseFloat(weight) : undefined,
-        }),
+        body: JSON.stringify({ currentPassword, newPassword }),
     });
     checkAuthError(res);
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || 'Update failed');
+    if (!res.ok) throw new Error(data.message || 'Failed to change password');
+    return data;
+}
+
+export async function resendVerificationEmail(email) {
+    const res = await fetch(`${API_BASE}/resend-verification`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to resend email');
+    return data;
+}
+
+export async function verifyEmail(token) {
+    const res = await fetch(`${API_BASE}/verify-email?token=${token}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Verification failed');
     return data;
 }
 
@@ -149,8 +157,8 @@ export async function fetchWorkouts(credentials) {
 }
 
 export async function generateWorkoutPlan(credentials, { age, weight, height, gender, fitness_level, equipment, goal, days_per_week, duration }) {
-    // Workout plan generation is handled server-side in the future.
-    // For now, return a simple plan based on the goal.
+    // Workout plan generation is handled client-side for now
+    // Backend doesn't have a specific workout plan generation endpoint yet
     const exercises = {
         fat_loss: [
             { name: 'Treadmill Intervals', type: 'Cardio', duration: 20, calories: 250 },
@@ -295,6 +303,24 @@ export async function predictCalories({ age, gender, weight_kg, height_cm, body_
         }
         
         throw new Error(errorMessage);
+    }
+    return data.data;
+}
+
+export async function checkMLHealth() {
+    const res = await fetch(`${API_BASE}/calorie-predictions/health`);
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(data.message || 'Health check failed');
+    }
+    return data;
+}
+
+export async function getSupportedExercises() {
+    const res = await fetch(`${API_BASE}/calorie-predictions/exercises`);
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(data.message || 'Failed to get exercises');
     }
     return data.data;
 }

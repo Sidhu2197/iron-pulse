@@ -39,14 +39,12 @@ public class PasswordResetService {
     /**
      * Process forgot-password request.
      * If user exists: delete old tokens, generate new one, send email.
-     * Always returns success message (prevents email enumeration).
      */
     @Transactional
     public void processForgotPassword(String email) {
-        User user = userRepo.findByEmail(email);
+        User user = userRepo.findByEmailIgnoreCase(email);
 
         if (user == null) {
-            // Don't reveal that email doesn't exist — just return silently
             return;
         }
 
@@ -59,7 +57,7 @@ public class PasswordResetService {
         PasswordResetToken resetToken = new PasswordResetToken();
         resetToken.setToken(token);
         resetToken.setUser(user);
-        resetToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
+        resetToken.setExpiresAt(LocalDateTime.now().plusMinutes(10));
         resetToken.setUsed(false);
         tokenRepo.save(resetToken);
 
@@ -116,8 +114,3 @@ public class PasswordResetService {
         return null; // null = success
     }
 }
-
-
-
-
-

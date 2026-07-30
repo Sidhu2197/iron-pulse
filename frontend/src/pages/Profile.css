@@ -324,3 +324,16 @@
     font-size: var(--font-xs);
     margin: 0;
 }
+
+/* Change Password Section */
+.profile-password-section {
+    margin-top: var(--space-xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border);
+}
+
+.profile-pwd-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}

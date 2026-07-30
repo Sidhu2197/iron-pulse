@@ -36,6 +36,34 @@
     margin-bottom: var(--space-md);
 }
 
+/* Dark-themed select dropdown */
+.bmi-form-card select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding-right: 28px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8.5L1 3.5h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+}
+
+.bmi-form-card select option {
+    background: #0e1224;
+    color: var(--text-primary);
+    padding: 10px;
+}
+
+.bmi-form-card select option:checked {
+    background: rgba(0, 240, 255, 0.15);
+}
+
+.bmi-form-card select option:disabled {
+    color: var(--text-muted);
+}
+
 .bmi-unit {
     font-size: var(--font-xs);
     color: var(--text-muted);
@@ -75,6 +103,8 @@
     font-size: 3rem;
     margin-bottom: var(--space-md);
     animation: float 3s ease-in-out infinite;
+    color: var(--accent-cyan);
+    filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.3));
 }
 
 .bmi-empty .accent {

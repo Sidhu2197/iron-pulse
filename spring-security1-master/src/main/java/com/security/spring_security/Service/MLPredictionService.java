@@ -113,7 +113,7 @@ public class MLPredictionService {
     @Cacheable(value = "ml-predictions", key = "T(String).format('pred_%s_%s_%s_%s_%s_%s_%s_%s_%s', " +
             "#input['age'], #input['gender'], #input['weight_kg'], " +
             "#input['height_cm'], #input['body_fat_pct'], #input['exercise_type'], " +
-            "#input['duration_min'], #input['intensity'], #input['heart_rate'])")
+            "#input['duration_min'], #input['intensity'], #input['heart_rate'])", sync = true)
     public Map<String, Object> predictCalories(Map<String, Object> input) throws MLPredictionException {
         try {
             // Validate input parameters according to API spec
@@ -265,7 +265,7 @@ public class MLPredictionService {
      * @return Map containing exercise list and MET values from the ML service
      * @throws RuntimeException if unable to retrieve exercises from ML service
      */
-    @Cacheable(value = "exercises")
+    @Cacheable(value = "exercises", sync = true)
     public Map<String, Object> getSupportedExercises() {
         try {
             ResponseEntity<Map> response = restTemplate.getForEntity(mlExercisesUrl, Map.class);

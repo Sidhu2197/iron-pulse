@@ -42,10 +42,14 @@ public class User {
     private double height;   // in cm
     private double weight;   // in kg
     
-    @NotBlank(message = "Security question is required")
-    private String securityQuestion;
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean isVerified = false;
     
-    @NotBlank(message = "Security answer is required")
-    private String securityAnswer;
+    private String verificationToken;
+    
+    @Column(nullable = false, columnDefinition = "int default 0")
+    private int failedLoginAttempts = 0;
+    
+    private java.time.LocalDateTime lockoutTime;
 
 }
