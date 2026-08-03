@@ -18,6 +18,7 @@ const Profile = lazy(() => import('./pages/Profile'));
 const BMICalculator = lazy(() => import('./pages/BMICalculator'));
 const CaloriePredictor = lazy(() => import('./pages/CaloriePredictor'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 
 export default function App() {
     return (
@@ -34,6 +35,7 @@ export default function App() {
                                 <Route path="/" element={<Landing />} />
                                 <Route path="/login" element={<Login />} />
                                 <Route path="/signup" element={<Signup />} />
+                                <Route path="/verify-email" element={<VerifyEmail />} />
                                 <Route path="/forgot-password" element={<ForgotPassword />} />
                                 <Route path="/reset-password/:token" element={<ResetPassword />} />
 

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { loginUser } from '../api/auth';
+import { loginUser, resendVerificationEmail } from '../api/auth';
 import Silk from '../components/Silk';
-import { Flame, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Flame, Mail, Lock, AlertCircle, Check, RefreshCw } from 'lucide-react';
 
 /* ── Inline Google SVG logo ───────────────────────────────── */
 function GoogleLogo() {
@@ -57,6 +57,8 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -66,6 +68,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setResendSuccess('');
     setLoading(true);
     try {
       const data = await loginUser({ email, password });
@@ -75,6 +78,20 @@ export default function Login() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setResendLoading(true);
+    setResendSuccess('');
+    setError('');
+    try {
+      const data = await resendVerificationEmail(email);
+      setResendSuccess(data.message || 'Verification email sent! Check your inbox.');
+    } catch (err) {
+      setError(err.message || 'Failed to resend verification email');
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -115,7 +132,6 @@ export default function Login() {
       <FloatingGlows />
 
       <div className="auth-page page-enter">
-
       {/* Header */}
       <div className="auth-header" style={{ flexDirection: 'column', alignItems: 'center', zIndex: 2 }}>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '0.75rem' }}>
@@ -155,9 +171,50 @@ export default function Login() {
       >
         {/* Error */}
         {error && (
-          <div className="auth-error">
-            <AlertCircle size={16} />
-            {error}
+          <div className="auth-error" style={{ flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertCircle size={16} />
+              {error}
+            </div>
+            {error.toLowerCase().includes('verify') && (
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendLoading}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid rgba(239, 68, 68, 0.4)',
+                  color: '#ef4444',
+                  padding: '6px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  cursor: 'pointer',
+                  fontSize: '0.8125rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  opacity: resendLoading ? 0.6 : 1,
+                }}
+              >
+                <RefreshCw size={14} style={{ animation: resendLoading ? 'spin 1s linear infinite' : 'none' }} />
+                {resendLoading ? 'Sending…' : 'Resend Verification Email'}
+              </button>
+            )}
+          </div>
+        )}
+        {resendSuccess && (
+          <div style={{
+            background: 'rgba(16, 185, 129, 0.08)',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
+            color: '#10b981',
+            padding: '10px 14px',
+            borderRadius: 'var(--radius-sm)',
+            fontSize: '0.875rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}>
+            <Check size={16} />
+            {resendSuccess}
           </div>
         )}
 

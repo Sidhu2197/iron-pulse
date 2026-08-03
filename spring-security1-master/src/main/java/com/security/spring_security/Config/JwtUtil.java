@@ -15,11 +15,26 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    // Using a securely generated key for HS256
-    private static final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    @org.springframework.beans.factory.annotation.Value("${jwt.secret:}")
+    private String secret;
     
-    // Token valid for 24 hours
-    private static final long JWT_TOKEN_VALIDITY = 24 * 60 * 60 * 1000;
+    private Key defaultKey;
+
+    // Access Token valid for 15 minutes
+    private static final long ACCESS_TOKEN_VALIDITY = 15 * 60 * 1000;
+    
+    // Refresh Token valid for 7 days
+    private static final long REFRESH_TOKEN_VALIDITY = 7L * 24 * 60 * 60 * 1000;
+    
+    private Key getSigningKey() {
+        if (secret == null || secret.isBlank()) {
+            if (defaultKey == null) {
+                defaultKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+            }
+            return defaultKey;
+        }
+        return Keys.hmacShaKeyFor(secret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    }
 
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -36,7 +51,7 @@ public class JwtUtil {
 
     private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(SECRET_KEY)
+                .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
@@ -47,17 +62,20 @@ public class JwtUtil {
     }
 
     public String generateToken(String email) {
-        Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, email);
+        return createToken(new HashMap<>(), email, ACCESS_TOKEN_VALIDITY);
+    }
+    
+    public String generateRefreshToken(String email) {
+        return createToken(new HashMap<>(), email, REFRESH_TOKEN_VALIDITY);
     }
 
-    private String createToken(Map<String, Object> claims, String subject) {
+    private String createToken(Map<String, Object> claims, String subject, long validity) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
-                .signWith(SECRET_KEY)
+                .setExpiration(new Date(System.currentTimeMillis() + validity))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 

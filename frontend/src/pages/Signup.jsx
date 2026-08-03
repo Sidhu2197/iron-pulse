@@ -1,20 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signupUser } from '../api/auth';
-import { validateEmail, getEmailValidationStatus } from '../utils/emailValidation';
+import { getEmailValidationStatus } from '../utils/emailValidation';
 import Silk from '../components/Silk';
 import {
-  Flame, User, Mail, Lock, Cake, CircleHelp, ShieldCheck,
+  Flame, User, Mail, Lock, Cake,
   Check, X, AlertCircle,
 } from 'lucide-react';
-
-const SECURITY_QUESTIONS = [
-  'What is your pet\'s name?',
-  'What city were you born in?',
-  'What is your mother\'s maiden name?',
-  'What was the name of your first school?',
-  'What is your favorite food?',
-];
 
 /* ── Inline Google SVG logo ───────────────────────────────── */
 function GoogleLogo() {
@@ -66,8 +58,7 @@ function FloatingGlows() {
 export default function Signup() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    username: '', email: '', password: '', confirmPassword: '',
-    age: '', securityQuestion: SECURITY_QUESTIONS[0], securityAnswer: '',
+    username: '', email: '', password: '', confirmPassword: '', age: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -77,13 +68,9 @@ export default function Signup() {
   const [focusedField, setFocusedField] = useState(null);
 
   const update = (field) => (e) => {
-    let value = e.target.value;
-    if (field === 'securityAnswer') {
-      value = value.replace(/[^A-Za-z ]/g, '');
-    }
-    setForm({ ...form, [field]: value });
+    setForm({ ...form, [field]: e.target.value });
     if (field === 'email') {
-      setEmailValidation(getEmailValidationStatus(value));
+      setEmailValidation(getEmailValidationStatus(e.target.value));
     }
   };
 
@@ -102,7 +89,6 @@ export default function Signup() {
   const allValid =
     Object.values(checks).every(Boolean) &&
     passwordsMatch &&
-    form.securityAnswer.trim().length > 0 &&
     emailValidation.status === 'valid';
 
   /* ── Strength bar ────────────────────────────────────── */
@@ -127,7 +113,7 @@ export default function Signup() {
       setError('Please meet all password requirements');
       return;
     }
-    if (!form.username.trim() || !form.age || !form.securityAnswer.trim()) {
+    if (!form.username.trim() || !form.age) {
       setError('Please fill in all fields');
       return;
     }
@@ -138,8 +124,6 @@ export default function Signup() {
         email: form.email,
         password: form.password,
         age: form.age,
-        securityQuestion: form.securityQuestion,
-        securityAnswer: form.securityAnswer,
       });
       navigate('/login');
     } catch (err) {
@@ -172,25 +156,6 @@ export default function Signup() {
     transition: 'all 0.25s ease',
     boxShadow: focusedField === field ? 'var(--shadow-glow-cyan)' : 'none',
   });
-
-  const selectStyle = {
-    width: '100%',
-    padding: '13px 32px 13px 44px',
-    background: 'var(--bg-input)',
-    border: `1px solid ${focusedField === 'securityQuestion' ? 'rgba(0, 240, 255, 0.45)' : 'rgba(255, 255, 255, 0.09)'}`,
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--text-primary)',
-    fontFamily: 'var(--font-body)',
-    fontSize: '0.9375rem',
-    outline: 'none',
-    transition: 'all 0.25s ease',
-    boxShadow: focusedField === 'securityQuestion' ? 'var(--shadow-glow-cyan)' : 'none',
-    appearance: 'none',
-    cursor: 'pointer',
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8.5L1 3.5h10z'/%3E%3C/svg%3E")`,
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right 12px center',
-  };
 
   const labelStyle = {
     textTransform: 'uppercase',
@@ -380,7 +345,7 @@ export default function Signup() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
           <label htmlFor="signup-confirm" style={labelStyle}>Confirm Password</label>
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <ShieldCheck size={18} style={iconStyle('confirmPassword')} />
+            <Lock size={18} style={iconStyle('confirmPassword')} />
             <input
               id="signup-confirm" type="password" placeholder="••••••••"
               value={form.confirmPassword} onChange={update('confirmPassword')}
@@ -400,42 +365,6 @@ export default function Signup() {
               <Check size={12} /> Passwords match
             </span>
           )}
-        </div>
-
-        {/* Security Question */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-          <label htmlFor="signup-security-q" style={labelStyle}>Security Question</label>
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <CircleHelp size={18} style={iconStyle('securityQuestion')} />
-            <select
-              id="signup-security-q"
-              value={form.securityQuestion}
-              onChange={update('securityQuestion')}
-              onFocus={() => setFocusedField('securityQuestion')}
-              onBlur={() => setFocusedField(null)}
-              style={selectStyle}
-            >
-              {SECURITY_QUESTIONS.map((q) => (
-                <option key={q} value={q}>{q}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Security Answer */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-          <label htmlFor="signup-security-a" style={labelStyle}>Security Answer</label>
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <ShieldCheck size={18} style={iconStyle('securityAnswer')} />
-            <input
-              id="signup-security-a" type="text" placeholder="Your answer (letters only)"
-              value={form.securityAnswer} onChange={update('securityAnswer')}
-              onFocus={() => setFocusedField('securityAnswer')}
-              onBlur={() => setFocusedField(null)}
-              style={inputStyle('securityAnswer')}
-              required
-            />
-          </div>
         </div>
 
         {/* Submit */}

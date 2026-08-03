@@ -19,6 +19,9 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private EmailService emailService;
+
     // No cache eviction needed — a newly registered user has no cache entry yet.
     // Evicting allEntries would unnecessarily wipe every other user's cached data.
     public User register(User user) {
@@ -26,11 +29,19 @@ public class UserService {
             throw new RuntimeException("An account with this email already exists.");
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        // Hash the security answer just like the password
-        if (user.getSecurityAnswer() != null) {
-            user.setSecurityAnswer(passwordEncoder.encode(user.getSecurityAnswer().trim().toLowerCase()));
-        }
-        return repo.save(user);
+        
+        // Generate verification token
+        String token = java.util.UUID.randomUUID().toString();
+        user.setVerificationToken(token);
+        user.setVerified(false);
+        user.setFailedLoginAttempts(0);
+        
+        User savedUser = repo.save(user);
+        
+        // Send verification email
+        emailService.sendVerificationEmail(savedUser.getEmail(), token);
+        
+        return savedUser;
     }
 
     // No cache here — username lookups are infrequent and
@@ -43,7 +54,7 @@ public class UserService {
      * Returns a cached UserCacheDTO (no sensitive fields).
      * Email keys are normalized to lowercase for consistency.
      */
-    @Cacheable(value = "users", key = "#email.toLowerCase()")
+    @Cacheable(value = "users", key = "#email.toLowerCase()", sync = true)
     public UserCacheDTO findByEmail(String email) {
         User user = repo.findByEmail(email);
         return user != null ? new UserCacheDTO(user) : null;
@@ -57,25 +68,16 @@ public class UserService {
         return repo.findByEmail(email);
     }
 
-    public String getSecurityQuestion(String email) {
-        User user = repo.findByEmail(email);
-        if (user == null) return null;
-        return user.getSecurityQuestion();
+    public User saveUserEntity(User user) {
+        return repo.save(user);
     }
 
-    public boolean verifySecurityAnswer(String email, String answer) {
-        User user = repo.findByEmail(email);
+    public boolean verifyEmail(String token) {
+        User user = repo.findByVerificationToken(token);
         if (user == null) return false;
-        return user.getSecurityAnswer() != null
-                && passwordEncoder.matches(answer.trim().toLowerCase(), user.getSecurityAnswer());
-    }
-
-    @CacheEvict(value = "users", key = "#email.toLowerCase()")
-    public boolean resetPassword(String email, String securityAnswer, String newPassword) {
-        User user = repo.findByEmail(email);
-        if (user == null) return false;
-        if (!verifySecurityAnswer(email, securityAnswer)) return false;
-        user.setPassword(passwordEncoder.encode(newPassword));
+        
+        user.setVerified(true);
+        user.setVerificationToken(null);
         repo.save(user);
         return true;
     }
@@ -90,5 +92,27 @@ public class UserService {
         if (weight > 0) user.setWeight(weight);
         User saved = repo.save(user);
         return new UserCacheDTO(saved);
+    }
+
+    public void changePassword(String email, String currentPassword, String newPassword) {
+        User user = repo.findByEmail(email);
+        if (user == null) throw new RuntimeException("User not found");
+        
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new RuntimeException("Incorrect current password.");
+        }
+        
+        user.setPassword(passwordEncoder.encode(newPassword));
+        repo.save(user);
+    }
+
+    public void resendVerificationEmail(String email) {
+        User user = repo.findByEmail(email);
+        if (user != null && !user.isVerified()) {
+            String token = java.util.UUID.randomUUID().toString();
+            user.setVerificationToken(token);
+            repo.save(user);
+            emailService.sendVerificationEmail(user.getEmail(), token);
+        }
     }
 }

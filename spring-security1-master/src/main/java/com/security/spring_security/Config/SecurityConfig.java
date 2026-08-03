@@ -33,13 +33,15 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthFilter jwtAuthFilter;
 
+    @Autowired
+    private RateLimitFilter rateLimitFilter;
 
     @Value("${app.oauth2.enabled:false}")
     private boolean oauth2Enabled;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(12);
     }
 
     @Bean
@@ -69,8 +71,13 @@ public class SecurityConfig {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(customizer -> customizer.disable())
+                .headers(headers -> headers
+                    .frameOptions(frameOptions -> frameOptions.deny())
+                    .httpStrictTransportSecurity(hsts -> hsts.includeSubDomains(true).maxAgeInSeconds(31536000))
+                    .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'self'"))
+                )
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/register", "/login", "/api/register", "/api/login", "/forgot-password/**",
+                        .requestMatchers("/register", "/login", "/api/register", "/api/login", "/api/verify-email", "/api/resend-verification", "/forgot-password/**",
                                 "/api/forgot-password/**", "/api/auth/**", "/csrf-token", "/error")
                         .permitAll()
                         .requestMatchers("/api/calorie-predictions/predict", "/api/calorie-predictions/health",
@@ -80,6 +87,7 @@ public class SecurityConfig {
                         .requestMatchers("/**.html", "/**.css", "/**.js").permitAll()
                         .anyRequest().authenticated())
                 .authenticationProvider(authProvider())
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 

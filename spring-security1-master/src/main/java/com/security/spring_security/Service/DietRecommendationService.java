@@ -47,7 +47,7 @@ public class DietRecommendationService {
     @Cacheable(value = "diet-recommendations",
         key = "T(String).format('diet_%s_%s_%s_%s_%s_%s_%s', " +
               "#input['age'], #input['gender'], #input['weight'], " +
-              "#input['height'], #input['goal'], #input['meal_type'], #input['diet_type'])")
+              "#input['height'], #input['goal'], #input['meal_type'], #input['diet_type'])", sync = true)
     public Map<String, Object> generateFoodPlan(Map<String, Object> input) {
         // Validate required fields
         validateInput(input);

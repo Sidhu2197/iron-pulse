@@ -1,22 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { fetchWorkouts, updateProfile } from '../api/auth';
+import { fetchWorkouts, changePassword } from '../api/auth';
 import { useNavigate } from 'react-router-dom';
 import './Profile.css';
-import { Edit, LogOut } from 'lucide-react';
+import { LogOut, Lock, Check, AlertCircle, Edit } from 'lucide-react';
 
 export default function Profile() {
-    const { user, token, logout, setUser } = useAuth();
+    const { user, token, logout } = useAuth();
     const navigate = useNavigate();
     const [workouts, setWorkouts] = useState([]);
     const [loadingWorkouts, setLoadingWorkouts] = useState(true);
 
-    // Edit-profile state
-    const [editing, setEditing] = useState(false);
-    const [editForm, setEditForm] = useState({ username: '', age: '', height: '', weight: '' });
-    const [editLoading, setEditLoading] = useState(false);
-    const [editError, setEditError] = useState('');
-    const [editSuccess, setEditSuccess] = useState('');
+    // Change Password state
+    const [showPwdForm, setShowPwdForm] = useState(false);
+    const [pwdForm, setPwdForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    const [pwdLoading, setPwdLoading] = useState(false);
+    const [pwdError, setPwdError] = useState('');
+    const [pwdSuccess, setPwdSuccess] = useState('');
 
     const name = user?.username || 'User';
     const initials = name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase();
@@ -37,38 +37,33 @@ export default function Profile() {
         navigate('/');
     };
 
-    const openEdit = () => {
-        setEditForm({
-            username: user?.username || '',
-            age: user?.age || '',
-            height: user?.height || '',
-            weight: user?.weight || '',
-        });
-        setEditError('');
-        setEditSuccess('');
-        setEditing(true);
+    const handlePwdChange = (e) => {
+        setPwdForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    const handleEditChange = (e) => {
-        setEditForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    };
-
-    const handleEditSave = async (e) => {
+    const handlePwdSubmit = async (e) => {
         e.preventDefault();
-        setEditLoading(true);
-        setEditError('');
-        setEditSuccess('');
+        setPwdError('');
+        setPwdSuccess('');
+        if (pwdForm.newPassword !== pwdForm.confirmPassword) {
+            return setPwdError('New passwords do not match');
+        }
+        if (pwdForm.newPassword.length < 8) {
+            return setPwdError('New password must be at least 8 characters');
+        }
+        setPwdLoading(true);
         try {
-            const updated = await updateProfile(token, editForm);
-            // Extract only user fields from the API response wrapper
-            const { username, email, age, height, weight } = updated;
-            setUser({ username, email, age, height, weight });
-            setEditSuccess('Profile updated successfully!');
-            setTimeout(() => setEditing(false), 1200);
+            await changePassword(token, {
+                currentPassword: pwdForm.currentPassword,
+                newPassword: pwdForm.newPassword,
+            });
+            setPwdSuccess('Password changed successfully!');
+            setPwdForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+            setTimeout(() => setShowPwdForm(false), 2000);
         } catch (err) {
-            setEditError(err.message || 'Update failed');
+            setPwdError(err.message || 'Failed to change password');
         } finally {
-            setEditLoading(false);
+            setPwdLoading(false);
         }
     };
 
@@ -86,89 +81,61 @@ export default function Profile() {
                     </div>
                 </div>
 
-                {editing ? (
-                    <form className="profile-edit-form" onSubmit={handleEditSave}>
-                        <div className="profile-edit-row">
-                            <label>Username</label>
-                            <input
-                                name="username"
-                                value={editForm.username}
-                                onChange={handleEditChange}
-                                placeholder="Username"
-                            />
-                        </div>
-                        <div className="profile-edit-row">
-                            <label>Age (yrs)</label>
-                            <input
-                                name="age"
-                                type="number"
-                                min="1"
-                                value={editForm.age}
-                                onChange={handleEditChange}
-                                placeholder="Age"
-                            />
-                        </div>
-                        <div className="profile-edit-row">
-                            <label>Height (cm)</label>
-                            <input
-                                name="height"
-                                type="number"
-                                min="1"
-                                step="0.1"
-                                value={editForm.height}
-                                onChange={handleEditChange}
-                                placeholder="Height in cm"
-                            />
-                        </div>
-                        <div className="profile-edit-row">
-                            <label>Weight (kg)</label>
-                            <input
-                                name="weight"
-                                type="number"
-                                min="1"
-                                step="0.1"
-                                value={editForm.weight}
-                                onChange={handleEditChange}
-                                placeholder="Weight in kg"
-                            />
-                        </div>
-                        {editError && <p className="profile-edit-error">{editError}</p>}
-                        {editSuccess && <p className="profile-edit-success">{editSuccess}</p>}
-                        <div className="profile-edit-actions">
-                            <button type="submit" className="profile-save-btn" disabled={editLoading}>
-                                {editLoading ? 'Saving…' : 'Save Changes'}
-                            </button>
-                            <button
-                                type="button"
-                                className="profile-cancel-btn"
-                                onClick={() => setEditing(false)}
-                                disabled={editLoading}
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
-                ) : (
-                    <>
-                        <div className="profile-details">
-                            <div className="profile-field">
-                                <label>Age</label>
-                                <div className="value">{user?.age || '—'} yrs</div>
-                            </div>
-                            <div className="profile-field">
-                                <label>Height</label>
-                                <div className="value">{user?.height || '—'} cm</div>
-                            </div>
-                            <div className="profile-field">
-                                <label>Weight</label>
-                                <div className="value">{user?.weight || '—'} kg</div>
-                            </div>
-                        </div>
-                        <button className="profile-edit-btn" onClick={openEdit}>
-                            ✏️ Edit Profile
+                <div className="profile-details">
+                    <div className="profile-field">
+                        <label>Age</label>
+                        <div className="value">{user?.age || '—'} yrs</div>
+                    </div>
+                    <div className="profile-field">
+                        <label>Height</label>
+                        <div className="value">{user?.height || '—'} cm</div>
+                    </div>
+                    <div className="profile-field">
+                        <label>Weight</label>
+                        <div className="value">{user?.weight || '—'} kg</div>
+                    </div>
+                </div>
+
+                {/* Change Password Section */}
+                <div className="profile-password-section">
+                    {!showPwdForm ? (
+                        <button
+                            className="profile-edit-btn"
+                            onClick={() => { setShowPwdForm(true); setPwdError(''); setPwdSuccess(''); }}
+                        >
+                            <Lock size={14} /> Change Password
                         </button>
-                    </>
-                )}
+                    ) : (
+                        <form className="profile-pwd-form" onSubmit={handlePwdSubmit}>
+                            <h3 style={{ fontSize: 'var(--font-sm)', fontWeight: 600, marginBottom: '4px' }}>
+                                <Lock size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                                Change Password
+                            </h3>
+                            <div className="profile-edit-row">
+                                <label>Current Password</label>
+                                <input type="password" name="currentPassword" value={pwdForm.currentPassword} onChange={handlePwdChange} required />
+                            </div>
+                            <div className="profile-edit-row">
+                                <label>New Password</label>
+                                <input type="password" name="newPassword" value={pwdForm.newPassword} onChange={handlePwdChange} required />
+                            </div>
+                            <div className="profile-edit-row">
+                                <label>Confirm New Password</label>
+                                <input type="password" name="confirmPassword" value={pwdForm.confirmPassword} onChange={handlePwdChange} required />
+                            </div>
+                            {pwdError && <p className="profile-edit-error"><AlertCircle size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />{pwdError}</p>}
+                            {pwdSuccess && <p className="profile-edit-success"><Check size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />{pwdSuccess}</p>}
+                            <div className="profile-edit-actions">
+                                <button type="submit" className="profile-save-btn" disabled={pwdLoading}>
+                                    {pwdLoading ? 'Changing…' : 'Change Password'}
+                                </button>
+                                <button type="button" className="profile-cancel-btn" onClick={() => setShowPwdForm(false)} disabled={pwdLoading}>
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    )}
+                </div>
             </div>
 
             {/* Workout History */}

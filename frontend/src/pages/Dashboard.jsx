@@ -50,7 +50,7 @@ export default function Dashboard() {
         }
     }, [token]);
 
-    const name = dashData?.greeting_name || user?.username || 'Champ';
+    const name = user?.username || 'Champ';
     const totalBurned = dashData?.total_calories_burned ?? 0;
     const workoutCount = dashData?.workout_count ?? 0;
     const totalEaten = dashData?.total_calories_eaten ?? 0;
@@ -64,7 +64,6 @@ export default function Dashboard() {
     // Daily target progress calculations
     const dailyTargetBurned = 500;
     const burnProgress = Math.min(100, Math.round((totalBurned / (dailyTargetBurned * 7 || 1)) * 100));
-
     if (loading) {
         return (
             <div className="ml-container page-enter" style={{ minHeight: '100vh', padding: '2rem 1.5rem' }}>

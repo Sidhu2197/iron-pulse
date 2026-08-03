@@ -34,13 +34,16 @@ public class PasswordResetController {
         try {
             passwordResetService.processForgotPassword(email.trim().toLowerCase());
         } catch (Exception e) {
-            // Log internally but don't reveal details to client
-            System.err.println("Password reset email error: " + e.getMessage());
+            // Return the actual error so you can see what's failing
+            // TODO: Once emails work, change this back to always return success (anti-enumeration)
+            response.put("success", false);
+            response.put("message", "Email sending failed: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
 
-        // Always return success — never reveal if email exists or not
         response.put("success", true);
-        response.put("message", "If an account exists with this email, you will receive a password reset link shortly.");
+        response.put("message",
+                "If an account exists with this email, you will receive a password reset link shortly.");
         return ResponseEntity.ok(response);
     }
 

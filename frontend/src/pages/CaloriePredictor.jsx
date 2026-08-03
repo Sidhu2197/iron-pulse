@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { predictCalories, saveCaloriePrediction, fetchCaloriePredictions } from '../api/auth';
+import { predictCalories, saveCaloriePrediction, fetchCaloriePredictions, checkMLHealth, getSupportedExercises } from '../api/auth';
 import './CaloriePredictor.css';
 import PageReveal from '../components/PageReveal';
-import { Dumbbell, Timer, Ruler, Activity, Scale, Cake, Heart, BarChart2, Calendar } from 'lucide-react';
+import { Dumbbell, Timer, Ruler, Activity, Scale, Cake, Heart, BarChart2, Calendar, CheckCircle, XCircle } from 'lucide-react';
 
-const EXERCISE_TYPES = [
+const DEFAULT_EXERCISE_TYPES = [
     { value: 'Running', emoji: <Activity size={20} />, label: 'Running' },
     { value: 'Cycling', emoji: '🚴', label: 'Cycling' },
     { value: 'Swimming', emoji: '🏊', label: 'Swimming' },
@@ -18,11 +18,7 @@ const EXERCISE_TYPES = [
     { value: 'Elliptical', emoji: '🔄', label: 'Elliptical' },
 ];
 
-const INTENSITY_OPTIONS = [
-    { value: 1, label: '🟢 Low', className: 'low' },
-    { value: 2, label: '🟡 Medium', className: 'medium' },
-    { value: 3, label: '🔴 High', className: 'high' },
-];
+
 
 const EXERCISE_EMOJI_MAP = {
     'Running': <Activity size={20} />, 'Cycling': '🚴', 'Swimming': '🏊', 'Walking': '🚶',
@@ -50,6 +46,10 @@ export default function CaloriePredictor() {
     const [history, setHistory] = useState([]);
     const [historyLoading, setHistoryLoading] = useState(true);
 
+    const [mlHealth, setMlHealth] = useState(null);
+    const [supportedExercises, setSupportedExercises] = useState(DEFAULT_EXERCISE_TYPES);
+    const [healthLoading, setHealthLoading] = useState(true);
+
     useEffect(() => {
         if (token) {
             fetchCaloriePredictions(token)
@@ -60,6 +60,28 @@ export default function CaloriePredictor() {
             setHistoryLoading(false);
         }
     }, [token]);
+
+    useEffect(() => {
+        // Check ML health and get supported exercises on mount
+        Promise.all([
+            checkMLHealth().catch(() => ({ healthy: false, message: 'Health check failed' })),
+            getSupportedExercises().catch(() => ({ exercises: [] }))
+        ]).then(([health, exercises]) => {
+            setMlHealth(health);
+            if (exercises.exercises && exercises.exercises.length > 0) {
+                const exerciseOptions = exercises.exercises.map(ex => ({
+                    value: ex,
+                    emoji: EXERCISE_EMOJI_MAP[ex] || '🏋️',
+                    label: ex
+                }));
+                setSupportedExercises(exerciseOptions);
+            }
+        }).catch(() => {
+            setMlHealth({ healthy: false, message: 'ML service unavailable' });
+        }).finally(() => {
+            setHealthLoading(false);
+        });
+    }, []);
 
     const updateField = (field, value) => setForm({ ...form, [field]: value });
 
@@ -129,8 +151,18 @@ export default function CaloriePredictor() {
 
     return (
         <PageReveal className="calorie-predictor-page">
-            <h1>Calorie AI</h1>
-            <p className="subtitle">Predict calories burned using our AI model trained on 10,000+ workout sessions</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                <div>
+                    <h1>Calorie AI</h1>
+                    <p className="subtitle">Predict calories burned using our AI model trained on 10,000+ workout sessions</p>
+                </div>
+                {typeof mlHealth !== 'undefined' && mlHealth && (
+                    <div className={`ml-health-status ${mlHealth.healthy ? 'healthy' : 'unhealthy'}`}>
+                        {mlHealth.healthy ? <CheckCircle size={16} /> : <XCircle size={16} />}
+                        <span>{mlHealth.healthy ? 'ML Service Online' : 'ML Service Offline'}</span>
+                    </div>
+                )}
+            </div>
 
             {error && <div className="predictor-error">{error}</div>}
             {saveMsg && <div className="predictor-success">{saveMsg}</div>}
@@ -273,7 +305,7 @@ export default function CaloriePredictor() {
                             <div className="exercise-section">
                                 <label>Exercise Type</label>
                                 <div className="exercise-grid">
-                                    {EXERCISE_TYPES.map((ex) => (
+                                    {supportedExercises.map((ex) => (
                                         <button key={ex.value} type="button"
                                             className={`exercise-card ${form.exercise_type === ex.value ? 'selected' : ''}`}
                                             onClick={() => updateField('exercise_type', ex.value)}>
@@ -288,13 +320,21 @@ export default function CaloriePredictor() {
                             <div className="intensity-section">
                                 <label>Intensity Level</label>
                                 <div className="intensity-toggle">
-                                    {INTENSITY_OPTIONS.map((opt) => (
-                                        <button key={opt.value} type="button"
-                                            className={`intensity-btn ${opt.className} ${form.intensity === opt.value ? 'selected' : ''}`}
-                                            onClick={() => updateField('intensity', opt.value)}>
-                                            {opt.label}
-                                        </button>
-                                    ))}
+                                    <button type="button"
+                                        className={`intensity-btn low ${form.intensity === 1 ? 'selected' : ''}`}
+                                        onClick={() => updateField('intensity', 1)}>
+                                        🟢 Low
+                                    </button>
+                                    <button type="button"
+                                        className={`intensity-btn medium ${form.intensity === 2 ? 'selected' : ''}`}
+                                        onClick={() => updateField('intensity', 2)}>
+                                        🟡 Medium
+                                    </button>
+                                    <button type="button"
+                                        className={`intensity-btn high ${form.intensity === 3 ? 'selected' : ''}`}
+                                        onClick={() => updateField('intensity', 3)}>
+                                        🔴 High
+                                    </button>
                                 </div>
                             </div>
 
