@@ -20,11 +20,11 @@ const EQUIPMENT_OPTIONS = [
 ];
 
 const GOAL_OPTIONS = [
-    { value: 'fat_loss', label: '<Flame size={20} /> Fat Loss' },
+    { value: 'fat_loss', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Flame size={20} /> Fat Loss</span> },
     { value: 'muscle_gain', label: '💪 Muscle Gain' },
-    { value: 'strength', label: '<Dumbbell size={20} /> Strength' },
+    { value: 'strength', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Dumbbell size={20} /> Strength</span> },
     { value: 'endurance', label: '🫁 Endurance' },
-    { value: 'general_fitness', label: '<Activity size={20} /> General Fitness' },
+    { value: 'general_fitness', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Activity size={20} /> General Fitness</span> },
 ];
 
 const GENDER_OPTIONS = [
@@ -35,7 +35,7 @@ const GENDER_OPTIONS = [
 const FITNESS_LEVEL_OPTIONS = [
     { value: 'beginner', label: '🌱 Beginner' },
     { value: 'intermediate', label: '⚡ Intermediate' },
-    { value: 'advanced', label: '<Flame size={20} /> Advanced' },
+    { value: 'advanced', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Flame size={20} /> Advanced</span> },
 ];
 
 const DAYS_OPTIONS = [1, 2, 3, 4, 5, 6, 7];
@@ -58,7 +58,7 @@ const WIZARD_STEPS = [
     { key: 'equipment', label: 'What equipment do you have?', icon: <Dumbbell size={20} /> },
     { key: 'goal', label: 'What\'s your fitness goal?', icon: '🎯' },
     { key: 'daysPerWeek', label: 'How many days per week?', icon: <Calendar size={20} /> },
-    { key: 'duration', label: 'Preferred workout duration?', icon: '<Timer size={20} />️' },
+    { key: 'duration', label: 'Preferred workout duration?', icon: <Timer size={20} /> },
 ];
 
 export default function Workout() {

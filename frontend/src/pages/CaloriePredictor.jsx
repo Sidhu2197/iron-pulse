@@ -285,7 +285,7 @@ export default function CaloriePredictor() {
                             <div className="input-group">
                                 <label>Duration (min)</label>
                                 <div className="input-field">
-                                    <span className="icon"><Timer size={20} />️</span>
+                                    <span className="icon"><Timer size={20} /></span>
                                     <input type="number" placeholder="30" value={form.duration_min}
                                         onChange={(e) => updateField('duration_min', e.target.value)} min="1" required />
                                 </div>
