@@ -20,11 +20,11 @@ const EQUIPMENT_OPTIONS = [
 ];
 
 const GOAL_OPTIONS = [
-    { value: 'fat_loss', label: '<Flame size={20} /> Fat Loss' },
+    { value: 'fat_loss', label: '🔥 Fat Loss' },
     { value: 'muscle_gain', label: '💪 Muscle Gain' },
-    { value: 'strength', label: '<Dumbbell size={20} /> Strength' },
+    { value: 'strength', label: '🏋️ Strength' },
     { value: 'endurance', label: '🫁 Endurance' },
-    { value: 'general_fitness', label: '<Activity size={20} /> General Fitness' },
+    { value: 'general_fitness', label: '🏃 General Fitness' },
 ];
 
 const GENDER_OPTIONS = [
@@ -35,7 +35,7 @@ const GENDER_OPTIONS = [
 const FITNESS_LEVEL_OPTIONS = [
     { value: 'beginner', label: '🌱 Beginner' },
     { value: 'intermediate', label: '⚡ Intermediate' },
-    { value: 'advanced', label: '<Flame size={20} /> Advanced' },
+    { value: 'advanced', label: '🔥 Advanced' },
 ];
 
 const DAYS_OPTIONS = [1, 2, 3, 4, 5, 6, 7];

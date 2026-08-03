@@ -15,7 +15,7 @@ const FOOD_WIZARD_STEPS = [
 ];
 
 const FOOD_GOAL_OPTIONS = [
-    { value: 'fat_loss', label: '<Flame size={20} /> Fat Loss' },
+    { value: 'fat_loss', label: '🔥 Fat Loss' },
     { value: 'muscle_gain', label: '💪 Muscle Gain' },
 ];
 
