@@ -126,6 +126,9 @@ export default function FoodPlan() {
     const canGoNext = () => {
         const val = wizardData[currentStep.key];
         if (['gender', 'goal', 'mealType', 'dietType'].includes(currentStep.key)) return val !== '';
+        if (currentStep.key === 'age') return val !== '' && Number(val) >= 10 && Number(val) <= 120;
+        if (currentStep.key === 'height') return val !== '' && Number(val) >= 50 && Number(val) <= 250;
+        if (currentStep.key === 'weight') return val !== '' && Number(val) >= 20 && Number(val) <= 300;
         return val !== '' && Number(val) > 0;
     };
 
@@ -179,32 +182,21 @@ export default function FoodPlan() {
             const placeholder = step.key === 'age' ? '25' : step.key === 'weight' ? '70' : '175';
             const minVal = step.key === 'age' ? 10 : step.key === 'height' ? 50 : 20;
             const maxVal = step.key === 'age' ? 120 : step.key === 'height' ? 250 : 300;
+            const valName = step.key === 'age' ? 'Age' : step.key === 'height' ? 'Height' : 'Weight';
 
-            const handleNumberChange = (e) => {
-                const val = e.target.value;
-                if (val === '') {
-                    setWizardData({ ...wizardData, [step.key]: '' });
-                    return;
-                }
-                const num = parseInt(val, 10);
-                if (!isNaN(num)) {
-                    if (num > maxVal) {
-                        setWizardData({ ...wizardData, [step.key]: String(maxVal) });
-                    } else {
-                        setWizardData({ ...wizardData, [step.key]: String(num) });
-                    }
-                }
-            };
+            const val = wizardData[step.key];
+            const num = Number(val);
+            const isInvalid = val !== '' && (num < minVal || num > maxVal);
 
             return (
                 <div className="fw-input-wrap">
-                    <div className="input-field fw-number-input">
+                    <div className={`input-field fw-number-input ${isInvalid ? 'invalid' : ''}`}>
                         <span className="icon">{step.icon}</span>
                         <input
                             type="number"
                             placeholder={placeholder}
-                            value={wizardData[step.key]}
-                            onChange={handleNumberChange}
+                            value={val}
+                            onChange={(e) => setWizardData({ ...wizardData, [step.key]: e.target.value })}
                             onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
                             min={minVal}
                             max={maxVal}
@@ -212,6 +204,11 @@ export default function FoodPlan() {
                         />
                         <span className="fw-unit">{units}</span>
                     </div>
+                    {isInvalid && (
+                        <div className="field-error">
+                            ⚠️ {valName} must be between {minVal} and {maxVal} {units}
+                        </div>
+                    )}
                 </div>
             );
         }

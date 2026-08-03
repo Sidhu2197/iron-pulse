@@ -85,8 +85,13 @@ export default function CaloriePredictor() {
 
     const updateField = (field, value) => setForm({ ...form, [field]: value });
 
+    const invalidAge = form.age !== '' && (Number(form.age) < 10 || Number(form.age) > 120);
+    const invalidWeight = form.weight_kg !== '' && (Number(form.weight_kg) < 20 || Number(form.weight_kg) > 300);
+    const invalidHeight = form.height_cm !== '' && (Number(form.height_cm) < 50 || Number(form.height_cm) > 250);
+
     const canSubmit = form.age && form.weight_kg && form.height_cm &&
-        form.exercise_type && form.duration_min && form.heart_rate;
+        form.exercise_type && form.duration_min && form.heart_rate &&
+        !invalidAge && !invalidWeight && !invalidHeight;
 
     const handlePredict = async (e) => {
         e.preventDefault();
@@ -233,13 +238,14 @@ export default function CaloriePredictor() {
                             {/* Age */}
                             <div className="input-group">
                                 <label>Age</label>
-                                <div className="input-field">
+                                <div className={`input-field ${invalidAge ? 'invalid' : ''}`}>
                                     <span className="icon"><Cake size={20} /></span>
                                     <input type="number" placeholder="25" value={form.age}
-                                        onChange={(e) => updateField('age', e.target.value ? Math.min(120, Math.max(0, parseInt(e.target.value, 10))) : '')}
+                                        onChange={(e) => updateField('age', e.target.value)}
                                         onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
                                         min="10" max="120" required />
                                 </div>
+                                {invalidAge && <div className="field-error">⚠️ Age must be between 10 and 120 years</div>}
                             </div>
 
                             {/* Gender */}
@@ -256,25 +262,27 @@ export default function CaloriePredictor() {
                             {/* Weight */}
                             <div className="input-group">
                                 <label>Weight (kg)</label>
-                                <div className="input-field">
+                                <div className={`input-field ${invalidWeight ? 'invalid' : ''}`}>
                                     <span className="icon"><Scale size={20} /></span>
                                     <input type="number" placeholder="70" value={form.weight_kg}
-                                        onChange={(e) => updateField('weight_kg', e.target.value ? Math.min(300, Math.max(0, parseInt(e.target.value, 10))) : '')}
+                                        onChange={(e) => updateField('weight_kg', e.target.value)}
                                         onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
                                         min="20" max="300" required />
                                 </div>
+                                {invalidWeight && <div className="field-error">⚠️ Weight must be between 20 and 300 kg</div>}
                             </div>
 
                             {/* Height */}
                             <div className="input-group">
                                 <label>Height (cm)</label>
-                                <div className="input-field">
+                                <div className={`input-field ${invalidHeight ? 'invalid' : ''}`}>
                                     <span className="icon"><Ruler size={20} /></span>
                                     <input type="number" placeholder="170" value={form.height_cm}
-                                        onChange={(e) => updateField('height_cm', e.target.value ? Math.min(250, Math.max(0, parseInt(e.target.value, 10))) : '')}
+                                        onChange={(e) => updateField('height_cm', e.target.value)}
                                         onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
                                         min="50" max="250" required />
                                 </div>
+                                {invalidHeight && <div className="field-error">⚠️ Height must be between 50 and 250 cm</div>}
                             </div>
 
                             {/* Body Fat % */}

@@ -21,8 +21,12 @@ export default function BMICalculator() {
 
     const update = (field) => (e) => setForm({ ...form, [field]: e.target.value });
 
+    const invalidAge = form.age !== '' && (Number(form.age) < 10 || Number(form.age) > 120);
+    const invalidHeight = form.height !== '' && (Number(form.height) < 50 || Number(form.height) > 250);
+    const invalidWeight = form.weight !== '' && (Number(form.weight) < 20 || Number(form.weight) > 300);
+
     const canCalculate = form.age && form.gender && form.height && form.weight &&
-        Number(form.height) > 0 && Number(form.weight) > 0;
+        !invalidAge && !invalidHeight && !invalidWeight;
 
     const handleCalculate = (e) => {
         e.preventDefault();
@@ -53,15 +57,16 @@ export default function BMICalculator() {
                     <form onSubmit={handleCalculate}>
                         <div className="input-group">
                             <label htmlFor="bmi-age">Age</label>
-                            <div className="input-field">
+                            <div className={`input-field ${invalidAge ? 'invalid' : ''}`}>
                                 <span className="icon"><Cake size={20} /></span>
                                 <input id="bmi-age" type="number" placeholder="25"
                                     value={form.age}
-                                    onChange={(e) => setForm({ ...form, age: e.target.value ? String(Math.min(120, Math.max(0, parseInt(e.target.value, 10)))) : '' })}
+                                    onChange={update('age')}
                                     onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
                                     min="10" max="120" required />
                                 <span className="bmi-unit">years</span>
                             </div>
+                            {invalidAge && <div className="field-error">⚠️ Age must be between 10 and 120 years</div>}
                         </div>
 
                         <div className="input-group">
@@ -78,28 +83,30 @@ export default function BMICalculator() {
 
                         <div className="input-group">
                             <label htmlFor="bmi-height">Height</label>
-                            <div className="input-field">
+                            <div className={`input-field ${invalidHeight ? 'invalid' : ''}`}>
                                 <span className="icon"><Ruler size={20} /></span>
                                 <input id="bmi-height" type="number" placeholder="175"
                                     value={form.height}
-                                    onChange={(e) => setForm({ ...form, height: e.target.value ? String(Math.min(250, Math.max(0, parseInt(e.target.value, 10)))) : '' })}
+                                    onChange={update('height')}
                                     onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
                                     min="50" max="250" required />
                                 <span className="bmi-unit">cm</span>
                             </div>
+                            {invalidHeight && <div className="field-error">⚠️ Height must be between 50 and 250 cm</div>}
                         </div>
 
                         <div className="input-group">
                             <label htmlFor="bmi-weight">Weight</label>
-                            <div className="input-field">
+                            <div className={`input-field ${invalidWeight ? 'invalid' : ''}`}>
                                 <span className="icon"><Scale size={20} /></span>
                                 <input id="bmi-weight" type="number" placeholder="70"
                                     value={form.weight}
-                                    onChange={(e) => setForm({ ...form, weight: e.target.value ? String(Math.min(300, Math.max(0, parseInt(e.target.value, 10)))) : '' })}
+                                    onChange={update('weight')}
                                     onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
                                     min="20" max="300" required />
                                 <span className="bmi-unit">kg</span>
                             </div>
+                            {invalidWeight && <div className="field-error">⚠️ Weight must be between 20 and 300 kg</div>}
                         </div>
 
                         <div className="bmi-actions">
