@@ -56,7 +56,10 @@ export default function BMICalculator() {
                             <div className="input-field">
                                 <span className="icon"><Cake size={20} /></span>
                                 <input id="bmi-age" type="number" placeholder="25"
-                                    value={form.age} onChange={update('age')} min="1" max="120" required />
+                                    value={form.age}
+                                    onChange={(e) => setForm({ ...form, age: e.target.value ? String(Math.min(120, Math.max(0, parseInt(e.target.value, 10)))) : '' })}
+                                    onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
+                                    min="10" max="120" required />
                                 <span className="bmi-unit">years</span>
                             </div>
                         </div>
@@ -78,7 +81,10 @@ export default function BMICalculator() {
                             <div className="input-field">
                                 <span className="icon"><Ruler size={20} /></span>
                                 <input id="bmi-height" type="number" placeholder="175"
-                                    value={form.height} onChange={update('height')} min="1" required />
+                                    value={form.height}
+                                    onChange={(e) => setForm({ ...form, height: e.target.value ? String(Math.min(250, Math.max(0, parseInt(e.target.value, 10)))) : '' })}
+                                    onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
+                                    min="50" max="250" required />
                                 <span className="bmi-unit">cm</span>
                             </div>
                         </div>
@@ -88,7 +94,10 @@ export default function BMICalculator() {
                             <div className="input-field">
                                 <span className="icon"><Scale size={20} /></span>
                                 <input id="bmi-weight" type="number" placeholder="70"
-                                    value={form.weight} onChange={update('weight')} min="1" required />
+                                    value={form.weight}
+                                    onChange={(e) => setForm({ ...form, weight: e.target.value ? String(Math.min(300, Math.max(0, parseInt(e.target.value, 10)))) : '' })}
+                                    onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
+                                    min="20" max="300" required />
                                 <span className="bmi-unit">kg</span>
                             </div>
                         </div>

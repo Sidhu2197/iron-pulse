@@ -273,7 +273,9 @@ export default function Signup() {
             <Cake size={18} style={iconStyle('age')} />
             <input
               id="signup-age" type="number" placeholder="25" min="10" max="120"
-              value={form.age} onChange={update('age')}
+              value={form.age}
+              onChange={(e) => setForm({ ...form, age: e.target.value ? String(Math.min(120, Math.max(0, parseInt(e.target.value, 10)))) : '' })}
+              onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
               onFocus={() => setFocusedField('age')}
               onBlur={() => setFocusedField(null)}
               style={inputStyle('age')}

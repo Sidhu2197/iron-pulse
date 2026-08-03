@@ -177,6 +177,25 @@ export default function FoodPlan() {
         if (['age', 'height', 'weight'].includes(step.key)) {
             const units = step.key === 'weight' ? 'kg' : step.key === 'height' ? 'cm' : 'years';
             const placeholder = step.key === 'age' ? '25' : step.key === 'weight' ? '70' : '175';
+            const minVal = step.key === 'age' ? 10 : step.key === 'height' ? 50 : 20;
+            const maxVal = step.key === 'age' ? 120 : step.key === 'height' ? 250 : 300;
+
+            const handleNumberChange = (e) => {
+                const val = e.target.value;
+                if (val === '') {
+                    setWizardData({ ...wizardData, [step.key]: '' });
+                    return;
+                }
+                const num = parseInt(val, 10);
+                if (!isNaN(num)) {
+                    if (num > maxVal) {
+                        setWizardData({ ...wizardData, [step.key]: String(maxVal) });
+                    } else {
+                        setWizardData({ ...wizardData, [step.key]: String(num) });
+                    }
+                }
+            };
+
             return (
                 <div className="fw-input-wrap">
                     <div className="input-field fw-number-input">
@@ -185,8 +204,10 @@ export default function FoodPlan() {
                             type="number"
                             placeholder={placeholder}
                             value={wizardData[step.key]}
-                            onChange={(e) => setWizardData({ ...wizardData, [step.key]: e.target.value })}
-                            min="1"
+                            onChange={handleNumberChange}
+                            onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
+                            min={minVal}
+                            max={maxVal}
                             autoFocus
                         />
                         <span className="fw-unit">{units}</span>

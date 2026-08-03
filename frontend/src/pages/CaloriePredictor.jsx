@@ -236,7 +236,9 @@ export default function CaloriePredictor() {
                                 <div className="input-field">
                                     <span className="icon"><Cake size={20} /></span>
                                     <input type="number" placeholder="25" value={form.age}
-                                        onChange={(e) => updateField('age', e.target.value)} min="1" max="100" required />
+                                        onChange={(e) => updateField('age', e.target.value ? Math.min(120, Math.max(0, parseInt(e.target.value, 10))) : '')}
+                                        onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
+                                        min="10" max="120" required />
                                 </div>
                             </div>
 
@@ -257,7 +259,9 @@ export default function CaloriePredictor() {
                                 <div className="input-field">
                                     <span className="icon"><Scale size={20} /></span>
                                     <input type="number" placeholder="70" value={form.weight_kg}
-                                        onChange={(e) => updateField('weight_kg', e.target.value)} min="1" required />
+                                        onChange={(e) => updateField('weight_kg', e.target.value ? Math.min(300, Math.max(0, parseInt(e.target.value, 10))) : '')}
+                                        onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
+                                        min="20" max="300" required />
                                 </div>
                             </div>
 
@@ -267,7 +271,9 @@ export default function CaloriePredictor() {
                                 <div className="input-field">
                                     <span className="icon"><Ruler size={20} /></span>
                                     <input type="number" placeholder="170" value={form.height_cm}
-                                        onChange={(e) => updateField('height_cm', e.target.value)} min="1" required />
+                                        onChange={(e) => updateField('height_cm', e.target.value ? Math.min(250, Math.max(0, parseInt(e.target.value, 10))) : '')}
+                                        onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
+                                        min="50" max="250" required />
                                 </div>
                             </div>
 
