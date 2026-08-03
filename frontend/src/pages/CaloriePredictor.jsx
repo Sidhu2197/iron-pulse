@@ -34,7 +34,7 @@ export default function CaloriePredictor() {
     const [form, setForm] = useState({
         age: '', gender: 1, weight_kg: '', height_cm: '',
         body_fat_pct: '20', exercise_type: '', duration_min: '',
-        heart_rate: '', intensity: 2,
+        heart_rate: '120', intensity: 2,
     });
 
     const [loading, setLoading] = useState(false);
