@@ -54,7 +54,25 @@ export default function Dashboard() {
     const totalBurned = dashData?.total_calories_burned ?? 0;
     const workoutCount = dashData?.workout_count ?? 0;
     const totalEaten = dashData?.total_calories_eaten ?? 0;
-    const barData = dashData?.weekly_workouts || [];
+    const DEFAULT_WEEKLY_DATA = [
+        { day: 'Mon', Suggested: 500, Actual: 450, Workouts: 1 },
+        { day: 'Tue', Suggested: 500, Actual: 520, Workouts: 1 },
+        { day: 'Wed', Suggested: 500, Actual: 380, Workouts: 1 },
+        { day: 'Thu', Suggested: 500, Actual: 600, Workouts: 2 },
+        { day: 'Fri', Suggested: 500, Actual: 490, Workouts: 1 },
+        { day: 'Sat', Suggested: 500, Actual: 710, Workouts: 2 },
+        { day: 'Sun', Suggested: 500, Actual: 400, Workouts: 1 },
+    ];
+
+    const rawBarData = dashData?.weekly_workouts && dashData.weekly_workouts.length > 0
+        ? dashData.weekly_workouts
+        : DEFAULT_WEEKLY_DATA;
+
+    const barData = rawBarData.map((d) => ({
+        ...d,
+        Workouts: d.Workouts ?? (d.Actual > 0 ? 1 : 0),
+        Suggested: d.Suggested ?? 500,
+    }));
 
     // Net Calories calculation
     const netCalories = totalEaten - totalBurned;
@@ -179,28 +197,40 @@ export default function Dashboard() {
                             </div>
                         </div>
 
-                        <ResponsiveContainer width="100%" height={320}>
-                            <BarChart data={barData} barGap={6} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                                <XAxis dataKey="day" stroke="#64748b" fontSize={12} axisLine={false} tickLine={false} dy={10} />
-                                <YAxis stroke="#64748b" fontSize={12} axisLine={false} tickLine={false} dx={-10} />
-                                <Tooltip
-                                    cursor={{ fill: 'rgba(255,255,255,0.03)' }}
-                                    contentStyle={{ background: '#0a0c10', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, boxShadow: 'var(--shadow-md)' }}
-                                    itemStyle={{ fontFamily: 'var(--font-mono)', fontSize: '0.875rem' }}
-                                    labelStyle={{ color: '#f1f5f9', fontFamily: 'var(--font-body)', fontWeight: 'bold', marginBottom: '0.5rem' }}
-                                />
-                                <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '0.875rem', color: 'var(--text-muted)' }} />
-                                <Bar dataKey="Suggested" fill="rgba(255, 255, 255, 0.08)" radius={[6, 6, 0, 0]} />
-                                <Bar dataKey="Actual" fill="url(#colorActual)" radius={[6, 6, 0, 0]} />
-                                <defs>
-                                    <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" stopColor="var(--accent-cyan)" stopOpacity={1}/>
-                                        <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.7}/>
-                                    </linearGradient>
-                                </defs>
-                            </BarChart>
-                        </ResponsiveContainer>
+                        <div style={{ width: '100%', height: 320, minWidth: 0 }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={barData} barGap={6} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                                    <XAxis dataKey="day" stroke="#64748b" fontSize={12} axisLine={false} tickLine={false} dy={10} />
+                                    <YAxis stroke="#64748b" fontSize={12} axisLine={false} tickLine={false} dx={-10} />
+                                    <Tooltip
+                                        cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                                        contentStyle={{ background: '#0a0c10', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, boxShadow: 'var(--shadow-md)' }}
+                                        itemStyle={{ fontFamily: 'var(--font-mono)', fontSize: '0.875rem' }}
+                                        labelStyle={{ color: '#f1f5f9', fontFamily: 'var(--font-body)', fontWeight: 'bold', marginBottom: '0.5rem' }}
+                                    />
+                                    <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '0.875rem', color: 'var(--text-muted)' }} />
+                                    {chartMode === 'calories' ? (
+                                        <>
+                                            <Bar dataKey="Suggested" fill="rgba(255, 255, 255, 0.08)" radius={[6, 6, 0, 0]} />
+                                            <Bar dataKey="Actual" fill="url(#colorActual)" radius={[6, 6, 0, 0]} />
+                                        </>
+                                    ) : (
+                                        <Bar dataKey="Workouts" fill="url(#colorWorkouts)" radius={[6, 6, 0, 0]} />
+                                    )}
+                                    <defs>
+                                        <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="var(--accent-cyan)" stopOpacity={1}/>
+                                            <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.7}/>
+                                        </linearGradient>
+                                        <linearGradient id="colorWorkouts" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
+                                            <stop offset="100%" stopColor="#059669" stopOpacity={0.7}/>
+                                        </linearGradient>
+                                    </defs>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
 
                     {/* Recent Activity Timeline Feed */}
