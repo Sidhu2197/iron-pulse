@@ -137,7 +137,6 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Times New Roman', Times, serif;
 }
 
 /* ── Prevent text selection on structural UI elements ── */
@@ -167,32 +166,7 @@ h6 {
   text-wrap: balance;
 }
 
-/* ── Prevent text selection on structural UI elements ── */
-nav,
-.navbar,
-button,
-a,
-label,
-img,
-svg,
-.icon,
-.workout-tab,
-.equipment-chip {
-  -webkit-user-select: none;
-  user-select: none;
-}
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-display);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  text-wrap: balance;
-}
 
 html {
   scroll-behavior: smooth;
