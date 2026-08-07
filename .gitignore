@@ -50,8 +50,11 @@ design_prompt.md
 skills-lock.json
 
 # =========================
-# Node / Frontend
+# Java / Maven
 # =========================
+target/
+*.class
+
 node_modules/
 dist/
 .eslintcache
