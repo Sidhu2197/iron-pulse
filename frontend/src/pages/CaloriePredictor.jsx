@@ -142,6 +142,7 @@ export default function CaloriePredictor() {
     const handlePredict = async (e) => {
         e.preventDefault();
         setSubmitted(true);
+        setError('');
 
         const invalidFields = [];
         if (!isAgeValid) invalidFields.push({ name: 'age', ref: ageRef, msg: invalidAge ? 'Age must be 10–120' : 'Age is required' });
@@ -157,7 +158,6 @@ export default function CaloriePredictor() {
             setHadError(newHadError);
 
             const first = invalidFields[0];
-            setError(first.msg);
             setLiveAnnouncement(`Form has ${invalidFields.length} error${invalidFields.length > 1 ? 's' : ''}. Focused on ${first.name}.`);
             if (first.ref && first.ref.current) {
                 first.ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
