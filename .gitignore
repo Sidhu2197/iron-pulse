@@ -49,11 +49,7 @@ design.md
 design_prompt.md
 skills-lock.json
 
-# =========================
-# Java / Maven
-# =========================
-target/
-*.class
+
 
 node_modules/
 dist/
