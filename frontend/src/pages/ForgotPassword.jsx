@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { validateEmail, getEmailValidationStatus } from '../utils/emailValidation';
 import Silk from '../components/Silk';
+import AccessibleButton from '../components/AccessibleButton';
 import { Timer, Mail, Key, Check, X } from 'lucide-react';
 
 const API_BASE = '/api';
@@ -46,19 +47,34 @@ export default function ForgotPassword() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [emailValidation, setEmailValidation] = useState({ status: 'empty', message: '' });
-    const [emailFocused, setEmailFocused] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [hadError, setHadError] = useState(false);
+    const [liveAnnouncement, setLiveAnnouncement] = useState('');
+    const emailRef = useRef(null);
+
+    const isEmailValid = emailValidation.status === 'valid';
+    const isEmailInvalid = (submitted || email.length > 0) && emailValidation.status === 'invalid';
+    const showGreen = isEmailValid && hadError; // Only green if previously red/error
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setSubmitted(true);
 
         const emailCheck = validateEmail(email);
         if (!emailCheck.isValid) {
+            setHadError(true);
             setError(emailCheck.message);
+            setLiveAnnouncement(`Validation error: ${emailCheck.message}`);
+            if (emailRef.current) {
+                emailRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                emailRef.current.focus();
+            }
             return;
         }
 
         setLoading(true);
+        setLiveAnnouncement('Sending password reset email...');
         try {
             const res = await fetch(`${API_BASE}/auth/forgot-password`, {
                 method: 'POST',
@@ -68,11 +84,19 @@ export default function ForgotPassword() {
             const data = await res.json();
             if (data.success) {
                 setSent(true);
+                setLiveAnnouncement('Password reset email sent successfully.');
             } else {
+                setHadError(true);
                 setError(data.message || 'Something went wrong. Please try again.');
+                setLiveAnnouncement(`Error: ${data.message || 'Something went wrong.'}`);
+                if (emailRef.current) {
+                    emailRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    emailRef.current.focus();
+                }
             }
         } catch {
             setError('Unable to connect to server. Please try again.');
+            setLiveAnnouncement('Error: Unable to connect to server.');
         } finally {
             setLoading(false);
         }
@@ -84,28 +108,51 @@ export default function ForgotPassword() {
     };
 
     /* ── Input styles ───────────────────────────────────── */
-    const iconStyle = (focused) => ({
-        position: 'absolute',
-        left: '14px',
-        color: focused ? '#00f0ff' : '#64748b',
-        transition: 'color 0.25s ease',
-        pointerEvents: 'none',
-        zIndex: 2,
-    });
+    const iconStyle = (focused) => {
+        let color = '#64748b';
+        if (isEmailInvalid) color = '#ef4444';
+        else if (showGreen) color = '#10b981';
+        else if (focused) color = '#00f0ff';
 
-    const inputStyle = (focused) => ({
-        width: '100%',
-        padding: '13px 16px 13px 44px',
-        background: 'var(--bg-input)',
-        border: `1px solid ${focused ? 'rgba(0, 240, 255, 0.45)' : 'rgba(255, 255, 255, 0.09)'}`,
-        borderRadius: 'var(--radius-sm)',
-        color: 'var(--text-primary)',
-        fontFamily: 'var(--font-body)',
-        fontSize: '0.9375rem',
-        outline: 'none',
-        transition: 'all 0.25s ease',
-        boxShadow: focused ? 'var(--shadow-glow-cyan)' : 'none',
-    });
+        return {
+            position: 'absolute',
+            left: '14px',
+            color: color,
+            transition: 'color 0.25s ease',
+            pointerEvents: 'none',
+            zIndex: 2,
+        };
+    };
+
+    const inputStyle = (focused) => {
+        let borderColor = 'rgba(255, 255, 255, 0.09)';
+        let shadow = 'none';
+
+        if (isEmailInvalid) {
+            borderColor = '#ef4444';
+            shadow = '0 0 12px rgba(239, 68, 68, 0.4)';
+        } else if (showGreen) {
+            borderColor = '#10b981';
+            shadow = '0 0 12px rgba(16, 185, 129, 0.4)';
+        } else if (focused) {
+            borderColor = 'rgba(0, 240, 255, 0.45)';
+            shadow = 'var(--shadow-glow-cyan)';
+        }
+
+        return {
+            width: '100%',
+            padding: '13px 16px 13px 44px',
+            background: 'var(--bg-input)',
+            border: `1px solid ${borderColor}`,
+            borderRadius: 'var(--radius-sm)',
+            color: 'var(--text-primary)',
+            fontFamily: 'var(--font-body)',
+            fontSize: '0.9375rem',
+            outline: 'none',
+            transition: 'all 0.25s ease',
+            boxShadow: shadow,
+        };
+    };
 
     const labelStyle = {
         textTransform: 'uppercase',
@@ -194,6 +241,7 @@ export default function ForgotPassword() {
             </div>
 
             <form
+                noValidate
                 className="glass-panel"
                 onSubmit={handleSubmit}
                 style={{
@@ -206,6 +254,10 @@ export default function ForgotPassword() {
                     gap: '1.25rem',
                 }}
             >
+                <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+                    {liveAnnouncement}
+                </div>
+
                 {error && (
                     <div className="auth-error">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -222,6 +274,7 @@ export default function ForgotPassword() {
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                         <Mail size={18} style={iconStyle(emailFocused)} />
                         <input
+                            ref={emailRef}
                             id="fp-email"
                             type="email"
                             placeholder="you@example.com"
@@ -233,6 +286,7 @@ export default function ForgotPassword() {
                             onFocus={() => setEmailFocused(true)}
                             onBlur={() => setEmailFocused(false)}
                             style={inputStyle(emailFocused)}
+                            aria-invalid={isEmailInvalid}
                             required
                         />
                     </div>
@@ -247,9 +301,15 @@ export default function ForgotPassword() {
                     )}
                 </div>
 
-                <button className="btn-futuristic" type="submit" disabled={loading} style={{ width: '100%' }}>
+                <AccessibleButton 
+                    className="btn-futuristic" 
+                    type="submit" 
+                    disabled={loading || emailValidation.status !== 'valid'} 
+                    disabledReason="Enter a valid email address to request password reset."
+                    style={{ width: '100%' }}
+                >
                     {loading ? 'Sending…' : 'Continue'} <span>→</span>
-                </button>
+                </AccessibleButton>
 
                 <p className="auth-footer">
                     Remember your password? <Link to="/login">Log In</Link>

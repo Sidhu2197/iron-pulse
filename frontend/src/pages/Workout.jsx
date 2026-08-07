@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { logWorkout, generateWorkoutPlan } from '../api/auth';
 import PageReveal from '../components/PageReveal';
+import AccessibleButton from '../components/AccessibleButton';
 import './Workout.css';
 import { Dumbbell, Timer, Ruler, User, Activity, Scale, Cake, Flame, Calendar, BarChart2 } from 'lucide-react';
 
@@ -73,6 +74,7 @@ export default function Workout() {
     // Wizard state
     const [wizardActive, setWizardActive] = useState(false);
     const [wizardStep, setWizardStep] = useState(0);
+    const [wizardAttemptedNext, setWizardAttemptedNext] = useState(false);
     const [wizardData, setWizardData] = useState({
         age: '',
         weight: '',
@@ -113,15 +115,18 @@ export default function Workout() {
     const canGoNext = () => {
         const val = wizardData[currentStep.key];
         if (currentStep.key === 'equipment') return wizardData.equipment.length > 0;
-        if (currentStep.key === 'goal' || currentStep.key === 'gender' || currentStep.key === 'fitnessLevel') return val !== '';
-        if (currentStep.key === 'daysPerWeek' || currentStep.key === 'duration') return val !== '';
-        if (currentStep.key === 'age') return val !== '' && Number(val) >= 10 && Number(val) <= 120;
-        if (currentStep.key === 'height') return val !== '' && Number(val) >= 50 && Number(val) <= 250;
-        if (currentStep.key === 'weight') return val !== '' && Number(val) >= 20 && Number(val) <= 300;
-        return val !== '' && Number(val) > 0;
+        if (currentStep.key === 'goal' || currentStep.key === 'gender' || currentStep.key === 'fitnessLevel') return val !== '' && val !== null && val !== undefined;
+        if (currentStep.key === 'daysPerWeek' || currentStep.key === 'duration') return val !== '' && val !== null && val !== undefined;
+        if (currentStep.key === 'age') return val !== '' && val !== null && Number(val) >= 10 && Number(val) <= 120;
+        if (currentStep.key === 'height') return val !== '' && val !== null && Number(val) >= 50 && Number(val) <= 250;
+        if (currentStep.key === 'weight') return val !== '' && val !== null && Number(val) >= 20 && Number(val) <= 300;
+        return val !== '' && val !== null && val !== undefined;
     };
 
     const handleWizardNext = () => {
+        setWizardAttemptedNext(true);
+        if (!canGoNext()) return;
+        setWizardAttemptedNext(false);
         if (wizardStep < WIZARD_STEPS.length - 1) {
             setWizardStep(wizardStep + 1);
         } else {
@@ -130,6 +135,7 @@ export default function Workout() {
     };
 
     const handleWizardBack = () => {
+        setWizardAttemptedNext(false);
         if (wizardStep > 0) setWizardStep(wizardStep - 1);
     };
 
@@ -151,10 +157,35 @@ export default function Workout() {
     const startWizard = () => {
         setWizardActive(true);
         setWizardStep(0);
+        setWizardAttemptedNext(false);
         setWizardData({ age: '', weight: '', height: '', gender: '', fitnessLevel: '', equipment: [], goal: '', daysPerWeek: '', duration: '' });
         setPlan(null);
         setPlanError('');
     };
+
+    // Wizard Keyboard Shortcuts (Enter -> Next, Esc -> Close)
+    useEffect(() => {
+        if (!wizardActive) return;
+        const handleWizardKeyDown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                if (canGoNext()) {
+                    if (wizardStep < WIZARD_STEPS.length - 1) {
+                        setWizardStep((prev) => prev + 1);
+                    } else {
+                        handleGeneratePlan();
+                    }
+                }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                setWizardActive(false);
+            }
+        };
+        window.addEventListener('keydown', handleWizardKeyDown, true);
+        return () => window.removeEventListener('keydown', handleWizardKeyDown, true);
+    }, [wizardActive, wizardStep, wizardData]);
 
     // -- Generate plan from wizard data --
     const handleGeneratePlan = async () => {
@@ -243,7 +274,9 @@ export default function Workout() {
 
             const val = wizardData[step.key];
             const num = Number(val);
-            const isInvalid = val !== '' && (num < minVal || num > maxVal);
+            const isOutOfRange = val !== '' && (num < minVal || num > maxVal);
+            const isEmptyError = wizardAttemptedNext && val === '';
+            const isInvalid = isOutOfRange || isEmptyError;
 
             return (
                 <div className="wizard-input-wrap">
@@ -263,7 +296,7 @@ export default function Workout() {
                     </div>
                     {isInvalid && (
                         <div className="field-error">
-                            ⚠️ {valName} must be between {minVal} and {maxVal} {units}
+                            ⚠️ {isEmptyError ? `${valName} is required to continue` : `${valName} must be between ${minVal} and ${maxVal} ${units}`}
                         </div>
                     )}
                 </div>
@@ -271,109 +304,133 @@ export default function Workout() {
         }
 
         if (step.key === 'gender') {
+            const hasError = wizardAttemptedNext && !wizardData.gender;
             return (
-                <div className="wizard-select-grid">
-                    {GENDER_OPTIONS.map((opt) => (
-                        <button
-                            key={opt.value}
-                            type="button"
-                            className={`select-card ${wizardData.gender === opt.value ? 'selected' : ''}`}
-                            onClick={() => setWizardData({ ...wizardData, gender: opt.value })}
-                        >
-                            {opt.label}
-                        </button>
-                    ))}
+                <div className="wizard-select-wrap">
+                    <div className="wizard-select-grid">
+                        {GENDER_OPTIONS.map((opt) => (
+                            <button
+                                key={opt.value}
+                                type="button"
+                                className={`select-card ${wizardData.gender === opt.value ? 'selected' : ''}`}
+                                onClick={() => setWizardData({ ...wizardData, gender: opt.value })}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a gender to continue</div>}
                 </div>
             );
         }
 
         if (step.key === 'fitnessLevel') {
+            const hasError = wizardAttemptedNext && !wizardData.fitnessLevel;
             return (
-                <div className="wizard-select-grid">
-                    {FITNESS_LEVEL_OPTIONS.map((opt) => (
-                        <button
-                            key={opt.value}
-                            type="button"
-                            className={`select-card ${wizardData.fitnessLevel === opt.value ? 'selected' : ''}`}
-                            onClick={() => setWizardData({ ...wizardData, fitnessLevel: opt.value })}
-                        >
-                            {opt.label}
-                        </button>
-                    ))}
+                <div className="wizard-select-wrap">
+                    <div className="wizard-select-grid">
+                        {FITNESS_LEVEL_OPTIONS.map((opt) => (
+                            <button
+                                key={opt.value}
+                                type="button"
+                                className={`select-card ${wizardData.fitnessLevel === opt.value ? 'selected' : ''}`}
+                                onClick={() => setWizardData({ ...wizardData, fitnessLevel: opt.value })}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a fitness level to continue</div>}
                 </div>
             );
         }
 
         if (step.key === 'equipment') {
+            const hasError = wizardAttemptedNext && wizardData.equipment.length === 0;
             return (
-                <div className="wizard-equipment-grid">
-                    {EQUIPMENT_OPTIONS.map((equip) => {
-                        const isSelected = wizardData.equipment.includes(equip);
-                        const isDisabled = equip !== 'No Equipment' && isNoEquipment;
-                        return (
-                            <button
-                                key={equip}
-                                type="button"
-                                className={`equipment-chip ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''} ${equip === 'No Equipment' ? 'no-equip' : ''}`}
-                                onClick={() => !isDisabled && handleEquipmentToggle(equip)}
-                                disabled={isDisabled}
-                            >
-                                {equip}
-                                {isSelected && <span className="chip-check">✓</span>}
-                            </button>
-                        );
-                    })}
+                <div className="wizard-select-wrap">
+                    <div className="wizard-equipment-grid">
+                        {EQUIPMENT_OPTIONS.map((equip) => {
+                            const isSelected = wizardData.equipment.includes(equip);
+                            const isDisabled = equip !== 'No Equipment' && isNoEquipment;
+                            return (
+                                <button
+                                    key={equip}
+                                    type="button"
+                                    className={`equipment-chip ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''} ${equip === 'No Equipment' ? 'no-equip' : ''}`}
+                                    onClick={() => !isDisabled && handleEquipmentToggle(equip)}
+                                    disabled={isDisabled}
+                                >
+                                    {equip}
+                                    {isSelected && <span className="chip-check">✓</span>}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select at least one equipment option</div>}
                 </div>
             );
         }
 
         if (step.key === 'goal') {
+            const hasError = wizardAttemptedNext && !wizardData.goal;
             return (
-                <div className="wizard-select-grid">
-                    {GOAL_OPTIONS.map((opt) => (
-                        <button
-                            key={opt.value}
-                            type="button"
-                            className={`select-card ${wizardData.goal === opt.value ? 'selected' : ''}`}
-                            onClick={() => setWizardData({ ...wizardData, goal: opt.value })}
-                        >
-                            {opt.label}
-                        </button>
-                    ))}
+                <div className="wizard-select-wrap">
+                    <div className="wizard-select-grid">
+                        {GOAL_OPTIONS.map((opt) => (
+                            <button
+                                key={opt.value}
+                                type="button"
+                                className={`select-card ${wizardData.goal === opt.value ? 'selected' : ''}`}
+                                onClick={() => setWizardData({ ...wizardData, goal: opt.value })}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a fitness goal to continue</div>}
                 </div>
             );
         }
 
         if (step.key === 'daysPerWeek') {
+            const hasError = wizardAttemptedNext && !wizardData.daysPerWeek;
             return (
-                <div className="wizard-days-grid">
-                    {DAYS_OPTIONS.map((day) => (
-                        <button
-                            key={day}
-                            type="button"
-                            className={`day-btn ${wizardData.daysPerWeek === String(day) ? 'selected' : ''}`}
-                            onClick={() => setWizardData({ ...wizardData, daysPerWeek: String(day) })}
-                        >
-                            {day}
-                        </button>
-                    ))}
+                <div className="wizard-select-wrap">
+                    <div className="wizard-days-grid">
+                        {DAYS_OPTIONS.map((day) => (
+                            <button
+                                key={day}
+                                type="button"
+                                className={`day-btn ${wizardData.daysPerWeek === String(day) ? 'selected' : ''}`}
+                                onClick={() => setWizardData({ ...wizardData, daysPerWeek: String(day) })}
+                            >
+                                {day}
+                            </button>
+                        ))}
+                    </div>
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select days per week to continue</div>}
                 </div>
             );
         }
 
         if (step.key === 'duration') {
+            const hasError = wizardAttemptedNext && !wizardData.duration;
             return (
-                <div className="wizard-select-grid duration-grid">
-                    {DURATION_OPTIONS.map((opt) => (
-                        <button
-                            key={opt.value}
-                            type="button"
-                            className={`select-card ${wizardData.duration === String(opt.value) ? 'selected' : ''}`}
-                            onClick={() => setWizardData({ ...wizardData, duration: String(opt.value) })}
-                        >
-                            {opt.label}
-                        </button>
-                    ))}
+                <div className="wizard-select-wrap">
+                    <div className="wizard-select-grid duration-grid">
+                        {DURATION_OPTIONS.map((opt) => (
+                            <button
+                                key={opt.value}
+                                type="button"
+                                className={`select-card ${wizardData.duration === String(opt.value) ? 'selected' : ''}`}
+                                onClick={() => setWizardData({ ...wizardData, duration: String(opt.value) })}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select workout duration to continue</div>}
                 </div>
             );
         }
@@ -437,14 +494,15 @@ export default function Workout() {
                                     ✕ Cancel
                                 </button>
                             )}
-                            <button
+                            <AccessibleButton
                                 type="button"
                                 className="wizard-btn-next"
                                 onClick={handleWizardNext}
                                 disabled={!canGoNext()}
+                                disabledReason="Complete current step input before continuing."
                             >
                                 {wizardStep === WIZARD_STEPS.length - 1 ? '🚀 Generate Plan' : 'Next →'}
-                            </button>
+                            </AccessibleButton>
                         </div>
                     </div>
                 </div>
@@ -457,9 +515,14 @@ export default function Workout() {
                         {/* Header */}
                         <div className="suggested-plan-header">
                             <h3>💪 Create Suggested Plan</h3>
-                            <button className="create-plan-btn" onClick={startWizard} disabled={planLoading}>
+                            <AccessibleButton 
+                                className="create-plan-btn" 
+                                onClick={startWizard} 
+                                disabled={planLoading}
+                                disabledReason="Generating workout plan..."
+                            >
                                 {planLoading ? '⏳ Generating…' : '✨ Create Plan'}
-                            </button>
+                            </AccessibleButton>
                         </div>
 
                         {planError && <div className="plan-error">{planError}</div>}
@@ -590,9 +653,14 @@ export default function Workout() {
                                 </div>
                             </div>
                             <div className="full-width">
-                                <button className="btn-primary" type="submit" disabled={logLoading}>
+                                <AccessibleButton 
+                                    className="btn-primary" 
+                                    type="submit" 
+                                    disabled={logLoading}
+                                    disabledReason="Logging workout..."
+                                >
                                     {logLoading ? 'Logging…' : 'Log Workout'}
-                                </button>
+                                </AccessibleButton>
                             </div>
                         </form>
                     </div>

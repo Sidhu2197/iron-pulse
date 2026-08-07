@@ -1,4 +1,5 @@
 import React from 'react';
+import AccessibleButton from './AccessibleButton';
 import './Button.css'; 
 
 export const GenerateButton = ({ 
@@ -7,18 +8,20 @@ export const GenerateButton = ({
   disabled = false, 
   className = '', 
   icon,
+  disabledReason,
   ...props 
 }) => {
   return (
-    <button 
+    <AccessibleButton 
       className={`generate-btn ${className}`}
       onClick={onClick}
       disabled={disabled}
+      disabledReason={disabledReason || 'Complete required inputs before generating.'}
+      icon={icon}
       {...props}
     >
-      {icon && <span className="btn-icon">{icon}</span>}
       {children}
-    </button>
+    </AccessibleButton>
   );
 };
 

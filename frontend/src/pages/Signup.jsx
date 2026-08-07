@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { signupUser } from '../api/auth';
 import { getEmailValidationStatus } from '../utils/emailValidation';
 import Silk from '../components/Silk';
+import AccessibleButton from '../components/AccessibleButton';
 import {
   Flame, User, Mail, Lock, Cake,
   Check, X, AlertCircle,
@@ -63,9 +64,18 @@ export default function Signup() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailValidation, setEmailValidation] = useState({ status: 'empty', message: '' });
+  const [liveAnnouncement, setLiveAnnouncement] = useState('');
 
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
+
+  const fieldRefs = {
+    username: useRef(null),
+    email: useRef(null),
+    age: useRef(null),
+    password: useRef(null),
+    confirmPassword: useRef(null),
+  };
 
   const update = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
@@ -108,22 +118,68 @@ export default function Signup() {
 
   const invalidAge = form.age !== '' && (Number(form.age) < 10 || Number(form.age) > 120);
 
+  const [submitted, setSubmitted] = useState(false);
+  const [hadError, setHadError] = useState({});
+
+  const getFieldState = (field) => {
+    let isInvalid = false;
+    let isValid = false;
+
+    if (field === 'username') {
+      isValid = form.username.trim().length > 0;
+      isInvalid = submitted && !isValid;
+    } else if (field === 'email') {
+      isValid = emailValidation.status === 'valid';
+      isInvalid = (submitted || form.email.length > 0) && emailValidation.status === 'invalid';
+    } else if (field === 'age') {
+      isValid = form.age !== '' && !invalidAge;
+      isInvalid = (submitted && !form.age) || invalidAge;
+    } else if (field === 'password') {
+      isValid = Object.values(checks).every(Boolean);
+      isInvalid = (submitted || pw.length > 0) && !isValid;
+    } else if (field === 'confirmPassword') {
+      isValid = passwordsMatch;
+      isInvalid = (submitted || form.confirmPassword.length > 0) && !isValid;
+    }
+
+    if (isInvalid) return 'invalid';
+    if (isValid && hadError[field]) return 'valid'; // Only green if previously red/error
+    return 'neutral';
+  };
+
+  const focusField = (ref) => {
+    if (ref && ref.current) {
+      ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      ref.current.focus();
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!allValid) {
-      setError('Please meet all password requirements');
+    setSubmitted(true);
+
+    const invalidFields = [];
+    if (!form.username.trim()) invalidFields.push({ name: 'username', ref: fieldRefs.username, msg: 'Username is required' });
+    if (emailValidation.status !== 'valid') invalidFields.push({ name: 'email', ref: fieldRefs.email, msg: emailValidation.message || 'Valid email is required' });
+    if (!form.age || invalidAge) invalidFields.push({ name: 'age', ref: fieldRefs.age, msg: invalidAge ? 'Age must be between 10 and 120' : 'Age is required' });
+    if (!Object.values(checks).every(Boolean)) invalidFields.push({ name: 'password', ref: fieldRefs.password, msg: 'Password complexity rules not met' });
+    if (!passwordsMatch) invalidFields.push({ name: 'confirmPassword', ref: fieldRefs.confirmPassword, msg: 'Passwords do not match' });
+
+    if (invalidFields.length > 0) {
+      const newHadError = { ...hadError };
+      invalidFields.forEach(item => { newHadError[item.name] = true; });
+      setHadError(newHadError);
+
+      const first = invalidFields[0];
+      setError(first.msg);
+      setLiveAnnouncement(`Form has ${invalidFields.length} error${invalidFields.length > 1 ? 's' : ''}. Focused on ${first.name}.`);
+      focusField(first.ref);
       return;
     }
-    if (invalidAge) {
-      setError('Age must be between 10 and 120 years');
-      return;
-    }
-    if (!form.username.trim() || !form.age) {
-      setError('Please fill in all fields');
-      return;
-    }
+
     setLoading(true);
+    setLiveAnnouncement('Submitting signup form...');
     try {
       await signupUser({
         username: form.username,
@@ -134,34 +190,60 @@ export default function Signup() {
       navigate('/login');
     } catch (err) {
       setError(err.message);
+      setLiveAnnouncement(`Signup failed: ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
 
   /* ── Input styles ────────────────────────────────────── */
-  const iconStyle = (field) => ({
-    position: 'absolute',
-    left: '14px',
-    color: focusedField === field ? '#00f0ff' : '#64748b',
-    transition: 'color 0.25s ease',
-    pointerEvents: 'none',
-    zIndex: 2,
-  });
+  const iconStyle = (field) => {
+    const state = getFieldState(field);
+    let color = '#64748b';
+    if (state === 'invalid') color = '#ef4444';
+    else if (state === 'valid') color = '#10b981';
+    else if (focusedField === field) color = '#00f0ff';
 
-  const inputStyle = (field) => ({
-    width: '100%',
-    padding: '13px 16px 13px 44px',
-    background: 'var(--bg-input)',
-    border: `1px solid ${focusedField === field ? 'rgba(0, 240, 255, 0.45)' : 'rgba(255, 255, 255, 0.09)'}`,
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--text-primary)',
-    fontFamily: 'var(--font-body)',
-    fontSize: '0.9375rem',
-    outline: 'none',
-    transition: 'all 0.25s ease',
-    boxShadow: focusedField === field ? 'var(--shadow-glow-cyan)' : 'none',
-  });
+    return {
+      position: 'absolute',
+      left: '14px',
+      color: color,
+      transition: 'color 0.25s ease',
+      pointerEvents: 'none',
+      zIndex: 2,
+    };
+  };
+
+  const inputStyle = (field) => {
+    const state = getFieldState(field);
+    let borderColor = 'rgba(255, 255, 255, 0.09)';
+    let shadow = 'none';
+
+    if (state === 'invalid') {
+      borderColor = '#ef4444';
+      shadow = '0 0 12px rgba(239, 68, 68, 0.4)';
+    } else if (state === 'valid') {
+      borderColor = '#10b981';
+      shadow = '0 0 12px rgba(16, 185, 129, 0.4)';
+    } else if (focusedField === field) {
+      borderColor = 'rgba(0, 240, 255, 0.45)';
+      shadow = 'var(--shadow-glow-cyan)';
+    }
+
+    return {
+      width: '100%',
+      padding: '13px 16px 13px 44px',
+      background: 'var(--bg-input)',
+      border: `1px solid ${borderColor}`,
+      borderRadius: 'var(--radius-sm)',
+      color: 'var(--text-primary)',
+      fontFamily: 'var(--font-body)',
+      fontSize: '0.9375rem',
+      outline: 'none',
+      transition: 'all 0.25s ease',
+      boxShadow: shadow,
+    };
+  };
 
   const labelStyle = {
     textTransform: 'uppercase',
@@ -212,18 +294,24 @@ export default function Signup() {
 
       {/* Form card */}
       <form
+        noValidate
         className="glass-panel"
         onSubmit={handleSubmit}
         style={{
           width: '100%',
           maxWidth: '440px',
           padding: '2rem',
-          zIndex: 2,
           display: 'flex',
           flexDirection: 'column',
-          gap: '1.125rem',
+          gap: '1rem',
+          position: 'relative',
+          zIndex: 2,
         }}
       >
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {liveAnnouncement}
+        </div>
+
         {error && (
           <div className="auth-error">
             <AlertCircle size={16} />
@@ -237,11 +325,13 @@ export default function Signup() {
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <User size={18} style={iconStyle('username')} />
             <input
+              ref={fieldRefs.username}
               id="signup-username" type="text" placeholder="johndoe"
               value={form.username} onChange={update('username')}
               onFocus={() => setFocusedField('username')}
               onBlur={() => setFocusedField(null)}
               style={inputStyle('username')}
+              aria-invalid={!form.username.trim() && !!error}
               required
             />
           </div>
@@ -253,11 +343,13 @@ export default function Signup() {
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <Mail size={18} style={iconStyle('email')} />
             <input
+              ref={fieldRefs.email}
               id="signup-email" type="email" placeholder="you@example.com"
               value={form.email} onChange={update('email')}
               onFocus={() => setFocusedField('email')}
               onBlur={() => setFocusedField(null)}
               style={inputStyle('email')}
+              aria-invalid={emailValidation.status === 'invalid'}
               required
             />
           </div>
@@ -278,6 +370,7 @@ export default function Signup() {
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <Cake size={18} style={iconStyle('age')} />
             <input
+              ref={fieldRefs.age}
               id="signup-age" type="number" placeholder="25" min="10" max="120"
               value={form.age}
               onChange={(e) => setForm({ ...form, age: e.target.value })}
@@ -289,6 +382,7 @@ export default function Signup() {
                 border: invalidAge ? '1px solid #ef4444' : inputStyle('age').border,
                 boxShadow: invalidAge ? '0 0 12px rgba(239, 68, 68, 0.35)' : inputStyle('age').boxShadow,
               }}
+              aria-invalid={invalidAge}
               required
             />
           </div>
@@ -301,11 +395,13 @@ export default function Signup() {
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <Lock size={18} style={iconStyle('password')} />
             <input
+              ref={fieldRefs.password}
               id="signup-password" type="password" placeholder="••••••••"
               value={form.password} onChange={update('password')}
               onFocus={() => { setFocusedField('password'); setIsPasswordFocused(true); }}
               onBlur={() => { setFocusedField(null); setIsPasswordFocused(false); }}
               style={inputStyle('password')}
+              aria-invalid={pw.length > 0 && !Object.values(checks).every(Boolean)}
               required
             />
           </div>
@@ -360,11 +456,13 @@ export default function Signup() {
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <Lock size={18} style={iconStyle('confirmPassword')} />
             <input
+              ref={fieldRefs.confirmPassword}
               id="signup-confirm" type="password" placeholder="••••••••"
               value={form.confirmPassword} onChange={update('confirmPassword')}
               onFocus={() => setFocusedField('confirmPassword')}
               onBlur={() => setFocusedField(null)}
               style={inputStyle('confirmPassword')}
+              aria-invalid={form.confirmPassword.length > 0 && !passwordsMatch}
               required
             />
           </div>
@@ -381,14 +479,15 @@ export default function Signup() {
         </div>
 
         {/* Submit */}
-        <button
+        <AccessibleButton
           className="btn-futuristic"
           type="submit"
           disabled={loading || !allValid}
+          disabledReason={!allValid ? "Complete all required fields and satisfy password criteria before creating an account." : "Creating account..."}
           style={{ width: '100%', marginTop: '0.5rem' }}
         >
           {loading ? 'Creating…' : 'Create Account'} <span>→</span>
-        </button>
+        </AccessibleButton>
 
         {/* Divider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '0.25rem 0' }}>

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { loginUser, resendVerificationEmail } from '../api/auth';
 import Silk from '../components/Silk';
+import AccessibleButton from '../components/AccessibleButton';
 import { Flame, Mail, Lock, AlertCircle, Check, RefreshCw } from 'lucide-react';
 
 /* ── Inline Google SVG logo ───────────────────────────────── */
@@ -59,23 +60,79 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSuccess, setResendSuccess] = useState('');
+  const [liveAnnouncement, setLiveAnnouncement] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
 
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+
+  const [submitted, setSubmitted] = useState(false);
+  const [hadError, setHadError] = useState({});
+
+  const getFieldState = (field) => {
+    let isInvalid = false;
+    let isValid = false;
+
+    if (field === 'email') {
+      isValid = email.trim().length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+      isInvalid = (submitted || email.length > 0) && !isValid;
+    } else if (field === 'password') {
+      isValid = password.length >= 6;
+      isInvalid = (submitted || password.length > 0) && !isValid;
+    }
+
+    if (isInvalid) return 'invalid';
+    if (isValid && hadError[field]) return 'valid'; // Only green if previously red/error
+    return 'neutral';
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setResendSuccess('');
+    setSubmitted(true);
+
+    const invalidFields = [];
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      invalidFields.push({ name: 'email', ref: emailRef, msg: 'Valid email address is required.' });
+    }
+    if (!password || password.length < 6) {
+      invalidFields.push({ name: 'password', ref: passwordRef, msg: 'Password is required (min 6 characters).' });
+    }
+
+    if (invalidFields.length > 0) {
+      const newHadError = { ...hadError };
+      invalidFields.forEach(item => { newHadError[item.name] = true; });
+      setHadError(newHadError);
+
+      const first = invalidFields[0];
+      setError(first.msg);
+      setLiveAnnouncement(`Form has ${invalidFields.length} error${invalidFields.length > 1 ? 's' : ''}. Focused on ${first.name}.`);
+      if (first.ref && first.ref.current) {
+        first.ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        first.ref.current.focus();
+      }
+      return;
+    }
+
     setLoading(true);
+    setLiveAnnouncement('Submitting credentials, please wait...');
     try {
       const data = await loginUser({ email, password });
       login(data.credentials, data.user);
+      setLiveAnnouncement('Login successful. Redirecting to dashboard.');
       navigate('/dashboard');
     } catch (err) {
       setError(err.message);
+      setLiveAnnouncement(`Login failed: ${err.message}`);
+      if (emailRef.current) {
+        emailRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        emailRef.current.focus();
+      }
     } finally {
       setLoading(false);
     }
@@ -88,8 +145,10 @@ export default function Login() {
     try {
       const data = await resendVerificationEmail(email);
       setResendSuccess(data.message || 'Verification email sent! Check your inbox.');
+      setLiveAnnouncement('Verification email sent successfully.');
     } catch (err) {
       setError(err.message || 'Failed to resend verification email');
+      setLiveAnnouncement(`Resend failed: ${err.message}`);
     } finally {
       setResendLoading(false);
     }
@@ -102,28 +161,61 @@ export default function Login() {
     alignItems: 'center',
   });
 
-  const iconStyle = (focused) => ({
-    position: 'absolute',
-    left: '14px',
-    color: focused ? '#00f0ff' : '#64748b',
-    transition: 'color 0.25s ease',
-    pointerEvents: 'none',
-    zIndex: 2,
-  });
+  const iconStyle = (field) => {
+    const state = getFieldState(field);
+    let color = '#64748b';
+    if (state === 'invalid') color = '#ef4444';
+    else if (state === 'valid') color = '#10b981';
+    else if ((field === 'email' && emailFocused) || (field === 'password' && passwordFocused)) color = '#00f0ff';
 
-  const inputStyle = (focused) => ({
-    width: '100%',
-    padding: '13px 16px 13px 44px',
-    background: 'var(--bg-input)',
-    border: `1px solid ${focused ? 'rgba(0, 240, 255, 0.45)' : 'rgba(255, 255, 255, 0.09)'}`,
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--text-primary)',
-    fontFamily: 'var(--font-body)',
-    fontSize: '0.9375rem',
-    outline: 'none',
-    transition: 'all 0.25s ease',
-    boxShadow: focused ? '0 0 20px rgba(0, 240, 255, 0.12), 0 0 60px rgba(0, 240, 255, 0.05)' : 'none',
-  });
+    return {
+      position: 'absolute',
+      left: '14px',
+      color: color,
+      transition: 'color 0.25s ease',
+      pointerEvents: 'none',
+      zIndex: 2,
+    };
+  };
+
+  const inputStyle = (field) => {
+    const state = getFieldState(field);
+    let borderColor = 'rgba(255, 255, 255, 0.09)';
+    let shadow = 'none';
+
+    if (state === 'invalid') {
+      borderColor = '#ef4444';
+      shadow = '0 0 12px rgba(239, 68, 68, 0.4)';
+    } else if (state === 'valid') {
+      borderColor = '#10b981';
+      shadow = '0 0 12px rgba(16, 185, 129, 0.4)';
+    } else if ((field === 'email' && emailFocused) || (field === 'password' && passwordFocused)) {
+      borderColor = 'rgba(0, 240, 255, 0.45)';
+      shadow = '0 0 20px rgba(0, 240, 255, 0.12), 0 0 60px rgba(0, 240, 255, 0.05)';
+    }
+
+    return {
+      width: '100%',
+      padding: '13px 16px 13px 44px',
+      background: 'var(--bg-input)',
+      border: `1px solid ${borderColor}`,
+      borderRadius: 'var(--radius-sm)',
+      color: 'var(--text-primary)',
+      fontFamily: 'var(--font-body)',
+      fontSize: '0.9375rem',
+      outline: 'none',
+      transition: 'all 0.25s ease',
+      boxShadow: shadow,
+    };
+  };
+
+  const labelStyle = {
+    textTransform: 'uppercase',
+    fontFamily: 'var(--font-mono)',
+    color: '#8f9bb3',
+    fontSize: '0.75rem',
+    letterSpacing: '0.06em',
+  };
 
   return (
     <>
@@ -157,6 +249,7 @@ export default function Login() {
 
       {/* Form card */}
       <form
+        noValidate
         className="glass-panel"
         onSubmit={handleSubmit}
         style={{
@@ -169,6 +262,10 @@ export default function Login() {
           gap: '1.25rem',
         }}
       >
+        <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          {liveAnnouncement}
+        </div>
+
         {/* Error */}
         {error && (
           <div className="auth-error" style={{ flexDirection: 'column', gap: '8px' }}>
@@ -177,10 +274,11 @@ export default function Login() {
               {error}
             </div>
             {error.toLowerCase().includes('verify') && (
-              <button
+              <AccessibleButton
                 type="button"
                 onClick={handleResend}
                 disabled={resendLoading}
+                disabledReason="Resending verification email..."
                 style={{
                   background: 'transparent',
                   border: '1px solid rgba(239, 68, 68, 0.4)',
@@ -195,9 +293,9 @@ export default function Login() {
                   opacity: resendLoading ? 0.6 : 1,
                 }}
               >
-                <RefreshCw size={14} style={{ animation: resendLoading ? 'spin 1s linear infinite' : 'none' }} />
-                {resendLoading ? 'Sending…' : 'Resend Verification Email'}
-              </button>
+                <RefreshCw size={12} className={resendLoading ? 'animate-spin' : ''} />
+                {resendLoading ? 'Sending link…' : 'Resend Email Verification'}
+              </AccessibleButton>
             )}
           </div>
         )}
@@ -220,21 +318,11 @@ export default function Login() {
 
         {/* Email */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-          <label
-            htmlFor="login-email"
-            style={{
-              textTransform: 'uppercase',
-              fontFamily: 'var(--font-mono)',
-              color: '#8f9bb3',
-              fontSize: '0.75rem',
-              letterSpacing: '0.06em',
-            }}
-          >
-            Email
-          </label>
+          <label htmlFor="login-email" style={labelStyle}>Email Address</label>
           <div style={inputWrapperStyle(emailFocused)}>
-            <Mail size={18} style={iconStyle(emailFocused)} />
+            <Mail size={18} style={iconStyle('email')} />
             <input
+              ref={emailRef}
               id="login-email"
               type="email"
               placeholder="you@example.com"
@@ -242,7 +330,8 @@ export default function Login() {
               onChange={(e) => setEmail(e.target.value)}
               onFocus={() => setEmailFocused(true)}
               onBlur={() => setEmailFocused(false)}
-              style={inputStyle(emailFocused)}
+              style={inputStyle('email')}
+              aria-invalid={getFieldState('email') === 'invalid'}
               required
             />
           </div>
@@ -250,21 +339,11 @@ export default function Login() {
 
         {/* Password */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-          <label
-            htmlFor="login-password"
-            style={{
-              textTransform: 'uppercase',
-              fontFamily: 'var(--font-mono)',
-              color: '#8f9bb3',
-              fontSize: '0.75rem',
-              letterSpacing: '0.06em',
-            }}
-          >
-            Password
-          </label>
+          <label htmlFor="login-password" style={labelStyle}>Password</label>
           <div style={inputWrapperStyle(passwordFocused)}>
-            <Lock size={18} style={iconStyle(passwordFocused)} />
+            <Lock size={18} style={iconStyle('password')} />
             <input
+              ref={passwordRef}
               id="login-password"
               type="password"
               placeholder="••••••••"
@@ -272,26 +351,28 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               onFocus={() => setPasswordFocused(true)}
               onBlur={() => setPasswordFocused(false)}
-              style={inputStyle(passwordFocused)}
+              style={inputStyle('password')}
+              aria-invalid={getFieldState('password') === 'invalid'}
               required
             />
           </div>
-          <div style={{ textAlign: 'right', marginTop: '0.25rem' }}>
-            <Link to="/forgot-password" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-              Forgot Password?
-            </Link>
-          </div>
+        </div>
+        <div style={{ textAlign: 'right', marginTop: '0.25rem' }}>
+          <Link to="/forgot-password" style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+            Forgot Password?
+          </Link>
         </div>
 
         {/* Submit */}
-        <button
+        <AccessibleButton
           className="btn-futuristic"
           type="submit"
           disabled={loading}
+          disabledReason="Logging in..."
           style={{ width: '100%', marginTop: '0.5rem' }}
         >
           {loading ? 'Logging in…' : 'Log In'} <span>→</span>
-        </button>
+        </AccessibleButton>
 
         {/* Divider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '0.25rem 0' }}>

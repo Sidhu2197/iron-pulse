@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Silk from '../components/Silk';
+import AccessibleButton from '../components/AccessibleButton';
 import { Lock, Check, X, AlertCircle } from 'lucide-react';
 
 const API_BASE = '/api';
@@ -77,16 +78,49 @@ export default function ResetPassword() {
         passedCount <= 4 ? 'Good' :
         'Strong';
 
+    const [submitted, setSubmitted] = useState(false);
+    const [hadError, setHadError] = useState({});
+    const [liveAnnouncement, setLiveAnnouncement] = useState('');
+    const passRef = useRef(null);
+    const confirmRef = useRef(null);
+
+    const isPassValid = checks.length && checks.uppercase && checks.number && checks.special;
+    const isPassInvalid = (submitted || newPassword.length > 0) && !isPassValid;
+    const isConfirmValid = checks.match;
+    const isConfirmInvalid = (submitted || confirmPassword.length > 0) && !checks.match;
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setSubmitted(true);
 
-        if (!allValid) {
-            setError('Please meet all password requirements.');
+        const newHadError = { ...hadError };
+        if (!isPassValid) {
+            newHadError['newPassword'] = true;
+            setHadError(newHadError);
+            setError('Please meet all password complexity requirements.');
+            setLiveAnnouncement('Validation error: Password complexity rules not met.');
+            if (passRef.current) {
+                passRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                passRef.current.focus();
+            }
+            return;
+        }
+
+        if (!checks.match) {
+            newHadError['confirmPassword'] = true;
+            setHadError(newHadError);
+            setError('Passwords do not match.');
+            setLiveAnnouncement('Validation error: Passwords do not match.');
+            if (confirmRef.current) {
+                confirmRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                confirmRef.current.focus();
+            }
             return;
         }
 
         setLoading(true);
+        setLiveAnnouncement('Submitting password reset...');
         try {
             const res = await fetch(`${API_BASE}/auth/reset-password`, {
                 method: 'POST',
@@ -96,40 +130,70 @@ export default function ResetPassword() {
             const data = await res.json();
             if (data.success) {
                 setSuccess(data.message || 'Password reset successfully!');
+                setLiveAnnouncement('Password reset successfully! Redirecting to login.');
                 setTimeout(() => navigate('/login'), 2500);
             } else {
                 setError(data.message || 'Reset failed. Please try again.');
+                setLiveAnnouncement(`Error: ${data.message || 'Reset failed.'}`);
             }
         } catch {
             setError('Unable to connect to server. Please try again.');
+            setLiveAnnouncement('Error: Unable to connect to server.');
         } finally {
             setLoading(false);
         }
     };
 
     /* ── Input styles ───────────────────────────────────── */
-    const iconStyle = (field) => ({
-        position: 'absolute',
-        left: '14px',
-        color: focusedField === field ? '#00f0ff' : '#64748b',
-        transition: 'color 0.25s ease',
-        pointerEvents: 'none',
-        zIndex: 2,
-    });
+    const iconStyle = (field) => {
+        let isInv = field === 'newPassword' ? isPassInvalid : isConfirmInvalid;
+        let isVal = field === 'newPassword' ? isPassValid : isConfirmValid;
+        let color = '#64748b';
+        if (isInv) color = '#ef4444';
+        else if (isVal && hadError[field]) color = '#10b981'; // Only green if previously red/error
+        else if (focusedField === field) color = '#00f0ff';
 
-    const inputStyle = (field) => ({
-        width: '100%',
-        padding: '13px 16px 13px 44px',
-        background: 'var(--bg-input)',
-        border: `1px solid ${focusedField === field ? 'rgba(0, 240, 255, 0.45)' : 'rgba(255, 255, 255, 0.09)'}`,
-        borderRadius: 'var(--radius-sm)',
-        color: 'var(--text-primary)',
-        fontFamily: 'var(--font-body)',
-        fontSize: '0.9375rem',
-        outline: 'none',
-        transition: 'all 0.25s ease',
-        boxShadow: focusedField === field ? 'var(--shadow-glow-cyan)' : 'none',
-    });
+        return {
+            position: 'absolute',
+            left: '14px',
+            color: color,
+            transition: 'color 0.25s ease',
+            pointerEvents: 'none',
+            zIndex: 2,
+        };
+    };
+
+    const inputStyle = (field) => {
+        let isInv = field === 'newPassword' ? isPassInvalid : isConfirmInvalid;
+        let isVal = field === 'newPassword' ? isPassValid : isConfirmValid;
+        let borderColor = 'rgba(255, 255, 255, 0.09)';
+        let shadow = 'none';
+
+        if (isInv) {
+            borderColor = '#ef4444';
+            shadow = '0 0 12px rgba(239, 68, 68, 0.4)';
+        } else if (isVal && hadError[field]) { // Only green if previously red/error
+            borderColor = '#10b981';
+            shadow = '0 0 12px rgba(16, 185, 129, 0.4)';
+        } else if (focusedField === field) {
+            borderColor = 'rgba(0, 240, 255, 0.45)';
+            shadow = 'var(--shadow-glow-cyan)';
+        }
+
+        return {
+            width: '100%',
+            padding: '13px 16px 13px 44px',
+            background: 'var(--bg-input)',
+            border: `1px solid ${borderColor}`,
+            borderRadius: 'var(--radius-sm)',
+            color: 'var(--text-primary)',
+            fontFamily: 'var(--font-body)',
+            fontSize: '0.9375rem',
+            outline: 'none',
+            transition: 'all 0.25s ease',
+            boxShadow: shadow,
+        };
+    };
 
     const labelStyle = {
         textTransform: 'uppercase',
@@ -173,6 +237,7 @@ export default function ResetPassword() {
             </div>
 
             <form
+                noValidate
                 className="glass-panel"
                 onSubmit={handleSubmit}
                 style={{
@@ -185,6 +250,10 @@ export default function ResetPassword() {
                     gap: '1.25rem',
                 }}
             >
+                <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+                    {liveAnnouncement}
+                </div>
+
                 {error && (
                     <div className="auth-error">
                         <AlertCircle size={16} />
@@ -204,6 +273,7 @@ export default function ResetPassword() {
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                         <Lock size={18} style={iconStyle('newPassword')} />
                         <input
+                            ref={passRef}
                             id="rp-new-pw"
                             type="password"
                             placeholder="••••••••"
@@ -212,8 +282,8 @@ export default function ResetPassword() {
                             onFocus={() => { setFocusedField('newPassword'); setIsPasswordFocused(true); }}
                             onBlur={() => { setFocusedField(null); setIsPasswordFocused(false); }}
                             style={inputStyle('newPassword')}
+                            aria-invalid={isPassInvalid}
                             required
-                            disabled={!!success}
                         />
                     </div>
 
@@ -266,6 +336,7 @@ export default function ResetPassword() {
                     <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                         <Lock size={18} style={iconStyle('confirmPassword')} />
                         <input
+                            ref={confirmRef}
                             id="rp-confirm-pw"
                             type="password"
                             placeholder="••••••••"
@@ -274,8 +345,8 @@ export default function ResetPassword() {
                             onFocus={() => setFocusedField('confirmPassword')}
                             onBlur={() => setFocusedField(null)}
                             style={inputStyle('confirmPassword')}
+                            aria-invalid={isConfirmInvalid}
                             required
-                            disabled={!!success}
                         />
                     </div>
                     {confirmPassword.length > 0 && !checks.match && (
@@ -290,14 +361,15 @@ export default function ResetPassword() {
                     )}
                 </div>
 
-                <button
+                <AccessibleButton
                     className="btn-futuristic"
                     type="submit"
                     disabled={loading || !allValid || !!success}
+                    disabledReason={!allValid ? "Meet all password requirements and ensure passwords match before resetting." : "Resetting password..."}
                     style={{ width: '100%', marginTop: '0.5rem' }}
                 >
                     {loading ? 'Resetting…' : success ? 'Redirecting…' : 'Reset Password'} <span>→</span>
-                </button>
+                </AccessibleButton>
 
                 <p className="auth-footer">
                     <Link to="/login">← Back to Login</Link>

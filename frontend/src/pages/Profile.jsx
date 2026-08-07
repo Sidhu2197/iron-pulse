@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { fetchWorkouts, changePassword } from '../api/auth';
 import { useNavigate } from 'react-router-dom';
+import AccessibleButton from '../components/AccessibleButton';
 import './Profile.css';
 import { LogOut, Lock, Check, AlertCircle, Edit } from 'lucide-react';
 
@@ -126,12 +127,23 @@ export default function Profile() {
                             {pwdError && <p className="profile-edit-error"><AlertCircle size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />{pwdError}</p>}
                             {pwdSuccess && <p className="profile-edit-success"><Check size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />{pwdSuccess}</p>}
                             <div className="profile-edit-actions">
-                                <button type="submit" className="profile-save-btn" disabled={pwdLoading}>
+                                <AccessibleButton 
+                                    type="submit" 
+                                    className="profile-save-btn" 
+                                    disabled={pwdLoading}
+                                    disabledReason="Changing password..."
+                                >
                                     {pwdLoading ? 'Changing…' : 'Change Password'}
-                                </button>
-                                <button type="button" className="profile-cancel-btn" onClick={() => setShowPwdForm(false)} disabled={pwdLoading}>
+                                </AccessibleButton>
+                                <AccessibleButton 
+                                    type="button" 
+                                    className="profile-cancel-btn" 
+                                    onClick={() => setShowPwdForm(false)} 
+                                    disabled={pwdLoading}
+                                    disabledReason="Changing password..."
+                                >
                                     Cancel
-                                </button>
+                                </AccessibleButton>
                             </div>
                         </form>
                     )}

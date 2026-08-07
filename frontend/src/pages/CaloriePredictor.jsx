@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { predictCalories, saveCaloriePrediction, fetchCaloriePredictions, checkMLHealth, getSupportedExercises } from '../api/auth';
 import './CaloriePredictor.css';
 import PageReveal from '../components/PageReveal';
+import AccessibleButton from '../components/AccessibleButton';
 import { Dumbbell, Timer, Ruler, Activity, Scale, Cake, Heart, BarChart2, Calendar, CheckCircle, XCircle } from 'lucide-react';
 
 const DEFAULT_EXERCISE_TYPES = [
@@ -85,16 +86,86 @@ export default function CaloriePredictor() {
 
     const updateField = (field, value) => setForm({ ...form, [field]: value });
 
+    const [submitted, setSubmitted] = useState(false);
+    const [hadError, setHadError] = useState({});
+    const [liveAnnouncement, setLiveAnnouncement] = useState('');
+    const ageRef = useRef(null);
+    const weightRef = useRef(null);
+    const heightRef = useRef(null);
+    const durationRef = useRef(null);
+    const heartRateRef = useRef(null);
+    const exerciseRef = useRef(null);
+
     const invalidAge = form.age !== '' && (Number(form.age) < 10 || Number(form.age) > 120);
     const invalidWeight = form.weight_kg !== '' && (Number(form.weight_kg) < 20 || Number(form.weight_kg) > 300);
     const invalidHeight = form.height_cm !== '' && (Number(form.height_cm) < 50 || Number(form.height_cm) > 250);
 
-    const canSubmit = form.age && form.weight_kg && form.height_cm &&
-        form.exercise_type && form.duration_min && form.heart_rate &&
-        !invalidAge && !invalidWeight && !invalidHeight;
+    const isAgeValid = form.age !== '' && !invalidAge;
+    const isWeightValid = form.weight_kg !== '' && !invalidWeight;
+    const isHeightValid = form.height_cm !== '' && !invalidHeight;
+    const isDurationValid = form.duration_min !== '' && Number(form.duration_min) > 0;
+    const isHeartRateValid = form.heart_rate !== '' && Number(form.heart_rate) >= 40 && Number(form.heart_rate) <= 220;
+    const isExerciseValid = !!form.exercise_type;
+
+    const canSubmit = isAgeValid && isWeightValid && isHeightValid &&
+        isDurationValid && isHeartRateValid && isExerciseValid;
+
+    const getFieldClass = (field) => {
+        let isInvalid = false;
+        let isValid = false;
+
+        if (field === 'age') {
+            isValid = isAgeValid;
+            isInvalid = (submitted && !form.age) || invalidAge;
+        } else if (field === 'weight_kg') {
+            isValid = isWeightValid;
+            isInvalid = (submitted && !form.weight_kg) || invalidWeight;
+        } else if (field === 'height_cm') {
+            isValid = isHeightValid;
+            isInvalid = (submitted && !form.height_cm) || invalidHeight;
+        } else if (field === 'duration_min') {
+            isValid = isDurationValid;
+            isInvalid = submitted && !isDurationValid;
+        } else if (field === 'heart_rate') {
+            isValid = isHeartRateValid;
+            isInvalid = (submitted && !form.heart_rate) || (form.heart_rate !== '' && !isHeartRateValid);
+        } else if (field === 'exercise_type') {
+            isValid = isExerciseValid;
+            isInvalid = submitted && !isExerciseValid;
+        }
+
+        if (isInvalid) return 'invalid';
+        if (isValid && hadError[field]) return 'valid'; // Only green if previously red/error
+        return '';
+    };
 
     const handlePredict = async (e) => {
         e.preventDefault();
+        setSubmitted(true);
+
+        const invalidFields = [];
+        if (!isAgeValid) invalidFields.push({ name: 'age', ref: ageRef, msg: invalidAge ? 'Age must be 10–120' : 'Age is required' });
+        if (!isWeightValid) invalidFields.push({ name: 'weight_kg', ref: weightRef, msg: invalidWeight ? 'Weight must be 20–300 kg' : 'Weight is required' });
+        if (!isHeightValid) invalidFields.push({ name: 'height_cm', ref: heightRef, msg: invalidHeight ? 'Height must be 50–250 cm' : 'Height is required' });
+        if (!isDurationValid) invalidFields.push({ name: 'duration_min', ref: durationRef, msg: 'Duration is required' });
+        if (!isHeartRateValid) invalidFields.push({ name: 'heart_rate', ref: heartRateRef, msg: 'Heart rate must be between 40 and 220 BPM' });
+        if (!isExerciseValid) invalidFields.push({ name: 'exercise_type', ref: exerciseRef, msg: 'Exercise type is required' });
+
+        if (invalidFields.length > 0) {
+            const newHadError = { ...hadError };
+            invalidFields.forEach(item => { newHadError[item.name] = true; });
+            setHadError(newHadError);
+
+            const first = invalidFields[0];
+            setError(first.msg);
+            setLiveAnnouncement(`Form has ${invalidFields.length} error${invalidFields.length > 1 ? 's' : ''}. Focused on ${first.name}.`);
+            if (first.ref && first.ref.current) {
+                first.ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                first.ref.current.focus();
+            }
+            return;
+        }
+
         setLoading(true);
         setError('');
         setResult(null);
@@ -114,8 +185,10 @@ export default function CaloriePredictor() {
             };
             const data = await predictCalories(payload);
             setResult(data);
+            setLiveAnnouncement(`Prediction ready: ${data.calories_burned?.toFixed(1)} calories burned.`);
         } catch (err) {
             setError(err.message || 'Prediction failed. Please try again.');
+            setLiveAnnouncement(`Prediction failed: ${err.message || 'Please try again.'}`);
         } finally {
             setLoading(false);
         }
@@ -213,9 +286,14 @@ export default function CaloriePredictor() {
                     )}
 
                     <div className="result-actions">
-                        <button className="save-btn" onClick={handleSave} disabled={saving}>
+                        <AccessibleButton 
+                            className="save-btn" 
+                            onClick={handleSave} 
+                            disabled={saving}
+                            disabledReason="Saving prediction..."
+                        >
                             {saving ? '⏳ Saving…' : '💾 Save Prediction'}
-                        </button>
+                        </AccessibleButton>
                         <button className="reset-btn" onClick={handleReset}>
                             🔄 New Prediction
                         </button>
@@ -225,7 +303,11 @@ export default function CaloriePredictor() {
 
             {/* ========== FORM ========== */}
             {!result && (
-                <form className="glass-card predictor-form-card" onSubmit={handlePredict}>
+                <form noValidate className="glass-card predictor-form-card" onSubmit={handlePredict}>
+                    <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+                        {liveAnnouncement}
+                    </div>
+
                     <h3>🔮 Enter Your Details</h3>
 
                     {loading ? (
@@ -238,14 +320,18 @@ export default function CaloriePredictor() {
                             {/* Age */}
                             <div className="input-group">
                                 <label>Age</label>
-                                <div className={`input-field ${invalidAge ? 'invalid' : ''}`}>
+                                <div className={`input-field ${getFieldClass('age')}`}>
                                     <span className="icon"><Cake size={20} /></span>
-                                    <input type="number" placeholder="25" value={form.age}
+                                    <input ref={ageRef} type="number" placeholder="25" value={form.age}
                                         onChange={(e) => updateField('age', e.target.value)}
                                         onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
-                                        min="10" max="120" required />
+                                        min="10" max="120"
+                                        aria-invalid={getFieldClass('age') === 'invalid'}
+                                        required />
                                 </div>
-                                {invalidAge && <div className="field-error">⚠️ Age must be between 10 and 120 years</div>}
+                                {getFieldClass('age') === 'invalid' && (
+                                    <div className="field-error">⚠️ {invalidAge ? 'Age must be between 10 and 120 years' : 'Age is required'}</div>
+                                )}
                             </div>
 
                             {/* Gender */}
@@ -262,27 +348,35 @@ export default function CaloriePredictor() {
                             {/* Weight */}
                             <div className="input-group">
                                 <label>Weight (kg)</label>
-                                <div className={`input-field ${invalidWeight ? 'invalid' : ''}`}>
+                                <div className={`input-field ${getFieldClass('weight_kg')}`}>
                                     <span className="icon"><Scale size={20} /></span>
-                                    <input type="number" placeholder="70" value={form.weight_kg}
+                                    <input ref={weightRef} type="number" placeholder="70" value={form.weight_kg}
                                         onChange={(e) => updateField('weight_kg', e.target.value)}
                                         onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
-                                        min="20" max="300" required />
+                                        min="20" max="300"
+                                        aria-invalid={getFieldClass('weight_kg') === 'invalid'}
+                                        required />
                                 </div>
-                                {invalidWeight && <div className="field-error">⚠️ Weight must be between 20 and 300 kg</div>}
+                                {getFieldClass('weight_kg') === 'invalid' && (
+                                    <div className="field-error">⚠️ {invalidWeight ? 'Weight must be between 20 and 300 kg' : 'Weight is required'}</div>
+                                )}
                             </div>
 
                             {/* Height */}
                             <div className="input-group">
                                 <label>Height (cm)</label>
-                                <div className={`input-field ${invalidHeight ? 'invalid' : ''}`}>
+                                <div className={`input-field ${getFieldClass('height_cm')}`}>
                                     <span className="icon"><Ruler size={20} /></span>
-                                    <input type="number" placeholder="170" value={form.height_cm}
+                                    <input ref={heightRef} type="number" placeholder="170" value={form.height_cm}
                                         onChange={(e) => updateField('height_cm', e.target.value)}
                                         onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
-                                        min="50" max="250" required />
+                                        min="50" max="250"
+                                        aria-invalid={getFieldClass('height_cm') === 'invalid'}
+                                        required />
                                 </div>
-                                {invalidHeight && <div className="field-error">⚠️ Height must be between 50 and 250 cm</div>}
+                                {getFieldClass('height_cm') === 'invalid' && (
+                                    <div className="field-error">⚠️ {invalidHeight ? 'Height must be between 50 and 250 cm' : 'Height is required'}</div>
+                                )}
                             </div>
 
                             {/* Body Fat % */}
@@ -298,25 +392,35 @@ export default function CaloriePredictor() {
                             {/* Duration */}
                             <div className="input-group">
                                 <label>Duration (min)</label>
-                                <div className="input-field">
+                                <div className={`input-field ${getFieldClass('duration_min')}`}>
                                     <span className="icon"><Timer size={20} /></span>
-                                    <input type="number" placeholder="30" value={form.duration_min}
-                                        onChange={(e) => updateField('duration_min', e.target.value)} min="1" required />
+                                    <input ref={durationRef} type="number" placeholder="30" value={form.duration_min}
+                                        onChange={(e) => updateField('duration_min', e.target.value)} min="1"
+                                        aria-invalid={getFieldClass('duration_min') === 'invalid'}
+                                        required />
                                 </div>
+                                {getFieldClass('duration_min') === 'invalid' && (
+                                    <div className="field-error">⚠️ Duration is required</div>
+                                )}
                             </div>
 
                             {/* Heart Rate */}
                             <div className="input-group">
                                 <label>Heart Rate (BPM)</label>
-                                <div className="input-field">
+                                <div className={`input-field ${getFieldClass('heart_rate')}`}>
                                     <span className="icon"><Heart size={20} /></span>
-                                    <input type="number" placeholder="120" value={form.heart_rate}
-                                        onChange={(e) => updateField('heart_rate', e.target.value)} min="40" max="220" required />
+                                    <input ref={heartRateRef} type="number" placeholder="120" value={form.heart_rate}
+                                        onChange={(e) => updateField('heart_rate', e.target.value)} min="40" max="220"
+                                        aria-invalid={getFieldClass('heart_rate') === 'invalid'}
+                                        required />
                                 </div>
+                                {getFieldClass('heart_rate') === 'invalid' && (
+                                    <div className="field-error">⚠️ Heart rate is required (40–220 BPM)</div>
+                                )}
                             </div>
 
                             {/* Exercise Type */}
-                            <div className="exercise-section">
+                            <div className="exercise-section" ref={exerciseRef}>
                                 <label>Exercise Type</label>
                                 <div className="exercise-grid">
                                     {supportedExercises.map((ex) => (
@@ -328,6 +432,9 @@ export default function CaloriePredictor() {
                                         </button>
                                     ))}
                                 </div>
+                                {getFieldClass('exercise_type') === 'invalid' && (
+                                    <div className="field-error">⚠️ Please select an exercise type</div>
+                                )}
                             </div>
 
                             {/* Intensity */}
@@ -354,9 +461,14 @@ export default function CaloriePredictor() {
 
                             {/* Submit */}
                             <div className="predict-btn-wrap">
-                                <button className="predict-btn" type="submit" disabled={!canSubmit || loading}>
+                                <AccessibleButton 
+                                    className="predict-btn" 
+                                    type="submit" 
+                                    disabled={!canSubmit || loading}
+                                    disabledReason={!canSubmit ? "Fill in all required workout metrics to predict calories burned." : "Predicting calories burned..."}
+                                >
                                     {loading ? '⏳ Predicting…' : '🚀 Predict Calories Burned'}
-                                </button>
+                                </AccessibleButton>
                             </div>
                         </div>
                     )}

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { searchFoods, logMeal, fetchMeals, fetchMealSummary, generateFoodPlan } from '../api/auth';
 import './FoodPlan.css';
+import AccessibleButton from '../components/AccessibleButton';
 import { Search, Ruler, User, Scale, Cake, Flame } from 'lucide-react';
 
 const FOOD_WIZARD_STEPS = [
@@ -49,6 +50,7 @@ export default function FoodPlan() {
     // Wizard state
     const [wizardActive, setWizardActive] = useState(false);
     const [wizardStep, setWizardStep] = useState(0);
+    const [wizardAttemptedNext, setWizardAttemptedNext] = useState(false);
     const [wizardData, setWizardData] = useState({
         age: '', gender: '', height: '', weight: '',
         goal: '', mealType: '', dietType: '',
@@ -125,14 +127,17 @@ export default function FoodPlan() {
 
     const canGoNext = () => {
         const val = wizardData[currentStep.key];
-        if (['gender', 'goal', 'mealType', 'dietType'].includes(currentStep.key)) return val !== '';
-        if (currentStep.key === 'age') return val !== '' && Number(val) >= 10 && Number(val) <= 120;
-        if (currentStep.key === 'height') return val !== '' && Number(val) >= 50 && Number(val) <= 250;
-        if (currentStep.key === 'weight') return val !== '' && Number(val) >= 20 && Number(val) <= 300;
-        return val !== '' && Number(val) > 0;
+        if (['gender', 'goal', 'mealType', 'dietType'].includes(currentStep.key)) return val !== '' && val !== null && val !== undefined;
+        if (currentStep.key === 'age') return val !== '' && val !== null && Number(val) >= 10 && Number(val) <= 120;
+        if (currentStep.key === 'height') return val !== '' && val !== null && Number(val) >= 50 && Number(val) <= 250;
+        if (currentStep.key === 'weight') return val !== '' && val !== null && Number(val) >= 20 && Number(val) <= 300;
+        return val !== '' && val !== null && val !== undefined;
     };
 
     const handleWizardNext = () => {
+        setWizardAttemptedNext(true);
+        if (!canGoNext()) return;
+        setWizardAttemptedNext(false);
         if (wizardStep < FOOD_WIZARD_STEPS.length - 1) {
             setWizardStep(wizardStep + 1);
         } else {
@@ -141,16 +146,42 @@ export default function FoodPlan() {
     };
 
     const handleWizardBack = () => {
+        setWizardAttemptedNext(false);
         if (wizardStep > 0) setWizardStep(wizardStep - 1);
     };
 
     const startFoodWizard = () => {
         setWizardActive(true);
         setWizardStep(0);
+        setWizardAttemptedNext(false);
         setWizardData({ age: '', gender: '', height: '', weight: '', goal: '', mealType: '', dietType: '' });
         setFoodPlan(null);
         setFoodPlanError('');
     };
+
+    // Wizard Keyboard Shortcuts (Enter -> Next, Esc -> Close)
+    useEffect(() => {
+        if (!wizardActive) return;
+        const handleWizardKeyDown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                e.stopPropagation();
+                if (canGoNext()) {
+                    if (wizardStep < FOOD_WIZARD_STEPS.length - 1) {
+                        setWizardStep((prev) => prev + 1);
+                    } else {
+                        handleGenerateFoodPlan();
+                    }
+                }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                e.stopPropagation();
+                setWizardActive(false);
+            }
+        };
+        window.addEventListener('keydown', handleWizardKeyDown, true);
+        return () => window.removeEventListener('keydown', handleWizardKeyDown, true);
+    }, [wizardActive, wizardStep, wizardData]);
 
     const handleGenerateFoodPlan = async () => {
         setWizardActive(false);
@@ -186,7 +217,9 @@ export default function FoodPlan() {
 
             const val = wizardData[step.key];
             const num = Number(val);
-            const isInvalid = val !== '' && (num < minVal || num > maxVal);
+            const isOutOfRange = val !== '' && (num < minVal || num > maxVal);
+            const isEmptyError = wizardAttemptedNext && val === '';
+            const isInvalid = isOutOfRange || isEmptyError;
 
             return (
                 <div className="fw-input-wrap">
@@ -206,7 +239,7 @@ export default function FoodPlan() {
                     </div>
                     {isInvalid && (
                         <div className="field-error">
-                            ⚠️ {valName} must be between {minVal} and {maxVal} {units}
+                            ⚠️ {isEmptyError ? `${valName} is required to continue` : `${valName} must be between ${minVal} and ${maxVal} ${units}`}
                         </div>
                     )}
                 </div>
@@ -214,61 +247,77 @@ export default function FoodPlan() {
         }
 
         if (step.key === 'gender') {
+            const hasError = wizardAttemptedNext && !wizardData.gender;
             return (
-                <div className="fw-select-grid">
-                    {[{ value: 'male', label: '♂️ Male' }, { value: 'female', label: '♀️ Female' }].map((opt) => (
-                        <button key={opt.value} type="button"
-                            className={`fw-select-card ${wizardData.gender === opt.value ? 'selected' : ''}`}
-                            onClick={() => setWizardData({ ...wizardData, gender: opt.value })}
-                        >
-                            {opt.label}
-                        </button>
-                    ))}
+                <div className="fw-select-wrap">
+                    <div className="fw-select-grid">
+                        {[{ value: 'male', label: '♂️ Male' }, { value: 'female', label: '♀️ Female' }].map((opt) => (
+                            <button key={opt.value} type="button"
+                                className={`fw-select-card ${wizardData.gender === opt.value ? 'selected' : ''}`}
+                                onClick={() => setWizardData({ ...wizardData, gender: opt.value })}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a gender to continue</div>}
                 </div>
             );
         }
 
         if (step.key === 'goal') {
+            const hasError = wizardAttemptedNext && !wizardData.goal;
             return (
-                <div className="fw-select-grid">
-                    {FOOD_GOAL_OPTIONS.map((opt) => (
-                        <button key={opt.value} type="button"
-                            className={`fw-select-card ${wizardData.goal === opt.value ? 'selected' : ''}`}
-                            onClick={() => setWizardData({ ...wizardData, goal: opt.value })}
-                        >
-                            {opt.label}
-                        </button>
-                    ))}
+                <div className="fw-select-wrap">
+                    <div className="fw-select-grid">
+                        {FOOD_GOAL_OPTIONS.map((opt) => (
+                            <button key={opt.value} type="button"
+                                className={`fw-select-card ${wizardData.goal === opt.value ? 'selected' : ''}`}
+                                onClick={() => setWizardData({ ...wizardData, goal: opt.value })}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a fitness goal to continue</div>}
                 </div>
             );
         }
 
         if (step.key === 'mealType') {
+            const hasError = wizardAttemptedNext && !wizardData.mealType;
             return (
-                <div className="fw-select-grid three-col">
-                    {MEAL_TYPE_OPTIONS.map((opt) => (
-                        <button key={opt.value} type="button"
-                            className={`fw-select-card ${wizardData.mealType === opt.value ? 'selected' : ''}`}
-                            onClick={() => setWizardData({ ...wizardData, mealType: opt.value })}
-                        >
-                            {opt.label}
-                        </button>
-                    ))}
+                <div className="fw-select-wrap">
+                    <div className="fw-select-grid three-col">
+                        {MEAL_TYPE_OPTIONS.map((opt) => (
+                            <button key={opt.value} type="button"
+                                className={`fw-select-card ${wizardData.mealType === opt.value ? 'selected' : ''}`}
+                                onClick={() => setWizardData({ ...wizardData, mealType: opt.value })}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a meal type to continue</div>}
                 </div>
             );
         }
 
         if (step.key === 'dietType') {
+            const hasError = wizardAttemptedNext && !wizardData.dietType;
             return (
-                <div className="fw-select-grid">
-                    {DIET_TYPE_OPTIONS.map((opt) => (
-                        <button key={opt.value} type="button"
-                            className={`fw-select-card ${wizardData.dietType === opt.value ? 'selected' : ''}`}
-                            onClick={() => setWizardData({ ...wizardData, dietType: opt.value })}
-                        >
-                            {opt.label}
-                        </button>
-                    ))}
+                <div className="fw-select-wrap">
+                    <div className="fw-select-grid">
+                        {DIET_TYPE_OPTIONS.map((opt) => (
+                            <button key={opt.value} type="button"
+                                className={`fw-select-card ${wizardData.dietType === opt.value ? 'selected' : ''}`}
+                                onClick={() => setWizardData({ ...wizardData, dietType: opt.value })}
+                            >
+                                {opt.label}
+                            </button>
+                        ))}
+                    </div>
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a diet preference to continue</div>}
                 </div>
             );
         }
@@ -350,9 +399,15 @@ export default function FoodPlan() {
                             ) : (
                                 <button type="button" className="fw-btn-back" onClick={() => setWizardActive(false)}>✕ Cancel</button>
                             )}
-                            <button type="button" className="fw-btn-next" onClick={handleWizardNext} disabled={!canGoNext()}>
+                            <AccessibleButton 
+                                type="button" 
+                                className="fw-btn-next" 
+                                onClick={handleWizardNext} 
+                                disabled={!canGoNext()}
+                                disabledReason="Complete current step input before continuing."
+                            >
                                 {wizardStep === FOOD_WIZARD_STEPS.length - 1 ? '🚀 Generate Plan' : 'Next →'}
-                            </button>
+                            </AccessibleButton>
                         </div>
                     </div>
                 </div>
@@ -362,9 +417,14 @@ export default function FoodPlan() {
             <div className="glass-card food-plan-generator">
                 <div className="food-plan-gen-header">
                     <h3>🍽️ Generate Food Plan</h3>
-                    <button className="create-plan-btn" onClick={startFoodWizard} disabled={foodPlanLoading}>
+                    <AccessibleButton 
+                        className="create-plan-btn" 
+                        onClick={startFoodWizard} 
+                        disabled={foodPlanLoading}
+                        disabledReason="Generating food plan..."
+                    >
                         {foodPlanLoading ? '⏳ Generating…' : '✨ Create Food Plan'}
-                    </button>
+                    </AccessibleButton>
                 </div>
 
                 {foodPlanError && <div className="food-error">{foodPlanError}</div>}

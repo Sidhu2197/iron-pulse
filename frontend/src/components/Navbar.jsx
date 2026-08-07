@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Dumbbell, Utensils, BrainCircuit, Scale,
-  User, Flame, LogOut, ChevronDown,
+  User, Flame, LogOut, ChevronDown, Keyboard,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { to: '/bmi', label: 'BMI', icon: Scale },
 ];
 
-export default function Navbar() {
+export default function Navbar({ onOpenShortcuts }) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -208,8 +208,10 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* ── Profile Dropdown ─────────────────── */}
-        <div ref={dropdownRef} style={{ position: 'relative', flexShrink: 0 }}>
+        {/* ── Actions & Profile ───────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* ── Profile Dropdown ─────────────────── */}
+          <div ref={dropdownRef} style={{ position: 'relative', flexShrink: 0 }}>
           <button
             onClick={() => setDropdownOpen((v) => !v)}
             style={{
@@ -345,7 +347,8 @@ export default function Navbar() {
             </div>
           )}
         </div>
-      </nav>
+      </div>
+    </nav>
 
       {/* ── Responsive mobile styles ────────── */}
       <style>{`

@@ -244,16 +244,18 @@ input:-webkit-autofill:active {
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Hide number input spinners */
+/* Hide number input spinners (incrementor/decrementor arrows) globally */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  margin: 0 !important;
 }
 
 input[type="number"] {
-  -moz-appearance: textfield;
-  appearance: textfield;
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
 }
 
 /* ================================================================
@@ -657,6 +659,19 @@ select option:disabled {
 .input-field.invalid {
   border-color: #ef4444 !important;
   box-shadow: 0 0 12px rgba(239, 68, 68, 0.35) !important;
+}
+
+.input-field.valid {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.35) !important;
+}
+
+.input-field.invalid .icon {
+  color: #ef4444 !important;
+}
+
+.input-field.valid .icon {
+  color: #10b981 !important;
 }
 
 .field-error {

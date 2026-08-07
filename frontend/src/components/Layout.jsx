@@ -2,6 +2,8 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from './Navbar';
 import Silk from './Silk';
+import KeyboardShortcutsModal from './KeyboardShortcutsModal';
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import './Layout.css';
 
 const pageVariants = {
@@ -29,13 +31,14 @@ const pageVariants = {
 
 export default function Layout() {
     const location = useLocation();
+    const { isModalOpen, closeModal, toggleModal } = useKeyboardShortcuts();
 
     return (
         <div className="layout-wrapper">
             {/* Silk WebGL background — fixed behind all content */}
             <Silk color="#7B7481" speed={0.4} scale={3.0} />
 
-            <Navbar />
+            <Navbar onOpenShortcuts={toggleModal} />
 
             <main className="layout-main">
                 <AnimatePresence mode="wait">
@@ -50,6 +53,8 @@ export default function Layout() {
                     </motion.div>
                 </AnimatePresence>
             </main>
+
+            <KeyboardShortcutsModal isOpen={isModalOpen} onClose={closeModal} />
         </div>
     );
 }
