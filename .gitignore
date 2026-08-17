@@ -1,0 +1,57 @@
+# =========================
+# Operating System Files
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# IDEs and Editors
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Logs
+# =========================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================
+# Misc
+# =========================
+*.bak
+*.tmp
+.claude
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.local
+.env.*.local
+
+# =========================
+# Agents
+# =========================
+.agents/
+agents/
+
+# =========================
+# Project Specific
+# =========================
+design.md
+design_prompt.md
+skills-lock.json
+
+
+
+node_modules/
+dist/
+.eslintcache
+coverage/
