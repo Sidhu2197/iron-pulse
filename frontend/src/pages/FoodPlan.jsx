@@ -3,32 +3,32 @@ import { useAuth } from '../context/AuthContext';
 import { searchFoods, logMeal, fetchMeals, fetchMealSummary, generateFoodPlan } from '../api/auth';
 import './FoodPlan.css';
 import AccessibleButton from '../components/AccessibleButton';
-import { Search, Ruler, User, Scale, Cake, Flame } from 'lucide-react';
+import { Search, Ruler, User, Scale, Cake, Flame, Target, Utensils, Leaf, Zap, Sunrise, Sun, Moon, Camera, Sparkles } from 'lucide-react';
 
 const FOOD_WIZARD_STEPS = [
     { key: 'age', label: 'How old are you?', icon: <Cake size={20} /> },
     { key: 'gender', label: 'What\'s your gender?', icon: <User size={20} /> },
     { key: 'height', label: 'What\'s your height?', icon: <Ruler size={20} /> },
     { key: 'weight', label: 'What\'s your weight?', icon: <Scale size={20} /> },
-    { key: 'goal', label: 'What\'s your goal?', icon: '🎯' },
-    { key: 'mealType', label: 'Which meal?', icon: '🍽️' },
-    { key: 'dietType', label: 'Diet preference?', icon: '🥗' },
+    { key: 'goal', label: 'What\'s your goal?', icon: <Target size={20} /> },
+    { key: 'mealType', label: 'Which meal?', icon: <Utensils size={20} /> },
+    { key: 'dietType', label: 'Diet preference?', icon: <Leaf size={20} /> },
 ];
 
 const FOOD_GOAL_OPTIONS = [
     { value: 'fat_loss', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Flame size={20} /> Fat Loss</span> },
-    { value: 'muscle_gain', label: '💪 Muscle Gain' },
+    { value: 'muscle_gain', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Zap size={20} /> Muscle Gain</span> },
 ];
 
 const MEAL_TYPE_OPTIONS = [
-    { value: 'breakfast', label: '🌅 Breakfast' },
-    { value: 'lunch', label: '☀️ Lunch' },
-    { value: 'dinner', label: '🌙 Dinner' },
+    { value: 'breakfast', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Sunrise size={20} /> Breakfast</span> },
+    { value: 'lunch', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Sun size={20} /> Lunch</span> },
+    { value: 'dinner', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Moon size={20} /> Dinner</span> },
 ];
 
 const DIET_TYPE_OPTIONS = [
-    { value: 'veg', label: '🥬 Vegetarian' },
-    { value: 'non-veg', label: '🍗 Non-Vegetarian' },
+    { value: 'veg', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Leaf size={20} /> Vegetarian</span> },
+    { value: 'non-veg', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Utensils size={20} /> Non-Vegetarian</span> },
 ];
 
 export default function FoodPlan() {
@@ -348,7 +348,7 @@ export default function FoodPlan() {
                 </div>
                 <div className="glass-card macro-card">
                     <div className="macro-card-header">
-                        <span className="macro-label">💪 Protein (g)</span>
+                        <span className="macro-label"><span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Zap size={18} /> Protein (g)</span></span>
                         <span className="macro-value">{pro.current} / {pro.target}</span>
                     </div>
                     <div className="macro-bar">
@@ -358,7 +358,7 @@ export default function FoodPlan() {
                 </div>
                 <div className="glass-card macro-card">
                     <div className="macro-card-header">
-                        <span className="macro-label">🧈 Fats (g)</span>
+                        <span className="macro-label"><span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Scale size={18} /> Fats (g)</span></span>
                         <span className="macro-value">{fat.current} / {fat.target}</span>
                     </div>
                     <div className="macro-bar">
@@ -406,7 +406,7 @@ export default function FoodPlan() {
                                 disabled={!canGoNext()}
                                 disabledReason="Complete current step input before continuing."
                             >
-                                {wizardStep === FOOD_WIZARD_STEPS.length - 1 ? '🚀 Generate Plan' : 'Next →'}
+                                {wizardStep === FOOD_WIZARD_STEPS.length - 1 ? 'Generate Plan' : 'Next →'}
                             </AccessibleButton>
                         </div>
                     </div>
@@ -416,14 +416,14 @@ export default function FoodPlan() {
             {/* Generate Food Plan Section */}
             <div className="glass-card food-plan-generator">
                 <div className="food-plan-gen-header">
-                    <h3>🍽️ Generate Food Plan</h3>
+                    <h3><Utensils size={22} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> Generate Food Plan</h3>
                     <AccessibleButton 
                         className="create-plan-btn" 
                         onClick={startFoodWizard} 
                         disabled={foodPlanLoading}
                         disabledReason="Generating food plan..."
                     >
-                        {foodPlanLoading ? '⏳ Generating…' : '✨ Create Food Plan'}
+                        {foodPlanLoading ? 'Generating…' : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Sparkles size={16} /> Create Food Plan</span>}
                     </AccessibleButton>
                 </div>
 
@@ -432,7 +432,7 @@ export default function FoodPlan() {
                 {/* Empty state */}
                 {!foodPlan && !foodPlanLoading && !wizardActive && (
                     <div className="food-plan-empty">
-                        <div className="food-plan-empty-icon">🍽️</div>
+                        <div className="food-plan-empty-icon"><Utensils size={32} /></div>
                         <p>Click <span className="accent">"Create Food Plan"</span> to get a personalized meal suggestion</p>
                     </div>
                 )}
@@ -520,9 +520,9 @@ export default function FoodPlan() {
                         )}
                     </div>
                     <div className="log-method">
-                        <h4>📷 Upload Image</h4>
+                        <h4><Camera size={20} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> Upload Image</h4>
                         <div className="upload-area">
-                            <div className="upload-icon">📷</div>
+                            <div className="upload-icon"><Camera size={32} /></div>
                             <p>Drag & drop or click to upload</p>
                             <p style={{ fontSize: 'var(--font-xs)', marginTop: '4px' }}>
                                 AI will recognize the food automatically

@@ -43,6 +43,7 @@ function FloatingGlows() {
 
 export default function ForgotPassword() {
     const [email, setEmail] = useState('');
+    const [emailFocused, setEmailFocused] = useState(false);
     const [sent, setSent] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -197,7 +198,7 @@ export default function ForgotPassword() {
                             <span>Link expires in <strong>30 minutes</strong></span>
                         </div>
                         <div className="inbox-info-item">
-                            <span className="inbox-info-icon">📧</span>
+                            <span className="inbox-info-icon"><Mail size={18} /></span>
                             <span>Check spam folder if you don't see it</span>
                         </div>
                     </div>

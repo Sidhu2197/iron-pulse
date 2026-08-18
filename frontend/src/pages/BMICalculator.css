@@ -100,11 +100,13 @@
 }
 
 .bmi-empty-icon {
-    font-size: 3rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     margin-bottom: var(--space-md);
     animation: float 3s ease-in-out infinite;
     color: var(--accent-cyan);
-    filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.3));
+    filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.4));
 }
 
 .bmi-empty .accent {

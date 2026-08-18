@@ -4,7 +4,7 @@ import { logWorkout, generateWorkoutPlan } from '../api/auth';
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
 import './Workout.css';
-import { Dumbbell, Timer, Ruler, User, Activity, Scale, Cake, Flame, Calendar, BarChart2 } from 'lucide-react';
+import { Dumbbell, Timer, Ruler, User, Activity, Scale, Cake, Flame, Calendar, BarChart2, Target, Zap, HeartPulse, Sprout, Camera, Sparkles, Rocket } from 'lucide-react';
 
 const TABS = ['Live Posture', 'Suggested Plan', 'Log Workout'];
 
@@ -22,20 +22,20 @@ const EQUIPMENT_OPTIONS = [
 
 const GOAL_OPTIONS = [
     { value: 'fat_loss', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Flame size={20} /> Fat Loss</span> },
-    { value: 'muscle_gain', label: '💪 Muscle Gain' },
+    { value: 'muscle_gain', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Zap size={20} /> Muscle Gain</span> },
     { value: 'strength', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Dumbbell size={20} /> Strength</span> },
-    { value: 'endurance', label: '🫁 Endurance' },
+    { value: 'endurance', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><HeartPulse size={20} /> Endurance</span> },
     { value: 'general_fitness', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Activity size={20} /> General Fitness</span> },
 ];
 
 const GENDER_OPTIONS = [
-    { value: 'male', label: '♂️ Male' },
-    { value: 'female', label: '♀️ Female' },
+    { value: 'male', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><User size={20} /> Male</span> },
+    { value: 'female', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><User size={20} /> Female</span> },
 ];
 
 const FITNESS_LEVEL_OPTIONS = [
-    { value: 'beginner', label: '🌱 Beginner' },
-    { value: 'intermediate', label: '⚡ Intermediate' },
+    { value: 'beginner', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Sprout size={20} /> Beginner</span> },
+    { value: 'intermediate', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Zap size={20} /> Intermediate</span> },
     { value: 'advanced', label: <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Flame size={20} /> Advanced</span> },
 ];
 
@@ -57,7 +57,7 @@ const WIZARD_STEPS = [
     { key: 'gender', label: 'What\'s your gender?', icon: <User size={20} /> },
     { key: 'fitnessLevel', label: 'What\'s your fitness level?', icon: <BarChart2 size={20} /> },
     { key: 'equipment', label: 'What equipment do you have?', icon: <Dumbbell size={20} /> },
-    { key: 'goal', label: 'What\'s your fitness goal?', icon: '🎯' },
+    { key: 'goal', label: 'What\'s your fitness goal?', icon: <Target size={20} /> },
     { key: 'daysPerWeek', label: 'How many days per week?', icon: <Calendar size={20} /> },
     { key: 'duration', label: 'Preferred workout duration?', icon: <Timer size={20} /> },
 ];
@@ -514,14 +514,14 @@ export default function Workout() {
                     <div className="glass-card suggested-plan-card">
                         {/* Header */}
                         <div className="suggested-plan-header">
-                            <h3>💪 Create Suggested Plan</h3>
+                            <h3><Dumbbell size={22} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> Create Suggested Plan</h3>
                             <AccessibleButton 
                                 className="create-plan-btn" 
                                 onClick={startWizard} 
                                 disabled={planLoading}
                                 disabledReason="Generating workout plan..."
                             >
-                                {planLoading ? '⏳ Generating…' : '✨ Create Plan'}
+                                {planLoading ? 'Generating…' : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Sparkles size={16} /> Create Plan</span>}
                             </AccessibleButton>
                         </div>
 
@@ -530,7 +530,7 @@ export default function Workout() {
                         {/* Empty state */}
                         {!plan && !planLoading && !wizardActive && (
                             <div className="empty-plan">
-                                <div className="empty-icon">💪</div>
+                                <div className="empty-icon"><Dumbbell size={32} /></div>
                                 <p>Click <span className="accent">"Create Plan"</span> to get a personalized workout based on your goals</p>
                             </div>
                         )}
@@ -586,7 +586,7 @@ export default function Workout() {
                         {!cameraActive ? (
                             <>
                                 <div className="cam-placeholder">
-                                    <span className="cam-icon">📷</span>
+                                    <span className="cam-icon"><Camera size={32} /></span>
                                     <p>Camera feed will appear here</p>
                                     <p style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>
                                         Uses MediaPipe for real-time pose detection

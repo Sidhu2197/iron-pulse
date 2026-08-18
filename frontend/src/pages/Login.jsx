@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { loginUser, resendVerificationEmail } from '../api/auth';
 import Silk from '../components/Silk';
 import AccessibleButton from '../components/AccessibleButton';
-import { Flame, Mail, Lock, AlertCircle, Check, RefreshCw } from 'lucide-react';
+import { Flame, Mail, Lock, AlertCircle, Check, RefreshCw, Eye, EyeOff } from 'lucide-react';
 
 /* ── Inline Google SVG logo ───────────────────────────────── */
 function GoogleLogo() {
@@ -56,6 +56,7 @@ function FloatingGlows() {
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
@@ -345,16 +346,36 @@ export default function Login() {
             <input
               ref={passwordRef}
               id="login-password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onFocus={() => setPasswordFocused(true)}
               onBlur={() => setPasswordFocused(false)}
-              style={inputStyle('password')}
+              style={{ ...inputStyle('password'), paddingRight: '44px' }}
               aria-invalid={getFieldState('password') === 'invalid'}
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              style={{
+                position: 'absolute',
+                right: '12px',
+                background: 'none',
+                border: 'none',
+                color: '#8f9bb3',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px',
+                zIndex: 3,
+              }}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
         </div>
         <div style={{ textAlign: 'right', marginTop: '0.25rem' }}>

@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Silk from '../components/Silk';
 import AccessibleButton from '../components/AccessibleButton';
-import { Lock, Check, X, AlertCircle } from 'lucide-react';
+import { Lock, Check, X, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 const API_BASE = '/api';
 
@@ -45,6 +45,8 @@ export default function ResetPassword() {
     const navigate = useNavigate();
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
@@ -275,16 +277,36 @@ export default function ResetPassword() {
                         <input
                             ref={passRef}
                             id="rp-new-pw"
-                            type="password"
+                            type={showPassword ? 'text' : 'password'}
                             placeholder="••••••••"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                             onFocus={() => { setFocusedField('newPassword'); setIsPasswordFocused(true); }}
                             onBlur={() => { setFocusedField(null); setIsPasswordFocused(false); }}
-                            style={inputStyle('newPassword')}
+                            style={{ ...inputStyle('newPassword'), paddingRight: '44px' }}
                             aria-invalid={isPassInvalid}
                             required
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                            style={{
+                                position: 'absolute',
+                                right: '12px',
+                                background: 'none',
+                                border: 'none',
+                                color: '#8f9bb3',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '4px',
+                                zIndex: 3,
+                            }}
+                        >
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
                     </div>
 
                     {/* Strength bar + checklist */}
@@ -338,16 +360,36 @@ export default function ResetPassword() {
                         <input
                             ref={confirmRef}
                             id="rp-confirm-pw"
-                            type="password"
+                            type={showConfirmPassword ? 'text' : 'password'}
                             placeholder="••••••••"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             onFocus={() => setFocusedField('confirmPassword')}
                             onBlur={() => setFocusedField(null)}
-                            style={inputStyle('confirmPassword')}
+                            style={{ ...inputStyle('confirmPassword'), paddingRight: '44px' }}
                             aria-invalid={isConfirmInvalid}
                             required
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                            style={{
+                                position: 'absolute',
+                                right: '12px',
+                                background: 'none',
+                                border: 'none',
+                                color: '#8f9bb3',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '4px',
+                                zIndex: 3,
+                            }}
+                        >
+                            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
                     </div>
                     {confirmPassword.length > 0 && !checks.match && (
                         <span style={{ color: '#ef4444', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>

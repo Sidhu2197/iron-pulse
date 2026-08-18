@@ -2,14 +2,14 @@ import { useState, useRef } from 'react';
 import './BMICalculator.css';
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
-import { Ruler, User, Scale, Cake, BarChart2 } from 'lucide-react';
+import { Ruler, User, Scale, Cake, BarChart2, Lightbulb } from 'lucide-react';
 
 const BMI_CATEGORIES = [
-    { max: 18.5, label: 'Underweight', color: '#60a5fa', emoji: '🔵', advice: 'Consider a calorie-surplus diet with strength training.' },
-    { max: 24.9, label: 'Normal Weight', color: '#10b981', emoji: '🟢', advice: 'Great shape! Maintain with balanced nutrition and exercise.' },
-    { max: 29.9, label: 'Overweight', color: '#f59e0b', emoji: '🟡', advice: 'Consider adding more cardio and monitoring calorie intake.' },
-    { max: 34.9, label: 'Obese (Class I)', color: '#ef4444', emoji: '🟠', advice: 'Consult a healthcare provider and start a structured plan.' },
-    { max: Infinity, label: 'Obese (Class II+)', color: '#dc2626', emoji: '🔴', advice: 'Seek medical guidance for a safe weight-loss program.' },
+    { max: 18.5, label: 'Underweight', color: '#60a5fa', advice: 'Consider a calorie-surplus diet with strength training.' },
+    { max: 24.9, label: 'Normal Weight', color: '#10b981', advice: 'Great shape! Maintain with balanced nutrition and exercise.' },
+    { max: 29.9, label: 'Overweight', color: '#f59e0b', advice: 'Consider adding more cardio and monitoring calorie intake.' },
+    { max: 34.9, label: 'Obese (Class I)', color: '#ef4444', advice: 'Consult a healthcare provider and start a structured plan.' },
+    { max: Infinity, label: 'Obese (Class II+)', color: '#dc2626', advice: 'Seek medical guidance for a safe weight-loss program.' },
 ];
 
 function getCategory(bmi) {
@@ -212,7 +212,7 @@ export default function BMICalculator() {
                 <div className="glass-card bmi-result-card">
                     {!result ? (
                         <div className="bmi-empty">
-                            <div className="bmi-empty-icon"><Scale size={20} /></div>
+                            <div className="bmi-empty-icon"><Scale size={48} /></div>
                             <p>Fill in your details and click <span className="accent">"Calculate BMI"</span> to see your result</p>
                         </div>
                     ) : (
@@ -236,12 +236,13 @@ export default function BMICalculator() {
                             <div className="bmi-score">
                                 <span className="bmi-number" style={{ color: result.color }}>{result.bmi}</span>
                                 <span className="bmi-category-label">
-                                    {result.emoji} {result.label}
+                                     <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: result.color, display: 'inline-block', marginRight: '6px' }} />
+                                     {result.label}
                                 </span>
                             </div>
 
                             <div className="bmi-advice">
-                                <h4>💡 Recommendation</h4>
+                                <h4><Lightbulb size={18} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> Recommendation</h4>
                                 <p>{result.advice}</p>
                             </div>
 
@@ -252,7 +253,9 @@ export default function BMICalculator() {
                                         className={`bmi-scale-item ${result.label === cat.label ? 'active' : ''}`}
                                         style={{ borderColor: result.label === cat.label ? cat.color : 'var(--border)' }}
                                     >
-                                        <span className="scale-emoji">{cat.emoji}</span>
+                                        <span className="scale-emoji">
+                                            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: cat.color, display: 'inline-block' }} />
+                                        </span>
                                         <span className="scale-label">{cat.label}</span>
                                         <span className="scale-range">≤ {cat.max}</span>
                                     </div>

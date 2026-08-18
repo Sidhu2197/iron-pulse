@@ -6,7 +6,7 @@ import Silk from '../components/Silk';
 import AccessibleButton from '../components/AccessibleButton';
 import {
   Flame, User, Mail, Lock, Cake,
-  Check, X, AlertCircle,
+  Check, X, AlertCircle, Eye, EyeOff
 } from 'lucide-react';
 
 /* ── Inline Google SVG logo ───────────────────────────────── */
@@ -61,6 +61,8 @@ export default function Signup() {
   const [form, setForm] = useState({
     username: '', email: '', password: '', confirmPassword: '', age: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailValidation, setEmailValidation] = useState({ status: 'empty', message: '' });
@@ -396,14 +398,34 @@ export default function Signup() {
             <Lock size={18} style={iconStyle('password')} />
             <input
               ref={fieldRefs.password}
-              id="signup-password" type="password" placeholder="••••••••"
+              id="signup-password" type={showPassword ? 'text' : 'password'} placeholder="••••••••"
               value={form.password} onChange={update('password')}
               onFocus={() => { setFocusedField('password'); setIsPasswordFocused(true); }}
               onBlur={() => { setFocusedField(null); setIsPasswordFocused(false); }}
-              style={inputStyle('password')}
+              style={{ ...inputStyle('password'), paddingRight: '44px' }}
               aria-invalid={pw.length > 0 && !Object.values(checks).every(Boolean)}
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              style={{
+                position: 'absolute',
+                right: '12px',
+                background: 'none',
+                border: 'none',
+                color: '#8f9bb3',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px',
+                zIndex: 3,
+              }}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
 
           {/* Strength bar */}
@@ -457,14 +479,34 @@ export default function Signup() {
             <Lock size={18} style={iconStyle('confirmPassword')} />
             <input
               ref={fieldRefs.confirmPassword}
-              id="signup-confirm" type="password" placeholder="••••••••"
+              id="signup-confirm" type={showConfirmPassword ? 'text' : 'password'} placeholder="••••••••"
               value={form.confirmPassword} onChange={update('confirmPassword')}
               onFocus={() => setFocusedField('confirmPassword')}
               onBlur={() => setFocusedField(null)}
-              style={inputStyle('confirmPassword')}
+              style={{ ...inputStyle('confirmPassword'), paddingRight: '44px' }}
               aria-invalid={form.confirmPassword.length > 0 && !passwordsMatch}
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              style={{
+                position: 'absolute',
+                right: '12px',
+                background: 'none',
+                border: 'none',
+                color: '#8f9bb3',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px',
+                zIndex: 3,
+              }}
+            >
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
           {form.confirmPassword.length > 0 && !passwordsMatch && (
             <span style={{ color: '#ef4444', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}>

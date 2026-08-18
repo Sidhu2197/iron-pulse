@@ -4,7 +4,7 @@ import { fetchWorkouts, changePassword } from '../api/auth';
 import { useNavigate } from 'react-router-dom';
 import AccessibleButton from '../components/AccessibleButton';
 import './Profile.css';
-import { LogOut, Lock, Check, AlertCircle, Edit } from 'lucide-react';
+import { LogOut, Lock, Check, AlertCircle, Edit, Dumbbell, Eye, EyeOff } from 'lucide-react';
 
 export default function Profile() {
     const { user, token, logout } = useAuth();
@@ -15,6 +15,9 @@ export default function Profile() {
     // Change Password state
     const [showPwdForm, setShowPwdForm] = useState(false);
     const [pwdForm, setPwdForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    const [showCurrentPwd, setShowCurrentPwd] = useState(false);
+    const [showNewPwd, setShowNewPwd] = useState(false);
+    const [showConfirmPwd, setShowConfirmPwd] = useState(false);
     const [pwdLoading, setPwdLoading] = useState(false);
     const [pwdError, setPwdError] = useState('');
     const [pwdSuccess, setPwdSuccess] = useState('');
@@ -114,15 +117,78 @@ export default function Profile() {
                             </h3>
                             <div className="profile-edit-row">
                                 <label>Current Password</label>
-                                <input type="password" name="currentPassword" value={pwdForm.currentPassword} onChange={handlePwdChange} required />
+                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                    <input type={showCurrentPwd ? 'text' : 'password'} name="currentPassword" value={pwdForm.currentPassword} onChange={handlePwdChange} style={{ width: '100%', paddingRight: '36px' }} required />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCurrentPwd(!showCurrentPwd)}
+                                        aria-label={showCurrentPwd ? 'Hide password' : 'Show password'}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '10px',
+                                            background: 'none',
+                                            border: 'none',
+                                            color: '#8f9bb3',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            padding: '4px',
+                                        }}
+                                    >
+                                        {showCurrentPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
                             </div>
                             <div className="profile-edit-row">
                                 <label>New Password</label>
-                                <input type="password" name="newPassword" value={pwdForm.newPassword} onChange={handlePwdChange} required />
+                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                    <input type={showNewPwd ? 'text' : 'password'} name="newPassword" value={pwdForm.newPassword} onChange={handlePwdChange} style={{ width: '100%', paddingRight: '36px' }} required />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowNewPwd(!showNewPwd)}
+                                        aria-label={showNewPwd ? 'Hide password' : 'Show password'}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '10px',
+                                            background: 'none',
+                                            border: 'none',
+                                            color: '#8f9bb3',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            padding: '4px',
+                                        }}
+                                    >
+                                        {showNewPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
                             </div>
                             <div className="profile-edit-row">
                                 <label>Confirm New Password</label>
-                                <input type="password" name="confirmPassword" value={pwdForm.confirmPassword} onChange={handlePwdChange} required />
+                                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                    <input type={showConfirmPwd ? 'text' : 'password'} name="confirmPassword" value={pwdForm.confirmPassword} onChange={handlePwdChange} style={{ width: '100%', paddingRight: '36px' }} required />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPwd(!showConfirmPwd)}
+                                        aria-label={showConfirmPwd ? 'Hide password' : 'Show password'}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '10px',
+                                            background: 'none',
+                                            border: 'none',
+                                            color: '#8f9bb3',
+                                            cursor: 'pointer',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            padding: '4px',
+                                        }}
+                                    >
+                                        {showConfirmPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
                             </div>
                             {pwdError && <p className="profile-edit-error"><AlertCircle size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />{pwdError}</p>}
                             {pwdSuccess && <p className="profile-edit-success"><Check size={12} style={{ marginRight: 4, verticalAlign: 'middle' }} />{pwdSuccess}</p>}
@@ -166,7 +232,7 @@ export default function Profile() {
                         {workouts.slice(0, 10).map((w) => (
                             <div key={w.id} className="history-item">
                                 <div className="history-left">
-                                    <div className="history-icon">💪</div>
+                                    <div className="history-icon"><Dumbbell size={18} /></div>
                                     <div>
                                         <div className="history-name">{w.workout_name}</div>
                                         <div className="history-date">{w.date}</div>

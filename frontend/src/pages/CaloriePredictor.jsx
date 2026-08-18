@@ -4,27 +4,25 @@ import { predictCalories, saveCaloriePrediction, fetchCaloriePredictions, checkM
 import './CaloriePredictor.css';
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
-import { Dumbbell, Timer, Ruler, Activity, Scale, Cake, Heart, BarChart2, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { Dumbbell, Timer, Ruler, Activity, Scale, Cake, Heart, BarChart2, Calendar, CheckCircle, XCircle, Target, Utensils, Save, RotateCcw, Sparkles, Zap, Bike, Waves, Footprints, Flame, Repeat, User, ClipboardList } from 'lucide-react';
 
 const DEFAULT_EXERCISE_TYPES = [
     { value: 'Running', emoji: <Activity size={20} />, label: 'Running' },
-    { value: 'Cycling', emoji: '🚴', label: 'Cycling' },
-    { value: 'Swimming', emoji: '🏊', label: 'Swimming' },
-    { value: 'Walking', emoji: '🚶', label: 'Walking' },
-    { value: 'HIIT', emoji: '⚡', label: 'HIIT' },
+    { value: 'Cycling', emoji: <Bike size={20} />, label: 'Cycling' },
+    { value: 'Swimming', emoji: <Waves size={20} />, label: 'Swimming' },
+    { value: 'Walking', emoji: <Footprints size={20} />, label: 'Walking' },
+    { value: 'HIIT', emoji: <Zap size={20} />, label: 'HIIT' },
     { value: 'Weight Training', emoji: <Dumbbell size={20} />, label: 'Weights' },
-    { value: 'Yoga', emoji: '🧘', label: 'Yoga' },
-    { value: 'Jump Rope', emoji: '🤸', label: 'Jump Rope' },
-    { value: 'Rowing', emoji: '🚣', label: 'Rowing' },
-    { value: 'Elliptical', emoji: '🔄', label: 'Elliptical' },
+    { value: 'Yoga', emoji: <Activity size={20} />, label: 'Yoga' },
+    { value: 'Jump Rope', emoji: <Zap size={20} />, label: 'Jump Rope' },
+    { value: 'Rowing', emoji: <Activity size={20} />, label: 'Rowing' },
+    { value: 'Elliptical', emoji: <Repeat size={20} />, label: 'Elliptical' },
 ];
 
-
-
 const EXERCISE_EMOJI_MAP = {
-    'Running': <Activity size={20} />, 'Cycling': '🚴', 'Swimming': '🏊', 'Walking': '🚶',
-    'HIIT': '⚡', 'Weight Training': <Dumbbell size={20} />, 'Yoga': '🧘', 'Jump Rope': '🤸',
-    'Rowing': '🚣', 'Elliptical': '🔄',
+    'Running': <Activity size={20} />, 'Cycling': <Bike size={20} />, 'Swimming': <Waves size={20} />, 'Walking': <Footprints size={20} />,
+    'HIIT': <Zap size={20} />, 'Weight Training': <Dumbbell size={20} />, 'Yoga': <Activity size={20} />, 'Jump Rope': <Zap size={20} />,
+    'Rowing': <Activity size={20} />, 'Elliptical': <Repeat size={20} />,
 };
 
 const INTENSITY_LABEL = { 1: 'Low', 2: 'Medium', 3: 'High' };
@@ -248,7 +246,7 @@ export default function CaloriePredictor() {
             {/* ========== RESULTS ========== */}
             {result && (
                 <div className="glass-card results-card">
-                    <h3>🎯 Prediction Results</h3>
+                    <h3><Target size={22} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> Prediction Results</h3>
 
                     <div className="results-hero">
                         <div className="hero-value">{result.calories_burned?.toFixed(1)}</div>
@@ -272,7 +270,7 @@ export default function CaloriePredictor() {
 
                     {result.food_equivalents && result.food_equivalents.length > 0 && (
                         <div className="food-equivalents">
-                            <h4>🍽️ That's equivalent to…</h4>
+                            <h4><Utensils size={18} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> That's equivalent to…</h4>
                             <div className="food-grid">
                                 {result.food_equivalents.map((food, i) => (
                                     <div key={i} className="food-item">
@@ -292,10 +290,10 @@ export default function CaloriePredictor() {
                             disabled={saving}
                             disabledReason="Saving prediction..."
                         >
-                            {saving ? '⏳ Saving…' : '💾 Save Prediction'}
+                            {saving ? 'Saving…' : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Save size={16} /> Save Prediction</span>}
                         </AccessibleButton>
                         <button className="reset-btn" onClick={handleReset}>
-                            🔄 New Prediction
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><RotateCcw size={16} /> New Prediction</span>
                         </button>
                     </div>
                 </div>
@@ -308,7 +306,7 @@ export default function CaloriePredictor() {
                         {liveAnnouncement}
                     </div>
 
-                    <h3>🔮 Enter Your Details</h3>
+                    <h3><Sparkles size={22} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> Enter Your Details</h3>
 
                     {loading ? (
                         <div className="predictor-loading">
@@ -339,9 +337,13 @@ export default function CaloriePredictor() {
                                 <label>Gender</label>
                                 <div className="gender-toggle">
                                     <button type="button" className={`gender-btn ${form.gender === 0 ? 'selected' : ''}`}
-                                        onClick={() => updateField('gender', 0)}>♀️ Female</button>
+                                        onClick={() => updateField('gender', 0)}>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><User size={16} /> Female</span>
+                                    </button>
                                     <button type="button" className={`gender-btn ${form.gender === 1 ? 'selected' : ''}`}
-                                        onClick={() => updateField('gender', 1)}>♂️ Male</button>
+                                        onClick={() => updateField('gender', 1)}>
+                                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><User size={16} /> Male</span>
+                                    </button>
                                 </div>
                             </div>
 
@@ -444,17 +446,17 @@ export default function CaloriePredictor() {
                                     <button type="button"
                                         className={`intensity-btn low ${form.intensity === 1 ? 'selected' : ''}`}
                                         onClick={() => updateField('intensity', 1)}>
-                                        🟢 Low
+                                        Low
                                     </button>
                                     <button type="button"
                                         className={`intensity-btn medium ${form.intensity === 2 ? 'selected' : ''}`}
                                         onClick={() => updateField('intensity', 2)}>
-                                        🟡 Medium
+                                        Medium
                                     </button>
                                     <button type="button"
                                         className={`intensity-btn high ${form.intensity === 3 ? 'selected' : ''}`}
                                         onClick={() => updateField('intensity', 3)}>
-                                        🔴 High
+                                        High
                                     </button>
                                 </div>
                             </div>
@@ -467,7 +469,7 @@ export default function CaloriePredictor() {
                                     disabled={!canSubmit || loading}
                                     disabledReason={!canSubmit ? "Fill in all required workout metrics to predict calories burned." : "Predicting calories burned..."}
                                 >
-                                    {loading ? '⏳ Predicting…' : '🚀 Predict Calories Burned'}
+                                    {loading ? 'Predicting…' : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Sparkles size={18} /> Predict Calories Burned</span>}
                                 </AccessibleButton>
                             </div>
                         </div>
@@ -477,7 +479,7 @@ export default function CaloriePredictor() {
 
             {/* ========== HISTORY ========== */}
             <div className="glass-card history-card">
-                <h3>📋 Prediction History</h3>
+                <h3><ClipboardList size={22} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> Prediction History</h3>
 
                 {historyLoading ? (
                     <div className="predictor-loading">

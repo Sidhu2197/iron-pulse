@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import './Landing.css';
 import PageReveal from '../components/PageReveal';
 import Silk from '../components/Silk';
-import { Flame } from 'lucide-react';
+import { Flame, Dumbbell, Camera, Utensils, Zap } from 'lucide-react';
 
 /* ── Floating ambient glow circles ────────────────────────── */
 function FloatingGlows() {
@@ -74,25 +74,25 @@ export default function Landing() {
 
                 <section className="landing-features">
                     <div className="glass-card feature-card">
-                        <div className="feature-icon green">💪</div>
+                        <div className="feature-icon green"><Dumbbell size={24} /></div>
                         <h3>Smart Workouts</h3>
                         <p>AI-powered exercise recommendations based on your goals and body stats.</p>
                     </div>
 
                     <div className="glass-card feature-card">
-                        <div className="feature-icon red">📷</div>
+                        <div className="feature-icon red"><Camera size={24} /></div>
                         <h3>Live Posture Check</h3>
                         <p>Real-time form correction using MediaPipe during your exercises.</p>
                     </div>
 
                     <div className="glass-card feature-card">
-                        <div className="feature-icon yellow">🍽️</div>
+                        <div className="feature-icon yellow"><Utensils size={24} /></div>
                         <h3>Food Tracking</h3>
                         <p>Log meals by text or photo. AI recognizes food and calculates macros.</p>
                     </div>
 
                     <div className="glass-card feature-card">
-                        <div className="feature-icon purple">⚡</div>
+                        <div className="feature-icon purple"><Zap size={24} /></div>
                         <h3>Streak System</h3>
                         <p>Stay consistent with daily workout streaks and progress tracking.</p>
                     </div>
