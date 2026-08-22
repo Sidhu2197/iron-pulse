@@ -1,9 +1,24 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { generateFoodPlan, generateWorkoutPlan, predictCalories } from '../api/auth';
+import { fetchWorkouts, generateFoodPlan, generateWorkoutPlan, predictCalories } from '../api/auth';
 import { useToast } from './ToastContext';
 import { useAuth } from './AuthContext';
 
 const PlanContext = createContext(null);
+
+const getStoredWorkoutPlan = () => {
+  try {
+    const saved = localStorage.getItem('iron_workout_plan');
+    if (!saved) return null;
+    const { plan, timestamp } = JSON.parse(saved);
+    const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+    if (Date.now() - timestamp < SEVEN_DAYS_MS && plan) {
+      return plan;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
 
 export function PlanProvider({ children }) {
   const { show } = useToast();
@@ -14,22 +29,8 @@ export function PlanProvider({ children }) {
   const [foodPlanLoading, setFoodPlanLoading] = useState(false);
   const [foodPlanError, setFoodPlanError] = useState('');
 
-  // Workout Plan State (persisted in localStorage for 7 days / 1 week)
-  const [workoutPlan, setWorkoutPlan] = useState(() => {
-    try {
-      const saved = localStorage.getItem('iron_workout_plan');
-      if (!saved) return null;
-      const { plan, timestamp } = JSON.parse(saved);
-      const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-      if (Date.now() - timestamp < SEVEN_DAYS_MS) {
-        return plan;
-      }
-      localStorage.removeItem('iron_workout_plan');
-      return null;
-    } catch {
-      return null;
-    }
-  });
+  // Workout Plan State (persisted in localStorage for 7 days / 1 week across sessions & logout)
+  const [workoutPlan, setWorkoutPlan] = useState(getStoredWorkoutPlan);
   const [workoutPlanLoading, setWorkoutPlanLoading] = useState(false);
   const [workoutPlanError, setWorkoutPlanError] = useState('');
 
@@ -38,19 +39,61 @@ export function PlanProvider({ children }) {
   const [caloriePredictionLoading, setCaloriePredictionLoading] = useState(false);
   const [caloriePredictionError, setCaloriePredictionError] = useState('');
 
-  // Reset state when explicit logout occurs (only after auth loading completes and token is null)
+  // On mount/login: check localStorage first, then backend if missing
+  useEffect(() => {
+    if (authLoading) return;
+
+    // 1. Check localStorage first
+    const cachedPlan = getStoredWorkoutPlan();
+    if (cachedPlan) {
+      setWorkoutPlan(cachedPlan);
+      return;
+    }
+
+    // 2. If not in localStorage and user is logged in, check backend
+    if (!token) return;
+
+    let isMounted = true;
+    const checkBackendPlan = async () => {
+      setWorkoutPlanLoading(true);
+      try {
+        const workouts = await fetchWorkouts(token);
+        if (isMounted && Array.isArray(workouts) && workouts.length > 0) {
+          const latest = workouts[0];
+          const planData = latest?.planData || latest;
+          if (planData && planData.weekly_plan) {
+            setWorkoutPlan(planData);
+            try {
+              localStorage.setItem('iron_workout_plan', JSON.stringify({
+                plan: planData,
+                timestamp: Date.now(),
+              }));
+            } catch (e) {
+              console.warn('Failed to cache backend workout plan:', e);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('No active backend workout plan found:', e.message);
+      } finally {
+        if (isMounted) setWorkoutPlanLoading(false);
+      }
+    };
+
+    checkBackendPlan();
+
+    return () => { isMounted = false; };
+  }, [token, authLoading]);
+
+  // Reset transient states on explicit logout (DO NOT delete iron_workout_plan from localStorage)
   useEffect(() => {
     if (!authLoading && !token) {
       setFoodPlan(null);
       setFoodPlanLoading(false);
       setFoodPlanError('');
-      setWorkoutPlan(null);
-      setWorkoutPlanLoading(false);
-      setWorkoutPlanError('');
       setCaloriePrediction(null);
       setCaloriePredictionLoading(false);
       setCaloriePredictionError('');
-      localStorage.removeItem('iron_workout_plan');
     }
   }, [token, authLoading]);
 

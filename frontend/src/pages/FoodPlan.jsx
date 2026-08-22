@@ -62,10 +62,23 @@ export default function FoodPlan() {
         goal: '', mealType: '', dietType: '',
     });
 
+    const updateMacrosOptimistically = (cal, prot, fat) => {
+        setMacros((prev) => {
+            if (!prev) return prev;
+            return {
+                ...prev,
+                calories: { ...prev.calories, current: Math.round((prev.calories?.current || 0) + Number(cal || 0)) },
+                protein: { ...prev.protein, current: Math.round((prev.protein?.current || 0) + Number(prot || 0)) },
+                fats: { ...prev.fats, current: Math.round((prev.fats?.current || 0) + Number(fat || 0)) },
+            };
+        });
+    };
+
     const handleLogGeneratedItem = async (item, index) => {
         setLoggingItemIndex(index);
         setSuccessMsg('');
         setErrorMsg('');
+        updateMacrosOptimistically(item.calories, item.protein, item.fats);
         try {
             await logMeal(token, {
                 food_name: item.food_name,
@@ -78,6 +91,7 @@ export default function FoodPlan() {
             await loadData();
         } catch (err) {
             setErrorMsg(err.message);
+            await loadData();
         } finally {
             setLoggingItemIndex(null);
         }
@@ -130,6 +144,7 @@ export default function FoodPlan() {
     const handleLogFood = async (food) => {
         setSuccessMsg('');
         setErrorMsg('');
+        updateMacrosOptimistically(food.calories, food.protein, food.fats);
         try {
             await logMeal(token, {
                 food_name: food.food_name,
@@ -140,9 +155,10 @@ export default function FoodPlan() {
             setSuccessMsg(`Logged ${food.food_name}! 🎉`);
             setQuery('');
             setResults([]);
-            await loadData(); // Refresh
+            await loadData();
         } catch (err) {
             setErrorMsg(err.message);
+            await loadData();
         }
     };
 

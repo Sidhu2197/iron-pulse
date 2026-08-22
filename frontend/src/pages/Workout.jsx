@@ -98,6 +98,9 @@ export default function Workout() {
     const [activeTab, setActiveTab] = useState('Suggested Plan');
     const [selectedPlanDay, setSelectedPlanDay] = useState('Monday');
 
+    // Confirm Overwrite State
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+
     // Wizard state
     const [wizardActive, setWizardActive] = useState(false);
     const [wizardStep, setWizardStep] = useState(0);
@@ -121,6 +124,37 @@ export default function Workout() {
     // Log Workout state
     const [logForm, setLogForm] = useState({ workout_name: '', duration: '', calories_burned: '', date: '' });
     const [logLoading, setLogLoading] = useState(false);
+
+    // Inline exercise log state for Suggested Plan items
+    const [loggedExerciseKeys, setLoggedExerciseKeys] = useState({});
+    const [loggingExKey, setLoggingExKey] = useState(null);
+    const [workoutSuccessMsg, setWorkoutSuccessMsg] = useState('');
+    const [workoutErrorMsg, setWorkoutErrorMsg] = useState('');
+
+    const handleLogExercise = async (ex, dayName, index) => {
+        const key = `${dayName}_${index}_${ex.name}`;
+        setLoggingExKey(key);
+        setWorkoutSuccessMsg('');
+        setWorkoutErrorMsg('');
+
+        const calBurned = parseInt(ex.estimated_calories) || 100;
+        const durationMins = parseInt(plan?.workout_duration_minutes) || 30;
+
+        try {
+            await logWorkout(token, {
+                workout_name: ex.name,
+                duration: durationMins,
+                calories_burned: calBurned,
+                date: new Date().toISOString().split('T')[0],
+            });
+            setLoggedExerciseKeys((prev) => ({ ...prev, [key]: true }));
+            setWorkoutSuccessMsg(`Logged ${ex.name}! 🎉`);
+        } catch (err) {
+            setWorkoutErrorMsg(err.message || 'Failed to log workout');
+        } finally {
+            setLoggingExKey(null);
+        }
+    };
     const [logMsg, setLogMsg] = useState('');
     const [logError, setLogError] = useState('');
 
@@ -213,6 +247,19 @@ export default function Workout() {
             updated = [...wizardData.workout_days, dayName].sort((a, b) => order[a] - order[b]);
         }
         setWizardData({ ...wizardData, workout_days: updated });
+    };
+
+    const handleCreatePlanClick = () => {
+        if (plan) {
+            setShowConfirmModal(true);
+        } else {
+            startWizard();
+        }
+    };
+
+    const handleConfirmOverwrite = () => {
+        setShowConfirmModal(false);
+        startWizard();
     };
 
     const startWizard = () => {
@@ -690,11 +737,11 @@ export default function Workout() {
                             <h3><Dumbbell size={22} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> Create Suggested Plan</h3>
                             <AccessibleButton 
                                 className="create-plan-btn" 
-                                onClick={startWizard} 
+                                onClick={handleCreatePlanClick} 
                                 disabled={planLoading}
                                 disabledReason="Generating workout plan..."
                             >
-                                {planLoading ? 'Generating…' : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Sparkles size={16} /> Create Plan</span>}
+                                {planLoading ? 'Generating…' : <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Sparkles size={16} /> {plan ? 'Re-generate Plan' : 'Create Plan'}</span>}
                             </AccessibleButton>
                         </div>
 
@@ -757,6 +804,8 @@ export default function Workout() {
                                             const activeDay = plan.weekly_plan.find(d => d.day === selectedPlanDay) || plan.weekly_plan[0];
                                             return (
                                                 <div className="day-workout-card">
+                                                    {workoutSuccessMsg && <div className="workout-success-msg">{workoutSuccessMsg}</div>}
+                                                    {workoutErrorMsg && <div className="workout-error-msg">{workoutErrorMsg}</div>}
                                                     <div className="day-workout-header">
                                                         <h4>{activeDay.day} Focus: <span className="accent">{activeDay.focus}</span></h4>
                                                         <span className="exercise-count-badge">
@@ -776,6 +825,14 @@ export default function Workout() {
                                                                         <span className="exercise-index">{i + 1}</span>
                                                                         <h5 className="exercise-title">{ex.name}</h5>
                                                                         <span className={`difficulty-badge ${ex.difficulty?.toLowerCase()}`}>{ex.difficulty}</span>
+                                                                        <button
+                                                                            type="button"
+                                                                            className={`log-workout-item-btn ${loggedExerciseKeys[`${activeDay.day}_${i}_${ex.name}`] ? 'logged' : ''}`}
+                                                                            onClick={() => handleLogExercise(ex, activeDay.day, i)}
+                                                                            disabled={loggingExKey === `${activeDay.day}_${i}_${ex.name}` || loggedExerciseKeys[`${activeDay.day}_${i}_${ex.name}`]}
+                                                                        >
+                                                                            {loggingExKey === `${activeDay.day}_${i}_${ex.name}` ? 'Logging...' : loggedExerciseKeys[`${activeDay.day}_${i}_${ex.name}`] ? '✓ Logged' : '+ Log Workout'}
+                                                                        </button>
                                                                     </div>
                                                                     <div className="exercise-card-body">
                                                                         <div className="exercise-spec-grid">
@@ -992,6 +1049,37 @@ export default function Workout() {
                     </div>
                 )}
             </div>
+
+            {/* Overwrite Confirmation Modal */}
+            {showConfirmModal && (
+                <div className="confirm-modal-overlay">
+                    <div className="glass-card confirm-modal-card">
+                        <div className="confirm-warning-icon">⚠️</div>
+                        <div className="confirm-modal-header">
+                            <h3>Erase & Replace Active Workout Plan?</h3>
+                        </div>
+                        <p className="confirm-modal-text">
+                            You already have an active workout plan. Creating a new plan will <strong>erase your existing plan</strong> and replace it with a new personalized routine.
+                        </p>
+                        <div className="confirm-modal-actions">
+                            <button
+                                type="button"
+                                className="confirm-btn-cancel"
+                                onClick={() => setShowConfirmModal(false)}
+                            >
+                                ✕ Keep Active Plan
+                            </button>
+                            <button
+                                type="button"
+                                className="confirm-btn-proceed"
+                                onClick={handleConfirmOverwrite}
+                            >
+                                🔥 Erase & Create New Plan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </PageReveal>
     );
 }

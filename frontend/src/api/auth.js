@@ -289,8 +289,9 @@ export async function logMeal(credentials, { food_name, calories, protein, fats,
 }
 
 export async function fetchMeals(credentials) {
-    const res = await fetch(`${API_BASE}/meals`, {
+    const res = await fetch(`${API_BASE}/meals?_t=${Date.now()}`, {
         headers: { ...getAuthHeader(credentials) },
+        cache: 'no-store',
     });
     checkAuthError(res);
     if (!res.ok) throw new Error('Failed to fetch meals');
@@ -298,8 +299,9 @@ export async function fetchMeals(credentials) {
 }
 
 export async function fetchMealSummary(credentials) {
-    const res = await fetch(`${API_BASE}/meals/summary`, {
+    const res = await fetch(`${API_BASE}/meals/summary?_t=${Date.now()}`, {
         headers: { ...getAuthHeader(credentials) },
+        cache: 'no-store',
     });
     checkAuthError(res);
     if (!res.ok) throw new Error('Failed to fetch meal summary');
