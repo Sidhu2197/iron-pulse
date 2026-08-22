@@ -149,17 +149,20 @@
 /* Progress dots */
 .wizard-progress {
     display: flex;
-    justify-content: center;
-    gap: 24px;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
     margin-bottom: 28px;
     position: relative;
+    width: 100%;
+    overflow: hidden;
 }
 
 .wizard-progress-line {
     position: absolute;
     top: 50%;
-    left: 24px;
-    right: 24px;
+    left: 12px;
+    right: 12px;
     height: 3px;
     background: rgba(255, 255, 255, 0.08);
     border-radius: 4px;
@@ -175,18 +178,22 @@
 }
 
 .wizard-dot {
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
+    min-height: 26px;
     border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: var(--font-xs);
+    font-size: 0.65rem;
     font-weight: 700;
     color: var(--text-muted);
-    background: var(--bg-main);
+    background: #0f172a;
     z-index: 1;
+    flex-shrink: 0;
+    aspect-ratio: 1 / 1;
     transition: all 0.3s ease;
 }
 
@@ -194,6 +201,7 @@
     border-color: var(--text-accent);
     color: var(--text-accent);
     box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+    transform: scale(1.1);
 }
 
 .wizard-dot.done {
@@ -420,8 +428,78 @@
     background: var(--accent-gradient);
     border-color: transparent;
     color: #fff;
-    box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
-    transform: scale(1.1);
+    box-shadow: var(--shadow-glow);
+}
+
+/* Days multi grid */
+.wizard-days-multi-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+.day-chip-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    border-radius: var(--radius-full);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: var(--font-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.day-chip-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--border-hover);
+    color: var(--text-primary);
+}
+
+.day-chip-btn.selected {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: var(--text-accent);
+    color: var(--text-accent);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+}
+
+.day-chip-short {
+    font-weight: 700;
+}
+
+.day-chip-full {
+    display: none;
+}
+
+@media (min-width: 480px) {
+    .day-chip-short {
+        display: none;
+    }
+    .day-chip-full {
+        display: inline;
+    }
+}
+
+.chip-check {
+    font-weight: 800;
+    font-size: 0.85rem;
+}
+
+.day-selection-summary {
+    text-align: center;
+    margin-top: 16px;
+    font-size: var(--font-sm);
+    color: var(--text-secondary);
+}
+
+.day-selection-summary strong {
+    color: var(--text-accent);
 }
 
 /* Wizard navigation */
@@ -672,6 +750,289 @@
     animation: slideDown 0.3s ease;
 }
 
+/* Plan Days Picker */
+.plan-days-picker {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.plan-day-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 70px;
+}
+
+.plan-day-tab:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--border-hover);
+}
+
+.plan-day-tab.active {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: var(--text-accent);
+    color: var(--text-accent);
+    box-shadow: 0 0 14px rgba(16, 185, 129, 0.2);
+}
+
+.plan-day-tab.rest-day {
+    opacity: 0.7;
+}
+
+.day-name {
+    font-weight: 700;
+    font-size: var(--font-sm);
+}
+
+.day-badge {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+.plan-day-tab.active .day-badge {
+    color: var(--text-accent);
+}
+
+/* Day Workout Card */
+.day-workout-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.day-workout-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.day-workout-header h4 {
+    font-size: var(--font-base);
+    font-weight: 600;
+}
+
+.exercise-count-badge {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--text-accent);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: var(--font-xs);
+    font-weight: 600;
+}
+
+.rest-day-notice {
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-md);
+    border: 1px dashed var(--border);
+    color: var(--text-secondary);
+    font-size: var(--font-sm);
+    text-align: center;
+}
+
+/* Detailed Exercise Card */
+.exercise-card-detailed {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 12px;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.exercise-card-detailed:hover {
+    border-color: var(--border-hover);
+    transform: translateY(-1px);
+}
+
+.exercise-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.exercise-index {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--accent-gradient);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.exercise-title {
+    font-size: var(--font-base);
+    font-weight: 600;
+    flex: 1;
+    color: var(--text-primary);
+}
+
+.difficulty-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: var(--radius-full);
+    text-transform: capitalize;
+}
+
+.difficulty-badge.beginner {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.difficulty-badge.intermediate {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+
+.difficulty-badge.advanced {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.exercise-spec-grid {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 10px;
+}
+
+.spec-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.spec-label {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.spec-val {
+    font-size: var(--font-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.exercise-desc {
+    font-size: var(--font-xs);
+    color: var(--text-secondary);
+    line-height: 1.5;
+    white-space: pre-line;
+}
+
+/* Routines Grid */
+.routines-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.routine-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px;
+}
+
+.routine-card.full-width-routine {
+    grid-column: 1 / -1;
+}
+
+.routine-card h5 {
+    font-size: var(--font-sm);
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.routine-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: var(--font-xs);
+}
+
+.routine-list li {
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.stretching-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.stretch-chip {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    padding: 6px 14px;
+    border-radius: var(--radius-full);
+    font-size: var(--font-xs);
+    color: var(--text-primary);
+}
+
+.stretch-dur {
+    color: var(--text-accent);
+    font-weight: 600;
+}
+
+/* Notes Card */
+.notes-card {
+    background: rgba(16, 185, 129, 0.06);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    margin-top: 16px;
+}
+
+.notes-card h5 {
+    font-size: var(--font-sm);
+    font-weight: 700;
+    color: var(--text-accent);
+    margin-bottom: 12px;
+}
+
+.notes-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: var(--font-xs);
+    color: var(--text-secondary);
+}
+
 @media (max-width: 550px) {
     .log-form {
         grid-template-columns: 1fr;
@@ -709,5 +1070,9 @@
         width: 40px;
         height: 40px;
         font-size: var(--font-sm);
+    }
+
+    .routines-grid {
+        grid-template-columns: 1fr;
     }
 }

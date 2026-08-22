@@ -34,10 +34,14 @@ const DIET_TYPE_OPTIONS = [
 
 export default function FoodPlan() {
     const { token } = useAuth();
-    const { foodPlan, foodPlanLoading, foodPlanError, triggerGenerateFoodPlan } = usePlan();
+    const { foodPlan, setFoodPlan, foodPlanLoading, foodPlanError, triggerGenerateFoodPlan } = usePlan();
     const [macros, setMacros] = useState(null);
     const [meals, setMeals] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    // Generated food item logging state
+    const [loggedItemIds, setLoggedItemIds] = useState({});
+    const [loggingItemIndex, setLoggingItemIndex] = useState(null);
 
     // Search state
     const [query, setQuery] = useState('');
@@ -57,6 +61,27 @@ export default function FoodPlan() {
         age: '', gender: '', height: '', weight: '',
         goal: '', mealType: '', dietType: '',
     });
+
+    const handleLogGeneratedItem = async (item, index) => {
+        setLoggingItemIndex(index);
+        setSuccessMsg('');
+        setErrorMsg('');
+        try {
+            await logMeal(token, {
+                food_name: item.food_name,
+                calories: item.calories,
+                protein: item.protein,
+                fats: item.fats,
+            });
+            setLoggedItemIds((prev) => ({ ...prev, [index]: true }));
+            setSuccessMsg(`Logged ${item.food_name}! 🎉`);
+            await loadData();
+        } catch (err) {
+            setErrorMsg(err.message);
+        } finally {
+            setLoggingItemIndex(null);
+        }
+    };
 
     const loadData = useCallback(async () => {
         if (!token) return;
@@ -465,8 +490,28 @@ export default function FoodPlan() {
                                             <span className="food-plan-item-serving">{item.serving}</span>
                                         </div>
                                     </div>
+                                    <button
+                                        type="button"
+                                        className={`log-item-btn ${loggedItemIds[i] ? 'logged' : ''}`}
+                                        onClick={() => handleLogGeneratedItem(item, i)}
+                                        disabled={loggingItemIndex === i || loggedItemIds[i]}
+                                    >
+                                        {loggingItemIndex === i ? 'Logging...' : loggedItemIds[i] ? '✓ Logged' : '+ Log Food'}
+                                    </button>
                                 </div>
                             ))}
+                        </div>
+                        <div className="clear-food-plan-wrap">
+                            <button
+                                type="button"
+                                className="clear-food-plan-btn"
+                                onClick={() => {
+                                    setFoodPlan(null);
+                                    setLoggedItemIds({});
+                                }}
+                            >
+                                🗑️ Clear Results
+                            </button>
                         </div>
                     </div>
                 )}

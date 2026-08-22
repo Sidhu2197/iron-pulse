@@ -156,56 +156,110 @@ export async function fetchWorkouts(credentials) {
     return await res.json();
 }
 
-export async function generateWorkoutPlan(credentials, { age, weight, height, gender, fitness_level, equipment, goal, days_per_week, duration }) {
-    // Workout plan generation is handled client-side for now
-    // Backend doesn't have a specific workout plan generation endpoint yet
-    const exercises = {
-        fat_loss: [
-            { name: 'Treadmill Intervals', type: 'Cardio', duration: 20, calories: 250 },
-            { name: 'Jump Rope', type: 'Cardio', duration: 10, calories: 150 },
-            { name: 'Burpees', type: 'HIIT', duration: 10, calories: 130 },
-            { name: 'Mountain Climbers', type: 'HIIT', duration: 8, calories: 100 },
-            { name: 'Plank Hold', type: 'Core', duration: 5, calories: 30 },
-        ],
-        muscle_gain: [
-            { name: 'Barbell Bench Press', type: 'Strength', duration: 12, calories: 95 },
-            { name: 'Incline Dumbbell Press', type: 'Strength', duration: 10, calories: 80 },
-            { name: 'Cable Crossovers', type: 'Isolation', duration: 8, calories: 55 },
-            { name: 'Overhead Triceps Extension', type: 'Isolation', duration: 8, calories: 50 },
-            { name: 'Treadmill Intervals', type: 'Cardio', duration: 15, calories: 180 },
-        ],
-        strength: [
-            { name: 'Deadlifts', type: 'Strength', duration: 15, calories: 120 },
-            { name: 'Squats', type: 'Strength', duration: 12, calories: 110 },
-            { name: 'Overhead Press', type: 'Strength', duration: 10, calories: 85 },
-            { name: 'Barbell Rows', type: 'Strength', duration: 10, calories: 80 },
-            { name: 'Farmer\'s Walk', type: 'Functional', duration: 8, calories: 60 },
-        ],
-        endurance: [
-            { name: 'Cycling', type: 'Cardio', duration: 25, calories: 300 },
-            { name: 'Running', type: 'Cardio', duration: 20, calories: 250 },
-            { name: 'Rowing Machine', type: 'Cardio', duration: 15, calories: 180 },
-            { name: 'Swimming Laps', type: 'Cardio', duration: 20, calories: 220 },
-            { name: 'Jump Rope', type: 'Cardio', duration: 10, calories: 150 },
-        ],
-        general_fitness: [
-            { name: 'Push-ups', type: 'Bodyweight', duration: 10, calories: 70 },
-            { name: 'Squats', type: 'Bodyweight', duration: 10, calories: 80 },
-            { name: 'Plank', type: 'Core', duration: 5, calories: 30 },
-            { name: 'Jumping Jacks', type: 'Cardio', duration: 10, calories: 100 },
-            { name: 'Stretching', type: 'Flexibility', duration: 10, calories: 30 },
-        ],
+export async function generateWorkoutPlan(credentials, payload) {
+    const goalMap = {
+        fat_loss: 'Fat Loss',
+        weight_loss: 'Weight Loss',
+        muscle_gain: 'Muscle Gain',
+        strength: 'Strength',
+        endurance: 'Endurance',
+        general_fitness: 'General Fitness',
     };
 
-    const selected = exercises[goal] || exercises.general_fitness;
-    const totalDuration = selected.reduce((sum, e) => sum + e.duration, 0);
-    const totalCalories = selected.reduce((sum, e) => sum + e.calories, 0);
-
-    return {
-        exercises: [...selected],
-        total_duration: totalDuration,
-        total_calories: totalCalories,
+    const fitnessLevelMap = {
+        beginner: 'Beginner',
+        intermediate: 'Intermediate',
+        advanced: 'Advanced',
     };
+
+    const genderMap = {
+        male: 'Male',
+        female: 'Female',
+        other: 'Other',
+    };
+
+    const locationMap = {
+        home: 'Home',
+        gym: 'Gym',
+    };
+
+    const styleMap = {
+        cardio: 'Cardio',
+        strength: 'Strength',
+        hiit: 'HIIT',
+        yoga: 'Yoga',
+        mixed: 'Mixed',
+    };
+
+    const activityMap = {
+        sedentary: 'Sedentary',
+        light: 'Light',
+        moderate: 'Moderate',
+        active: 'Active',
+    };
+
+    const requestBody = {
+        age: Math.max(13, Math.min(90, parseInt(payload.age) || 25)),
+        gender: genderMap[payload.gender?.toLowerCase()] || payload.gender || 'Male',
+        height_cm: parseFloat(payload.height) || 175,
+        weight_kg: parseFloat(payload.weight) || 70,
+        bmi: payload.height && payload.weight ? parseFloat((payload.weight / ((payload.height / 100) ** 2)).toFixed(1)) : null,
+        body_fat_pct: payload.body_fat_pct ? parseFloat(payload.body_fat_pct) : null,
+        fitness_level: fitnessLevelMap[payload.fitness_level?.toLowerCase()] || payload.fitness_level || 'Beginner',
+        goal: goalMap[payload.goal?.toLowerCase()] || payload.goal || 'General Fitness',
+        medical_conditions: Array.isArray(payload.medical_conditions) && payload.medical_conditions.length > 0 
+            ? payload.medical_conditions 
+            : ['None'],
+        workout_location: locationMap[payload.workout_location?.toLowerCase()] || payload.workout_location || 'Gym',
+        available_equipment: Array.isArray(payload.equipment) && payload.equipment.length > 0
+            ? payload.equipment.map(e => e === 'No Equipment' ? 'None' : e)
+            : ['None'],
+        workout_days_per_week: Array.isArray(payload.workout_days) && payload.workout_days.length > 0
+            ? payload.workout_days.length
+            : (parseInt(payload.days_per_week) || 4),
+        workout_days: Array.isArray(payload.workout_days) && payload.workout_days.length > 0
+            ? payload.workout_days
+            : null,
+        workout_duration_minutes: parseInt(payload.duration) || 45,
+        preferred_style: styleMap[payload.preferred_style?.toLowerCase()] || payload.preferred_style || 'Mixed',
+        target_muscle_groups: Array.isArray(payload.target_muscle_groups) ? payload.target_muscle_groups : [],
+        sleep_hours: payload.sleep_hours ? parseFloat(payload.sleep_hours) : 7,
+        daily_activity_level: activityMap[payload.daily_activity_level?.toLowerCase()] || payload.daily_activity_level || 'Moderate',
+        experience: fitnessLevelMap[payload.fitness_level?.toLowerCase()] || 'Beginner',
+        previous_injuries: payload.previous_injuries || 'None',
+        heart_rate: payload.heart_rate ? parseInt(payload.heart_rate) : null,
+    };
+
+    // --- Active: Direct Local FastAPI Microservice via Vite Proxy ---
+    const res = await fetch('/workout-service/generate-workout-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+    });
+
+    /* 
+    // --- Spring Boot Backend Endpoint (Uncomment when Spring Boot POST /api/workouts/plan/generate is ready) ---
+    const res = await fetch(`${API_BASE}/workouts/plan/generate`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader(credentials),
+        },
+        body: JSON.stringify(requestBody),
+    });
+    */
+    
+    if (!res.ok) {
+        let errorData;
+        try {
+            errorData = await res.json();
+        } catch {
+            throw new Error('Failed to generate workout plan from service');
+        }
+        throw new Error(errorData.detail?.[0]?.msg || errorData.message || 'Workout plan generation failed');
+    }
+
+    return await res.json();
 }
 
 // ---- Food / Meals ----
