@@ -5,20 +5,40 @@
     animation: fadeIn 0.5s ease;
 }
 
-.calorie-predictor-page>h1 {
-    font-size: var(--font-3xl);
-    font-weight: 700;
+.calorie-header {
+    margin-bottom: 2.5rem;
+}
+
+.calorie-header h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
     background: linear-gradient(135deg, #10b981, #34d399, #6ee7b7);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin-bottom: var(--space-xs);
+}
+
+.calorie-header .subtitle {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    line-height: 1.5;
+}
+
+.calorie-predictor-page>h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+    background: linear-gradient(135deg, #10b981, #34d399, #6ee7b7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .calorie-predictor-page>.subtitle {
-    color: var(--text-secondary);
-    font-size: var(--font-base);
-    margin-bottom: var(--space-xl);
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    margin-bottom: 2.5rem;
 }
 
 .ml-health-status {
@@ -42,25 +62,42 @@
     color: #ef4444;
     border: 1px solid rgba(239, 68, 68, 0.3);
 }
+
 /*Prediction Form Card*/
 .predictor-form-card {
-    padding: var(--space-xl);
-    margin-bottom: var(--space-xl);
+    padding: 2rem;
+    margin-bottom: 2rem;
 }
 
 .predictor-form-card h3 {
-    font-size: var(--font-xl);
-    margin-bottom: var(--space-lg);
+    font-size: 1.25rem;
+    margin-bottom: 1.75rem;
     display: flex;
     align-items: center;
     gap: var(--space-sm);
 }
 
+.predictor-form-card .input-group {
+    margin-bottom: 1.6rem;
+}
+
+.predictor-form-card .input-group label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    display: inline-block;
+}
+
+.predictor-form-card .input-field {
+    min-height: 48px;
+    font-size: 1rem;
+}
+
 .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--space-lg);
-    margin-bottom: var(--space-lg);
+    gap: 1.6rem;
+    margin-bottom: 1.6rem;
 }
 
 @media (max-width: 600px) {

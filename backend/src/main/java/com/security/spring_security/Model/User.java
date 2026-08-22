@@ -52,4 +52,16 @@ public class User {
     
     private java.time.LocalDateTime lockoutTime;
 
+    // Macro target preferences persisted in DB (no defaults — set via user wizard)
+    private String gender;
+    private String activity;
+    private String goal;
+    private Integer targetCalories;
+    private Integer targetProtein;
+    private Integer targetFats;
+    private Integer targetCarbs;
+
+    @Column(nullable = false, columnDefinition = "boolean default false")
+    private boolean hasConfiguredMacros = false;
+
 }

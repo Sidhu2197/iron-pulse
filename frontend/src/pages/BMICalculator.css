@@ -1,39 +1,65 @@
-.bmi-page {
-    animation: fadeIn 0.5s ease;
+.bmi-header {
+    margin-bottom: 2.5rem;
+}
+
+.bmi-header h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.bmi-header .subtitle {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    line-height: 1.5;
 }
 
 .bmi-page > h1 {
-    font-size: var(--font-2xl);
-    font-weight: 700;
-    margin-bottom: 4px;
+    font-size: 2.25rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
 }
 
 .bmi-page > .subtitle {
-    color: var(--text-accent);
-    font-size: var(--font-sm);
-    margin-bottom: var(--space-xl);
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    margin-bottom: 2.5rem;
 }
 
-.bmi-layout {
+.bmi-layout,
+.bmi-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--space-lg);
+    gap: 2rem;
     align-items: start;
 }
 
 /* Form Card */
 .bmi-form-card {
-    padding: var(--space-xl);
+    padding: 2rem;
 }
 
 .bmi-form-card h3 {
-    font-size: var(--font-lg);
-    font-weight: 600;
-    margin-bottom: var(--space-lg);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1.75rem;
 }
 
 .bmi-form-card .input-group {
-    margin-bottom: var(--space-md);
+    margin-bottom: 1.6rem;
+}
+
+.bmi-form-card .input-group label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    display: inline-block;
+}
+
+.bmi-form-card .input-field {
+    min-height: 48px;
+    font-size: 1rem;
 }
 
 /* Dark-themed select dropdown */

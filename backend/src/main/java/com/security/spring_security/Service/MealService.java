@@ -31,6 +31,9 @@ public class MealService {
         return repo.findByUserIdOrderByDateDesc(userId);
     }
 
+    @Autowired
+    private com.security.spring_security.dao.UserRepo userRepo;
+
     public Map<String, Object> getTodaySummary(int userId) {
         String today = LocalDate.now().toString();
         List<Meal> todayMeals = repo.findByUserIdAndDate(userId, today);
@@ -39,22 +42,33 @@ public class MealService {
         double totalProtein = todayMeals.stream().mapToDouble(Meal::getProtein).sum();
         double totalFats = todayMeals.stream().mapToDouble(Meal::getFats).sum();
 
+        com.security.spring_security.Model.User user = userRepo.findById(userId).orElse(null);
+        int targetCal = user != null && user.getTargetCalories() > 0 ? user.getTargetCalories() : 2200;
+        int targetPro = user != null && user.getTargetProtein() > 0 ? user.getTargetProtein() : 150;
+        int targetFat = user != null && user.getTargetFats() > 0 ? user.getTargetFats() : 70;
+        int targetCarb = user != null && user.getTargetCarbs() > 0 ? user.getTargetCarbs() : 240;
+
         Map<String, Object> summary = new HashMap<>();
 
         Map<String, Object> cal = new HashMap<>();
         cal.put("current", totalCalories);
-        cal.put("target", 2200);
+        cal.put("target", targetCal);
         summary.put("calories", cal);
 
         Map<String, Object> pro = new HashMap<>();
         pro.put("current", totalProtein);
-        pro.put("target", 150);
+        pro.put("target", targetPro);
         summary.put("protein", pro);
 
         Map<String, Object> fat = new HashMap<>();
         fat.put("current", totalFats);
-        fat.put("target", 70);
+        fat.put("target", targetFat);
         summary.put("fats", fat);
+
+        Map<String, Object> carb = new HashMap<>();
+        carb.put("current", 0);
+        carb.put("target", targetCarb);
+        summary.put("carbs", carb);
 
         return summary;
     }

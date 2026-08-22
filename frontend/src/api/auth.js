@@ -405,3 +405,27 @@ export async function fetchCaloriePredictions(credentials) {
     if (!res.ok) throw new Error('Failed to fetch predictions');
     return await res.json();
 }
+
+export async function fetchUserProfile(credentials) {
+    const res = await fetch(`${API_BASE}/me`, {
+        headers: { ...getAuthHeader(credentials) },
+    });
+    checkAuthError(res);
+    if (!res.ok) throw new Error('Failed to fetch profile');
+    return await res.json();
+}
+
+export async function updateUserMacros(credentials, macroData) {
+    const res = await fetch(`${API_BASE}/me/macros`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            ...getAuthHeader(credentials),
+        },
+        body: JSON.stringify(macroData),
+    });
+    checkAuthError(res);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to save macro targets');
+    return data;
+}

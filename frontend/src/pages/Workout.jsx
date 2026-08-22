@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usePlan } from '../context/PlanContext';
-import { logWorkout } from '../api/auth';
+import { logWorkout, fetchWorkouts } from '../api/auth';
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
 import './Workout.css';
-import { Dumbbell, Timer, Ruler, User, Activity, Scale, Cake, Flame, Calendar, BarChart2, Target, Zap, HeartPulse, Sprout, Camera, Sparkles, Rocket } from 'lucide-react';
+import { Dumbbell, Timer, Ruler, User, Activity, Scale, Cake, Flame, Calendar, BarChart2, Target, Zap, HeartPulse, Sprout, Camera, Sparkles, Rocket, AlertCircle, CheckCircle2, Sunrise, Moon, X } from 'lucide-react';
 
 const TABS = ['Live Posture', 'Suggested Plan', 'Log Workout'];
 
@@ -59,10 +59,10 @@ const STYLE_OPTIONS = [
 ];
 
 const ACTIVITY_OPTIONS = [
-    { value: 'Sedentary', label: '🪑 Sedentary' },
-    { value: 'Light', label: '🚶 Light' },
-    { value: 'Moderate', label: '🚲 Moderate' },
-    { value: 'Active', label: '⚡ Active' },
+    { value: 'Sedentary', label: 'Sedentary' },
+    { value: 'Light', label: 'Light' },
+    { value: 'Moderate', label: 'Moderate' },
+    { value: 'Active', label: 'Active' },
 ];
 
 const WEEKDAYS_OPTIONS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -131,8 +131,29 @@ export default function Workout() {
     const [workoutSuccessMsg, setWorkoutSuccessMsg] = useState('');
     const [workoutErrorMsg, setWorkoutErrorMsg] = useState('');
 
+    // Fetch previously logged workouts on mount to prevent duplicate logging
+    useEffect(() => {
+        if (!token) return;
+        fetchWorkouts(token).then((res) => {
+            if (Array.isArray(res)) {
+                const todayStr = new Date().toISOString().split('T')[0];
+                const loggedToday = {};
+                res.forEach((w) => {
+                    const wDate = (w.date || '').split('T')[0];
+                    if (wDate === todayStr && w.workout_name) {
+                        loggedToday[w.workout_name] = true;
+                    }
+                });
+                setLoggedExerciseKeys((prev) => ({ ...prev, ...loggedToday }));
+            }
+        }).catch((err) => console.warn('Error fetching logged workouts:', err));
+    }, [token]);
+
     const handleLogExercise = async (ex, dayName, index) => {
         const key = `${dayName}_${index}_${ex.name}`;
+        if (loggedExerciseKeys[key] || loggedExerciseKeys[ex.name]) {
+            return; // Exercise already logged today
+        }
         setLoggingExKey(key);
         setWorkoutSuccessMsg('');
         setWorkoutErrorMsg('');
@@ -147,8 +168,12 @@ export default function Workout() {
                 calories_burned: calBurned,
                 date: new Date().toISOString().split('T')[0],
             });
-            setLoggedExerciseKeys((prev) => ({ ...prev, [key]: true }));
-            setWorkoutSuccessMsg(`Logged ${ex.name}! 🎉`);
+            setLoggedExerciseKeys((prev) => ({ 
+                ...prev, 
+                [key]: true,
+                [ex.name]: true 
+            }));
+            setWorkoutSuccessMsg(`Logged ${ex.name}!`);
         } catch (err) {
             setWorkoutErrorMsg(err.message || 'Failed to log workout');
         } finally {
@@ -345,7 +370,8 @@ export default function Workout() {
                 calories_burned: parseInt(logForm.calories_burned),
                 date: logForm.date || new Date().toISOString().split('T')[0],
             });
-            setLogMsg('Workout logged successfully! 🎉');
+            setLoggedExerciseKeys((prev) => ({ ...prev, [logForm.workout_name]: true }));
+            setLogMsg('Workout logged successfully!');
             setLogForm({ workout_name: '', duration: '', calories_burned: '', date: '' });
         } catch (err) {
             setLogError(err.message);
@@ -414,7 +440,7 @@ export default function Workout() {
                     </div>
                     {isInvalid && (
                         <div className="field-error">
-                            ⚠️ {isEmptyError ? `${valName} is required to continue` : `${valName} must be between ${minVal} and ${maxVal} ${units}`}
+                            <AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> {isEmptyError ? `${valName} is required to continue` : `${valName} must be between ${minVal} and ${maxVal} ${units}`}
                         </div>
                     )}
                 </div>
@@ -437,7 +463,7 @@ export default function Workout() {
                             </button>
                         ))}
                     </div>
-                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a gender to continue</div>}
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select a gender to continue</div>}
                 </div>
             );
         }
@@ -458,7 +484,7 @@ export default function Workout() {
                             </button>
                         ))}
                     </div>
-                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a fitness level to continue</div>}
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select a fitness level to continue</div>}
                 </div>
             );
         }
@@ -479,7 +505,7 @@ export default function Workout() {
                             </button>
                         ))}
                     </div>
-                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a workout location to continue</div>}
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select a workout location to continue</div>}
                 </div>
             );
         }
@@ -506,7 +532,7 @@ export default function Workout() {
                             );
                         })}
                     </div>
-                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select at least one equipment option</div>}
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select at least one equipment option</div>}
                 </div>
             );
         }
@@ -533,7 +559,7 @@ export default function Workout() {
                             );
                         })}
                     </div>
-                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select at least one condition (or None)</div>}
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select at least one condition (or None)</div>}
                 </div>
             );
         }
@@ -554,7 +580,7 @@ export default function Workout() {
                             </button>
                         ))}
                     </div>
-                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a fitness goal to continue</div>}
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select a fitness goal to continue</div>}
                 </div>
             );
         }
@@ -575,7 +601,7 @@ export default function Workout() {
                             </button>
                         ))}
                     </div>
-                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a workout style to continue</div>}
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select a workout style to continue</div>}
                 </div>
             );
         }
@@ -596,7 +622,7 @@ export default function Workout() {
                             </button>
                         ))}
                     </div>
-                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select an activity level to continue</div>}
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select an activity level to continue</div>}
                 </div>
             );
         }
@@ -624,12 +650,12 @@ export default function Workout() {
                     </div>
                     <div className="day-selection-summary">
                         {wizardData.workout_days.length > 0 ? (
-                            <span>⚡ <strong>{wizardData.workout_days.length} {wizardData.workout_days.length === 1 ? 'Day' : 'Days'} Selected:</strong> {wizardData.workout_days.join(', ')}</span>
+                            <span><Zap size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> <strong>{wizardData.workout_days.length} {wizardData.workout_days.length === 1 ? 'Day' : 'Days'} Selected:</strong> {wizardData.workout_days.join(', ')}</span>
                         ) : (
-                            <span className="field-error">⚠️ Please select at least one workout day to continue</span>
+                            <span className="field-error"><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select at least one workout day to continue</span>
                         )}
                     </div>
-                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select at least one day to continue</div>}
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select at least one day to continue</div>}
                 </div>
             );
         }
@@ -650,7 +676,7 @@ export default function Workout() {
                             </button>
                         ))}
                     </div>
-                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select workout duration to continue</div>}
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select workout duration to continue</div>}
                 </div>
             );
         }
@@ -711,7 +737,7 @@ export default function Workout() {
                                 </button>
                             ) : (
                                 <button type="button" className="wizard-btn-back" onClick={() => setWizardActive(false)}>
-                                    ✕ Cancel
+                                    <X size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Cancel
                                 </button>
                             )}
                             <AccessibleButton
@@ -721,7 +747,7 @@ export default function Workout() {
                                 disabled={!canGoNext()}
                                 disabledReason="Complete current step input before continuing."
                             >
-                                {wizardStep === WIZARD_STEPS.length - 1 ? '🚀 Generate Plan' : 'Next →'}
+                                {wizardStep === WIZARD_STEPS.length - 1 ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Sparkles size={16} /> Generate Plan</span> : 'Next →'}
                             </AccessibleButton>
                         </div>
                     </div>
@@ -815,25 +841,27 @@ export default function Workout() {
 
                                                     {activeDay.exercises?.length === 0 ? (
                                                         <div className="rest-day-notice">
-                                                            😴 <strong>Rest & Recovery Day:</strong> Give your body time to rebuild muscle fibers and replenish glycogen stores.
+                                                            <Moon size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> <strong>Rest & Recovery Day:</strong> Give your body time to rebuild muscle fibers and replenish glycogen stores.
                                                         </div>
                                                     ) : (
                                                         <div className="plan-exercises">
-                                                            {activeDay.exercises.map((ex, i) => (
-                                                                <div key={i} className="exercise-card-detailed">
-                                                                    <div className="exercise-card-header">
-                                                                        <span className="exercise-index">{i + 1}</span>
-                                                                        <h5 className="exercise-title">{ex.name}</h5>
-                                                                        <span className={`difficulty-badge ${ex.difficulty?.toLowerCase()}`}>{ex.difficulty}</span>
-                                                                        <button
-                                                                            type="button"
-                                                                            className={`log-workout-item-btn ${loggedExerciseKeys[`${activeDay.day}_${i}_${ex.name}`] ? 'logged' : ''}`}
-                                                                            onClick={() => handleLogExercise(ex, activeDay.day, i)}
-                                                                            disabled={loggingExKey === `${activeDay.day}_${i}_${ex.name}` || loggedExerciseKeys[`${activeDay.day}_${i}_${ex.name}`]}
-                                                                        >
-                                                                            {loggingExKey === `${activeDay.day}_${i}_${ex.name}` ? 'Logging...' : loggedExerciseKeys[`${activeDay.day}_${i}_${ex.name}`] ? '✓ Logged' : '+ Log Workout'}
-                                                                        </button>
-                                                                    </div>
+                                                            {activeDay.exercises.map((ex, i) => {
+                                                                const isLogged = loggedExerciseKeys[`${activeDay.day}_${i}_${ex.name}`] || loggedExerciseKeys[ex.name];
+                                                                return (
+                                                                    <div key={i} className="exercise-card-detailed">
+                                                                        <div className="exercise-card-header">
+                                                                            <span className="exercise-index">{i + 1}</span>
+                                                                            <h5 className="exercise-title">{ex.name}</h5>
+                                                                            <span className={`difficulty-badge ${ex.difficulty?.toLowerCase()}`}>{ex.difficulty}</span>
+                                                                            <button
+                                                                                type="button"
+                                                                                className={`log-workout-item-btn ${isLogged ? 'logged' : ''}`}
+                                                                                onClick={() => handleLogExercise(ex, activeDay.day, i)}
+                                                                                disabled={loggingExKey === `${activeDay.day}_${i}_${ex.name}` || isLogged}
+                                                                            >
+                                                                                {loggingExKey === `${activeDay.day}_${i}_${ex.name}` ? 'Logging...' : isLogged ? '✓ Logged' : '+ Log Workout'}
+                                                                            </button>
+                                                                        </div>
                                                                     <div className="exercise-card-body">
                                                                         <div className="exercise-spec-grid">
                                                                             <div className="spec-item">
@@ -862,7 +890,8 @@ export default function Workout() {
                                                                         )}
                                                                     </div>
                                                                 </div>
-                                                            ))}
+                                                            );
+                                                        })}
                                                         </div>
                                                     )}
                                                 </div>
@@ -873,7 +902,7 @@ export default function Workout() {
                                         <div className="routines-grid">
                                             {plan.warmup && plan.warmup.length > 0 && (
                                                 <div className="routine-card">
-                                                    <h5>🌅 Warmup Routine</h5>
+                                                    <h5><Sunrise size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> Warmup Routine</h5>
                                                     <ul className="routine-list">
                                                         {plan.warmup.map((w, idx) => (
                                                             <li key={idx}>
@@ -886,7 +915,7 @@ export default function Workout() {
 
                                             {plan.cooldown && plan.cooldown.length > 0 && (
                                                 <div className="routine-card">
-                                                    <h5>🧘 Cooldown Routine</h5>
+                                                    <h5><Activity size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> Cooldown Routine</h5>
                                                     <ul className="routine-list">
                                                         {plan.cooldown.map((c, idx) => (
                                                             <li key={idx}>
@@ -901,7 +930,7 @@ export default function Workout() {
                                         {/* Stretching Routine */}
                                         {plan.stretching && plan.stretching.length > 0 && (
                                             <div className="routine-card full-width-routine">
-                                                <h5>🤸 Stretching & Flexibility</h5>
+                                                <h5><Sprout size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> Stretching & Flexibility</h5>
                                                 <div className="stretching-chips">
                                                     {plan.stretching.map((s, idx) => (
                                                         <div key={idx} className="stretch-chip">
@@ -915,10 +944,10 @@ export default function Workout() {
                                         {/* Notes & Safety Guidelines */}
                                         {plan.notes && plan.notes.length > 0 && (
                                             <div className="notes-card">
-                                                <h5>💡 Personal Guidelines & Medical Notes</h5>
+                                                <h5><Target size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> Personal Guidelines & Medical Notes</h5>
                                                 <ul className="notes-list">
                                                     {plan.notes.map((n, idx) => (
-                                                        <li key={idx}>🔹 {n}</li>
+                                                        <li key={idx}>• {n}</li>
                                                     ))}
                                                 </ul>
                                             </div>
@@ -984,7 +1013,7 @@ export default function Workout() {
                                 <div className="posture-video-wrapper">
                                     <video id="posture-video" className="posture-video" autoPlay playsInline muted />
                                     <div className="posture-overlay">
-                                        <span className="posture-status live">🔴 LIVE</span>
+                                        <span className="posture-status live"><Activity size={12} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> LIVE</span>
                                     </div>
                                 </div>
                                 <button className="btn-secondary" onClick={handleStopCamera} style={{ marginTop: 'var(--space-md)' }}>
@@ -1054,7 +1083,7 @@ export default function Workout() {
             {showConfirmModal && (
                 <div className="confirm-modal-overlay">
                     <div className="glass-card confirm-modal-card">
-                        <div className="confirm-warning-icon">⚠️</div>
+                        <div className="confirm-warning-icon"><AlertCircle size={32} style={{ color: '#ef4444' }} /></div>
                         <div className="confirm-modal-header">
                             <h3>Erase & Replace Active Workout Plan?</h3>
                         </div>
@@ -1067,14 +1096,14 @@ export default function Workout() {
                                 className="confirm-btn-cancel"
                                 onClick={() => setShowConfirmModal(false)}
                             >
-                                ✕ Keep Active Plan
+                                <X size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Keep Active Plan
                             </button>
                             <button
                                 type="button"
                                 className="confirm-btn-proceed"
                                 onClick={handleConfirmOverwrite}
                             >
-                                🔥 Erase & Create New Plan
+                                <Flame size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Erase & Create New Plan
                             </button>
                         </div>
                     </div>

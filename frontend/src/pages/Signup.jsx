@@ -389,7 +389,7 @@ export default function Signup() {
               required
             />
           </div>
-          {invalidAge && <div className="field-error">⚠️ Age must be between 10 and 120 years</div>}
+          {invalidAge && <div className="field-error"><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Age must be between 10 and 120 years</div>}
         </div>
 
         {/* Password */}

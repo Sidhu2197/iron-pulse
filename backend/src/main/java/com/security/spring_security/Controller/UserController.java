@@ -221,6 +221,14 @@ public class UserController {
         response.put("age", user.getAge());
         response.put("height", user.getHeight());
         response.put("weight", user.getWeight());
+        response.put("gender", user.getGender());
+        response.put("activity", user.getActivity());
+        response.put("goal", user.getGoal());
+        response.put("targetCalories", user.getTargetCalories());
+        response.put("targetProtein", user.getTargetProtein());
+        response.put("targetFats", user.getTargetFats());
+        response.put("targetCarbs", user.getTargetCarbs());
+        response.put("hasConfiguredMacros", user.isHasConfiguredMacros());
         return ResponseEntity.ok(response);
     }
 
@@ -257,6 +265,46 @@ public class UserController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Update failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @PutMapping("/me/macros")
+    public ResponseEntity<Map<String, Object>> updateMacros(Authentication authentication,
+                                                           @RequestBody Map<String, Object> body) {
+        Map<String, Object> response = new HashMap<>();
+        if (authentication == null) {
+            response.put("success", false);
+            response.put("message", "Not authenticated");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+        String email = authentication.getName();
+        try {
+            String gender = body.containsKey("gender") ? (String) body.get("gender") : null;
+            String activity = body.containsKey("activity") ? (String) body.get("activity") : null;
+            String goal = body.containsKey("goal") ? (String) body.get("goal") : null;
+
+            int age = body.containsKey("age") && body.get("age") != null ? ((Number) body.get("age")).intValue() : 0;
+            double height = body.containsKey("height") && body.get("height") != null ? ((Number) body.get("height")).doubleValue() : 0;
+            double weight = body.containsKey("weight") && body.get("weight") != null ? ((Number) body.get("weight")).doubleValue() : 0;
+
+            int calories = body.containsKey("calories") && body.get("calories") != null ? ((Number) body.get("calories")).intValue() : 0;
+            int protein = body.containsKey("protein") && body.get("protein") != null ? ((Number) body.get("protein")).intValue() : 0;
+            int fats = body.containsKey("fats") && body.get("fats") != null ? ((Number) body.get("fats")).intValue() : 0;
+            int carbs = body.containsKey("carbs") && body.get("carbs") != null ? ((Number) body.get("carbs")).intValue() : 0;
+
+            UserCacheDTO updatedDto = userService.updateMacros(email, gender, activity, goal, age, height, weight, calories, protein, fats, carbs);
+            response.put("success", true);
+            response.put("message", "Macro targets saved to database successfully!");
+            response.put("targetCalories", updatedDto.getTargetCalories());
+            response.put("targetProtein", updatedDto.getTargetProtein());
+            response.put("targetFats", updatedDto.getTargetFats());
+            response.put("targetCarbs", updatedDto.getTargetCarbs());
+            response.put("hasConfiguredMacros", updatedDto.isHasConfiguredMacros());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to update macros: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }

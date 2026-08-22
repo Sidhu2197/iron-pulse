@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useMacros } from '../context/MacroContext';
 import { fetchDashboard, fetchWorkouts, fetchMeals } from '../api/auth';
 import PageReveal from '../components/PageReveal';
 import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+    BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
     ResponsiveContainer,
 } from 'recharts';
 import {
@@ -22,6 +23,9 @@ function getGreeting() {
 
 export default function Dashboard() {
     const { user, token } = useAuth();
+    const { userMacros } = useMacros();
+    const targetCalories = userMacros?.calories || 2200;
+
     const [dashData, setDashData] = useState(null);
     const [recentWorkouts, setRecentWorkouts] = useState([]);
     const [recentMeals, setRecentMeals] = useState([]);
@@ -61,7 +65,7 @@ export default function Dashboard() {
             return dashData.weekly_workouts.map((d) => ({
                 day: d.day,
                 date: d.date,
-                Suggested: d.Suggested ?? 500,
+                Suggested: targetCalories,
                 Actual: d.Actual ?? 0,
                 Eaten: d.Eaten ?? 0,
                 Workouts: d.Workouts ?? 0,
@@ -97,7 +101,7 @@ export default function Dashboard() {
             days.push({
                 day: dayName,
                 date: dateStr,
-                Suggested: 500,
+                Suggested: targetCalories,
                 Actual: workoutCalMap[dateStr] || 0,
                 Eaten: Math.round(mealCalMap[dateStr] || 0),
                 Workouts: workoutCountMap[dateStr] || 0,
@@ -113,7 +117,7 @@ export default function Dashboard() {
     const isSurplus = netCalories > 0;
 
     // Daily target progress calculations
-    const dailyTargetBurned = 500;
+    const dailyTargetBurned = targetCalories;
     const burnProgress = Math.min(100, Math.round((totalBurned / (dailyTargetBurned * 7 || 1)) * 100));
     if (loading) {
         return (
@@ -145,7 +149,7 @@ export default function Dashboard() {
             <div className="dashboard-header" style={{ marginBottom: '2rem' }}>
                 <div className="dashboard-greeting">
                     <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem', fontWeight: 800 }}>
-                        {getGreeting()}, <span style={{ color: 'var(--accent-cyan)' }}>{name}</span> 👋
+                        {getGreeting()}, <span style={{ color: 'var(--accent-cyan)' }}>{name}</span>
                     </h1>
                     <p style={{ color: 'var(--text-secondary)', fontSize: '1.125rem' }}>
                         Track your progress, generate AI plans, and reach your fitness targets.
@@ -208,10 +212,12 @@ export default function Dashboard() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                             <div>
                                 <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: 700 }}>
-                                    Weekly Caloric Breakdown
+                                    {chartMode === 'calories' ? 'Weekly Caloric Breakdown' : 'Weekly Activity Trend'}
                                 </h3>
                                 <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                                    Suggested vs actual calories burned over the last 7 days
+                                    {chartMode === 'calories' 
+                                        ? 'Suggested target vs actual calories burned and eaten over the last 7 days' 
+                                        : 'Completed workout sessions logged over the last 7 days'}
                                 </p>
                             </div>
                             <div className="chart-mode-pills">
@@ -232,41 +238,54 @@ export default function Dashboard() {
 
                         <div style={{ width: '100%', height: 320, minWidth: 0, position: 'relative' }}>
                             <ResponsiveContainer key={chartMode} width="100%" height="100%">
-                                <BarChart data={barData} barGap={6} barCategoryGap="20%" margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                                    <defs>
-                                        <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#00f0ff" stopOpacity={1}/>
-                                            <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.8}/>
-                                        </linearGradient>
-                                        <linearGradient id="colorEaten" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#f59e0b" stopOpacity={1}/>
-                                            <stop offset="100%" stopColor="#d97706" stopOpacity={0.8}/>
-                                        </linearGradient>
-                                        <linearGradient id="colorWorkouts" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
-                                            <stop offset="100%" stopColor="#059669" stopOpacity={0.8}/>
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                    <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} axisLine={false} tickLine={false} dy={10} />
-                                    <YAxis stroke="#94a3b8" fontSize={12} axisLine={false} tickLine={false} dx={-5} />
-                                    <Tooltip
-                                        cursor={{ fill: 'rgba(255,255,255,0.04)' }}
-                                        contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, boxShadow: 'var(--shadow-md)' }}
-                                        itemStyle={{ fontFamily: 'var(--font-mono)', fontSize: '0.875rem' }}
-                                        labelStyle={{ color: '#f1f5f9', fontFamily: 'var(--font-body)', fontWeight: 'bold', marginBottom: '0.5rem' }}
-                                    />
-                                    <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '0.875rem', color: 'var(--text-muted)' }} />
-                                    {chartMode === 'calories' ? (
-                                        <>
-                                            <Bar dataKey="Suggested" name="Target (500 cal)" fill="rgba(255, 255, 255, 0.12)" radius={[6, 6, 0, 0]} />
-                                            <Bar dataKey="Actual" name="Burned Cal" fill="url(#colorActual)" radius={[6, 6, 0, 0]} />
-                                            <Bar dataKey="Eaten" name="Food Cal" fill="url(#colorEaten)" radius={[6, 6, 0, 0]} />
-                                        </>
-                                    ) : (
-                                        <Bar dataKey="Workouts" name="Workouts Count" fill="url(#colorWorkouts)" radius={[6, 6, 0, 0]} />
-                                    )}
-                                </BarChart>
+                                {chartMode === 'calories' ? (
+                                    <BarChart data={barData} barGap={6} barCategoryGap="20%" margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                                        <defs>
+                                            <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor="#00f0ff" stopOpacity={1}/>
+                                                <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.8}/>
+                                            </linearGradient>
+                                            <linearGradient id="colorEaten" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stopColor="#f59e0b" stopOpacity={1}/>
+                                                <stop offset="100%" stopColor="#d97706" stopOpacity={0.8}/>
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                        <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} axisLine={false} tickLine={false} dy={10} />
+                                        <YAxis stroke="#94a3b8" fontSize={12} axisLine={false} tickLine={false} dx={-5} />
+                                        <Tooltip
+                                            cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                                            contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, boxShadow: 'var(--shadow-md)' }}
+                                            itemStyle={{ fontFamily: 'var(--font-mono)', fontSize: '0.875rem' }}
+                                            labelStyle={{ color: '#f1f5f9', fontFamily: 'var(--font-body)', fontWeight: 'bold', marginBottom: '0.5rem' }}
+                                        />
+                                        <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '0.875rem', color: 'var(--text-muted)' }} />
+                                        <Bar dataKey="Suggested" name={`Target (${targetCalories} cal)`} fill="rgba(255, 255, 255, 0.12)" radius={[6, 6, 0, 0]} />
+                                        <Bar dataKey="Actual" name="Burned Cal" fill="url(#colorActual)" radius={[6, 6, 0, 0]} />
+                                        <Bar dataKey="Eaten" name="Food Cal" fill="url(#colorEaten)" radius={[6, 6, 0, 0]} />
+                                    </BarChart>
+                                ) : (
+                                    <LineChart data={barData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                        <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} axisLine={false} tickLine={false} dy={10} />
+                                        <YAxis stroke="#94a3b8" fontSize={12} axisLine={false} tickLine={false} dx={-5} allowDecimals={false} />
+                                        <Tooltip
+                                            contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, boxShadow: 'var(--shadow-md)' }}
+                                            itemStyle={{ fontFamily: 'var(--font-mono)', fontSize: '0.875rem' }}
+                                            labelStyle={{ color: '#f1f5f9', fontFamily: 'var(--font-body)', fontWeight: 'bold', marginBottom: '0.5rem' }}
+                                        />
+                                        <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '0.875rem', color: 'var(--text-muted)' }} />
+                                        <Line 
+                                            type="monotone" 
+                                            dataKey="Workouts" 
+                                            name="Workouts Completed" 
+                                            stroke="#00d2ff" 
+                                            strokeWidth={3.5} 
+                                            dot={{ r: 6, fill: '#0066ff', stroke: '#00d2ff', strokeWidth: 2 }} 
+                                            activeDot={{ r: 8, fill: '#00d2ff', stroke: '#ffffff', strokeWidth: 2 }} 
+                                        />
+                                    </LineChart>
+                                )}
                             </ResponsiveContainer>
                         </div>
                     </div>
@@ -362,12 +381,14 @@ export default function Dashboard() {
                         <div style={{ fontSize: '2.25rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
                             {netCalories > 0 ? `+${netCalories.toLocaleString()}` : netCalories.toLocaleString()} <span style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: 500 }}>kcal</span>
                         </div>
-                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-                            {isDeficit
-                                ? '🔥 Great job! You are in a caloric deficit today.'
-                                : isSurplus
-                                ? '⚡ Energy surplus accumulated today.'
-                                : '⚖️ Perfectly balanced caloric intake.'}
+                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            {isDeficit ? (
+                                <><Flame size={16} style={{ color: '#ef4444' }} /> Great job! You are in a caloric deficit today.</>
+                            ) : isSurplus ? (
+                                <><Zap size={16} style={{ color: '#f59e0b' }} /> Energy surplus accumulated today.</>
+                            ) : (
+                                <><Scale size={16} style={{ color: '#10b981' }} /> Perfectly balanced caloric intake.</>
+                            )}
                         </div>
                         <div className="progress-bar-bg">
                             <div className="progress-bar-fill" style={{ width: `${burnProgress}%` }}></div>

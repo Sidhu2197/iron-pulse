@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import './BMICalculator.css';
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
-import { Ruler, User, Scale, Cake, BarChart2, Lightbulb } from 'lucide-react';
+import { Ruler, User, Scale, Cake, BarChart2, Lightbulb, AlertCircle } from 'lucide-react';
 
 const BMI_CATEGORIES = [
     { max: 18.5, label: 'Underweight', color: '#60a5fa', advice: 'Consider a calorie-surplus diet with strength training.' },
@@ -89,38 +89,32 @@ export default function BMICalculator() {
             return;
         }
 
-        const heightM = parseFloat(form.height) / 100;
-        const weight = parseFloat(form.weight);
-        const bmi = weight / (heightM * heightM);
-        const category = getCategory(bmi);
-        setResult({ bmi: bmi.toFixed(1), ...category });
-        setLiveAnnouncement(`BMI calculated: ${bmi.toFixed(1)} - ${category.label}.`);
+        const hM = Number(form.height) / 100;
+        const w = Number(form.weight);
+        const bmi = parseFloat((w / (hM * hM)).toFixed(1));
+        const cat = getCategory(bmi);
+        setResult({ bmi, label: cat.label, category: cat.label, color: cat.color, advice: cat.advice });
     };
 
     const handleReset = () => {
         setForm({ age: '', gender: '', height: '', weight: '' });
         setResult(null);
         setSubmitted(false);
-        setLiveAnnouncement('Form reset.');
     };
 
-    // Gauge percentage (BMI 10–40 mapped to 0–100%)
-    const gaugePercent = result ? Math.min(Math.max(((parseFloat(result.bmi) - 10) / 30) * 100, 0), 100) : 0;
+    const gaugePercent = result ? Math.min(100, Math.max(0, ((result.bmi - 10) / 30) * 100)) : 0;
 
     return (
-        <PageReveal className="bmi-page">
-            <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
-                {liveAnnouncement}
+        <PageReveal className="ml-container page-enter" style={{ minHeight: '100vh', padding: '2rem 1.5rem' }}>
+            <div className="bmi-header">
+                <h1>BMI Calculator</h1>
+                <p className="subtitle">Body Mass Index estimate based on height and weight</p>
             </div>
 
-            <h1>BMI Calculator</h1>
-            <p className="subtitle">Calculate your Body Mass Index</p>
-
-            <div className="bmi-layout">
+            <div className="bmi-grid bmi-layout">
                 {/* Form Card */}
                 <div className="glass-card bmi-form-card">
-                    <h3><BarChart2 size={20} /> Enter Your Details</h3>
-                    <form noValidate onSubmit={handleCalculate}>
+                    <form onSubmit={handleCalculate} noValidate>
                         <div className="input-group">
                             <label htmlFor="bmi-age">Age</label>
                             <div className={`input-field ${getFieldClass('age')}`}>
@@ -135,7 +129,7 @@ export default function BMICalculator() {
                                 <span className="bmi-unit">years</span>
                             </div>
                             {getFieldClass('age') === 'invalid' && (
-                                <div className="field-error">⚠️ {invalidAge ? 'Age must be between 10 and 120 years' : 'Age is required'}</div>
+                                <div className="field-error"><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> {invalidAge ? 'Age must be between 10 and 120 years' : 'Age is required'}</div>
                             )}
                         </div>
 
@@ -150,7 +144,7 @@ export default function BMICalculator() {
                                 </select>
                             </div>
                             {getFieldClass('gender') === 'invalid' && (
-                                <div className="field-error">⚠️ Gender is required</div>
+                                <div className="field-error"><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Gender is required</div>
                             )}
                         </div>
 
@@ -168,7 +162,7 @@ export default function BMICalculator() {
                                 <span className="bmi-unit">cm</span>
                             </div>
                             {getFieldClass('height') === 'invalid' && (
-                                <div className="field-error">⚠️ {invalidHeight ? 'Height must be between 50 and 250 cm' : 'Height is required'}</div>
+                                <div className="field-error"><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> {invalidHeight ? 'Height must be between 50 and 250 cm' : 'Height is required'}</div>
                             )}
                         </div>
 
@@ -186,7 +180,7 @@ export default function BMICalculator() {
                                 <span className="bmi-unit">kg</span>
                             </div>
                             {getFieldClass('weight') === 'invalid' && (
-                                <div className="field-error">⚠️ {invalidWeight ? 'Weight must be between 20 and 300 kg' : 'Weight is required'}</div>
+                                <div className="field-error"><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> {invalidWeight ? 'Weight must be between 20 and 300 kg' : 'Weight is required'}</div>
                             )}
                         </div>
 

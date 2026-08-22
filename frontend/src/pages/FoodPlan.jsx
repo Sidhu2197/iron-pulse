@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usePlan } from '../context/PlanContext';
+import { useMacros } from '../context/MacroContext';
 import { searchFoods, logMeal, fetchMeals, fetchMealSummary } from '../api/auth';
 import './FoodPlan.css';
 import AccessibleButton from '../components/AccessibleButton';
-import { Search, Ruler, User, Scale, Cake, Flame, Target, Utensils, Leaf, Zap, Sunrise, Sun, Moon, Sparkles } from 'lucide-react';
+import { Search, Ruler, User, Scale, Cake, Flame, Target, Utensils, Leaf, Zap, Sunrise, Sun, Moon, Sparkles, CheckCircle2, AlertCircle, Trash2, X } from 'lucide-react';
 
 const FOOD_WIZARD_STEPS = [
     { key: 'age', label: 'How old are you?', icon: <Cake size={20} /> },
@@ -34,8 +35,18 @@ const DIET_TYPE_OPTIONS = [
 
 export default function FoodPlan() {
     const { token } = useAuth();
+    const { userMacros } = useMacros();
     const { foodPlan, setFoodPlan, foodPlanLoading, foodPlanError, triggerGenerateFoodPlan } = usePlan();
     const [macros, setMacros] = useState(null);
+
+    const calTarget = userMacros?.calories || macros?.calories?.target || 2200;
+    const proTarget = userMacros?.protein || macros?.protein?.target || 150;
+    const fatTarget = userMacros?.fats || macros?.fats?.target || 70;
+
+    const cal = { current: Math.round(macros?.calories?.current || 0), target: calTarget };
+    const pro = { current: Math.round(macros?.protein?.current || 0), target: proTarget };
+    const fat = { current: Math.round(macros?.fats?.current || 0), target: fatTarget };
+
     const [meals, setMeals] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -87,7 +98,7 @@ export default function FoodPlan() {
                 fats: item.fats,
             });
             setLoggedItemIds((prev) => ({ ...prev, [index]: true }));
-            setSuccessMsg(`Logged ${item.food_name}! 🎉`);
+            setSuccessMsg(`Logged ${item.food_name}!`);
             await loadData();
         } catch (err) {
             setErrorMsg(err.message);
@@ -152,7 +163,7 @@ export default function FoodPlan() {
                 protein: food.protein,
                 fats: food.fats,
             });
-            setSuccessMsg(`Logged ${food.food_name}! 🎉`);
+            setSuccessMsg(`Logged ${food.food_name}!`);
             setQuery('');
             setResults([]);
             await loadData();
@@ -270,7 +281,7 @@ export default function FoodPlan() {
                     </div>
                     {isInvalid && (
                         <div className="field-error">
-                            ⚠️ {isEmptyError ? `${valName} is required to continue` : `${valName} must be between ${minVal} and ${maxVal} ${units}`}
+                            <AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> {isEmptyError ? `${valName} is required to continue` : `${valName} must be between ${minVal} and ${maxVal} ${units}`}
                         </div>
                     )}
                 </div>
@@ -282,7 +293,7 @@ export default function FoodPlan() {
             return (
                 <div className="fw-select-wrap">
                     <div className="fw-select-grid">
-                        {[{ value: 'male', label: '♂️ Male' }, { value: 'female', label: '♀️ Female' }].map((opt) => (
+                        {[{ value: 'male', label: 'Male' }, { value: 'female', label: 'Female' }].map((opt) => (
                             <button key={opt.value} type="button"
                                 className={`fw-select-card ${wizardData.gender === opt.value ? 'selected' : ''}`}
                                 onClick={() => setWizardData({ ...wizardData, gender: opt.value })}
@@ -291,7 +302,7 @@ export default function FoodPlan() {
                             </button>
                         ))}
                     </div>
-                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a gender to continue</div>}
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select a gender to continue</div>}
                 </div>
             );
         }
@@ -310,7 +321,7 @@ export default function FoodPlan() {
                             </button>
                         ))}
                     </div>
-                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a fitness goal to continue</div>}
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select a fitness goal to continue</div>}
                 </div>
             );
         }
@@ -329,7 +340,7 @@ export default function FoodPlan() {
                             </button>
                         ))}
                     </div>
-                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a meal type to continue</div>}
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select a meal type to continue</div>}
                 </div>
             );
         }
@@ -348,17 +359,13 @@ export default function FoodPlan() {
                             </button>
                         ))}
                     </div>
-                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}>⚠️ Please select a diet preference to continue</div>}
+                    {hasError && <div className="field-error" style={{ textAlign: 'center', marginTop: '12px' }}><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select a diet preference to continue</div>}
                 </div>
             );
         }
 
         return null;
     };
-
-    const cal = macros?.calories || { current: 0, target: 2200 };
-    const pro = macros?.protein || { current: 0, target: 150 };
-    const fat = macros?.fats || { current: 0, target: 70 };
 
     return (
         <div className="food-plan-page">
@@ -428,7 +435,7 @@ export default function FoodPlan() {
                             {wizardStep > 0 ? (
                                 <button type="button" className="fw-btn-back" onClick={handleWizardBack}>← Back</button>
                             ) : (
-                                <button type="button" className="fw-btn-back" onClick={() => setWizardActive(false)}>✕ Cancel</button>
+                                <button type="button" className="fw-btn-back" onClick={() => setWizardActive(false)}><X size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Cancel</button>
                             )}
                             <AccessibleButton 
                                 type="button" 
@@ -526,7 +533,7 @@ export default function FoodPlan() {
                                     setLoggedItemIds({});
                                 }}
                             >
-                                🗑️ Clear Results
+                                <Trash2 size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> Clear Results
                             </button>
                         </div>
                     </div>

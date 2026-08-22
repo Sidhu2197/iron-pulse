@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { fetchUserProfile, updateUserMacros } from '../api/auth';
 
 const MacroContext = createContext(null);
 
@@ -57,38 +58,61 @@ export function calculateMacroTargets(data) {
 }
 
 export function MacroProvider({ children }) {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [userMacros, setUserMacros] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [isNewlyRegistered, setIsNewlyRegistered] = useState(false);
 
-  // Storage key based on user email
+  // Storage key fallback
   const storageKey = user?.email ? `iron_macros_${user.email.toLowerCase()}` : 'iron_macros_guest';
   const newRegKey = user?.email ? `iron_newly_registered_${user.email.toLowerCase()}` : null;
 
   useEffect(() => {
     if (user?.email) {
-      const saved = localStorage.getItem(storageKey);
       const isNew = newRegKey ? localStorage.getItem(newRegKey) === 'true' : false;
-
-      if (saved) {
-        try {
-          setUserMacros(JSON.parse(saved));
-        } catch {
-          setUserMacros(null);
-        }
-      } else {
-        setUserMacros(null);
-      }
-
       setIsNewlyRegistered(isNew);
+
+      // 1. Try fetching DB macro targets from backend
+      fetchUserProfile(token)
+        .then((profile) => {
+          if (profile && profile.hasConfiguredMacros) {
+            const dbMacros = {
+              age: profile.age || 25,
+              height: profile.height || 175,
+              weight: profile.weight || 70,
+              gender: profile.gender || 'male',
+              activity: profile.activity || 'moderately_active',
+              goal: profile.goal || 'maintenance',
+              calories: profile.targetCalories || 2200,
+              protein: profile.targetProtein || 150,
+              fats: profile.targetFats || 70,
+              carbs: profile.targetCarbs || 240,
+            };
+            setUserMacros(dbMacros);
+            localStorage.setItem(storageKey, JSON.stringify(dbMacros));
+            setIsNewlyRegistered(false);
+          } else {
+            const saved = localStorage.getItem(storageKey);
+            if (saved) {
+              try { setUserMacros(JSON.parse(saved)); } catch { setUserMacros(null); }
+            } else {
+              setUserMacros(null);
+            }
+          }
+        })
+        .catch(() => {
+          const saved = localStorage.getItem(storageKey);
+          if (saved) {
+            try { setUserMacros(JSON.parse(saved)); } catch { setUserMacros(null); }
+          }
+        });
     } else {
       setUserMacros(null);
       setIsNewlyRegistered(false);
     }
-  }, [user?.email, storageKey, newRegKey]);
+  }, [user?.email, token, storageKey, newRegKey]);
 
-  const saveMacros = (formData) => {
+  const saveMacros = async (formData) => {
     const calculated = calculateMacroTargets(formData);
     setUserMacros(calculated);
     localStorage.setItem(storageKey, JSON.stringify(calculated));
@@ -97,6 +121,27 @@ export function MacroProvider({ children }) {
     }
     setIsNewlyRegistered(false);
     setModalOpen(false);
+
+    // Save to Database
+    try {
+      if (token) {
+        await updateUserMacros(token, {
+          gender: calculated.gender,
+          activity: calculated.activity,
+          goal: calculated.goal,
+          age: calculated.age,
+          height: calculated.height,
+          weight: calculated.weight,
+          calories: calculated.calories,
+          protein: calculated.protein,
+          fats: calculated.fats,
+          carbs: calculated.carbs,
+        });
+      }
+    } catch (err) {
+      console.warn('Could not sync macros to DB:', err);
+    }
+
     return calculated;
   };
 

@@ -94,6 +94,27 @@ public class UserService {
         return new UserCacheDTO(saved);
     }
 
+    @CachePut(value = "users", key = "#email.toLowerCase()")
+    public UserCacheDTO updateMacros(String email, String gender, String activity, String goal,
+                                     int age, double height, double weight,
+                                     int calories, int protein, int fats, int carbs) {
+        User user = repo.findByEmail(email);
+        if (user == null) throw new RuntimeException("User not found");
+        if (gender != null && !gender.isBlank()) user.setGender(gender);
+        if (activity != null && !activity.isBlank()) user.setActivity(activity);
+        if (goal != null && !goal.isBlank()) user.setGoal(goal);
+        if (age > 0) user.setAge(age);
+        if (height > 0) user.setHeight(height);
+        if (weight > 0) user.setWeight(weight);
+        if (calories > 0) user.setTargetCalories(calories);
+        if (protein > 0) user.setTargetProtein(protein);
+        if (fats > 0) user.setTargetFats(fats);
+        if (carbs > 0) user.setTargetCarbs(carbs);
+        user.setHasConfiguredMacros(true);
+        User saved = repo.save(user);
+        return new UserCacheDTO(saved);
+    }
+
     public void changePassword(String email, String currentPassword, String newPassword) {
         User user = repo.findByEmail(email);
         if (user == null) throw new RuntimeException("User not found");

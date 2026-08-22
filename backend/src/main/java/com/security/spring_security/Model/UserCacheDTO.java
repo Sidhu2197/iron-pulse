@@ -17,6 +17,14 @@ public class UserCacheDTO implements Serializable {
     private int age;
     private double height;
     private double weight;
+    private String gender;
+    private String activity;
+    private String goal;
+    private Integer targetCalories;
+    private Integer targetProtein;
+    private Integer targetFats;
+    private Integer targetCarbs;
+    private boolean hasConfiguredMacros;
 
     public UserCacheDTO() {
     }
@@ -28,6 +36,14 @@ public class UserCacheDTO implements Serializable {
         this.age = user.getAge();
         this.height = user.getHeight();
         this.weight = user.getWeight();
+        this.gender = user.getGender();
+        this.activity = user.getActivity();
+        this.goal = user.getGoal();
+        this.targetCalories = user.getTargetCalories();
+        this.targetProtein = user.getTargetProtein();
+        this.targetFats = user.getTargetFats();
+        this.targetCarbs = user.getTargetCarbs();
+        this.hasConfiguredMacros = user.isHasConfiguredMacros();
     }
 
     public int getId() {
@@ -76,5 +92,69 @@ public class UserCacheDTO implements Serializable {
 
     public void setWeight(double weight) {
         this.weight = weight;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getActivity() {
+        return activity;
+    }
+
+    public void setActivity(String activity) {
+        this.activity = activity;
+    }
+
+    public String getGoal() {
+        return goal;
+    }
+
+    public void setGoal(String goal) {
+        this.goal = goal;
+    }
+
+    public int getTargetCalories() {
+        return targetCalories;
+    }
+
+    public void setTargetCalories(int targetCalories) {
+        this.targetCalories = targetCalories;
+    }
+
+    public int getTargetProtein() {
+        return targetProtein;
+    }
+
+    public void setTargetProtein(int targetProtein) {
+        this.targetProtein = targetProtein;
+    }
+
+    public int getTargetFats() {
+        return targetFats;
+    }
+
+    public void setTargetFats(int targetFats) {
+        this.targetFats = targetFats;
+    }
+
+    public int getTargetCarbs() {
+        return targetCarbs;
+    }
+
+    public void setTargetCarbs(int targetCarbs) {
+        this.targetCarbs = targetCarbs;
+    }
+
+    public boolean isHasConfiguredMacros() {
+        return hasConfiguredMacros;
+    }
+
+    public void setHasConfiguredMacros(boolean hasConfiguredMacros) {
+        this.hasConfiguredMacros = hasConfiguredMacros;
     }
 }

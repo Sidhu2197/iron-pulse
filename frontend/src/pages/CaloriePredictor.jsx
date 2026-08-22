@@ -5,7 +5,7 @@ import { predictCalories, saveCaloriePrediction, fetchCaloriePredictions, checkM
 import './CaloriePredictor.css';
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
-import { Dumbbell, Timer, Ruler, Activity, Scale, Cake, Heart, BarChart2, Calendar, CheckCircle, XCircle, Target, Utensils, Save, RotateCcw, Sparkles, Zap, Bike, Waves, Footprints, Flame, Repeat, User, ClipboardList } from 'lucide-react';
+import { Dumbbell, Timer, Ruler, Activity, Scale, Cake, Heart, BarChart2, Calendar, CheckCircle, XCircle, Target, Utensils, Save, RotateCcw, Sparkles, Zap, Bike, Waves, Footprints, Flame, Repeat, User, ClipboardList, AlertCircle } from 'lucide-react';
 
 const DEFAULT_EXERCISE_TYPES = [
     { value: 'Running', emoji: <Activity size={20} />, label: 'Running' },
@@ -58,7 +58,7 @@ export default function CaloriePredictor() {
         if (token) {
             fetchCaloriePredictions(token)
                 .then(setHistory)
-                .catch(() => {})
+                .catch(() => { })
                 .finally(() => setHistoryLoading(false));
         } else {
             setHistoryLoading(false);
@@ -75,7 +75,7 @@ export default function CaloriePredictor() {
             if (exercises.exercises && exercises.exercises.length > 0) {
                 const exerciseOptions = exercises.exercises.map(ex => ({
                     value: ex,
-                    emoji: EXERCISE_EMOJI_MAP[ex] || '🏋️',
+                    emoji: EXERCISE_EMOJI_MAP[ex] || <Dumbbell size={20} />,
                     label: ex
                 }));
                 setSupportedExercises(exerciseOptions);
@@ -206,7 +206,7 @@ export default function CaloriePredictor() {
                 met_value: result.met_value,
                 date: new Date().toISOString().split('T')[0],
             });
-            setSaveMsg('Prediction saved! 🎉');
+            setSaveMsg('Prediction saved!');
             // Refresh history
             const updated = await fetchCaloriePredictions(token);
             setHistory(updated);
@@ -224,17 +224,9 @@ export default function CaloriePredictor() {
 
     return (
         <PageReveal className="calorie-predictor-page">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <div>
-                    <h1>Calorie AI</h1>
-                    <p className="subtitle">Predict calories burned using our AI model trained on 10,000+ workout sessions</p>
-                </div>
-                {typeof mlHealth !== 'undefined' && mlHealth && (
-                    <div className={`ml-health-status ${mlHealth.healthy ? 'healthy' : 'unhealthy'}`}>
-                        {mlHealth.healthy ? <CheckCircle size={16} /> : <XCircle size={16} />}
-                        <span>{mlHealth.healthy ? 'ML Service Online' : 'ML Service Offline'}</span>
-                    </div>
-                )}
+            <div style={{ marginBottom: '1.5rem' }}>
+                <h1>Calorie AI</h1>
+                <p className="subtitle">Estimate calories burned based on exercise intensity and user metrics</p>
             </div>
 
             {error && <div className="predictor-error">{error}</div>}
@@ -250,7 +242,7 @@ export default function CaloriePredictor() {
                         <div className="hero-label">Calories Burned</div>
                     </div>
 
-                    <div className="results-stats">
+                    <div className="results-stats" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
                         <div className="result-stat">
                             <div className="stat-val">{result.calories_per_min?.toFixed(1)}</div>
                             <div className="stat-lbl">Cal / min</div>
@@ -258,10 +250,6 @@ export default function CaloriePredictor() {
                         <div className="result-stat">
                             <div className="stat-val">{result.bmi?.toFixed(1)}</div>
                             <div className="stat-lbl">BMI</div>
-                        </div>
-                        <div className="result-stat">
-                            <div className="stat-val">{result.met_value?.toFixed(1)}</div>
-                            <div className="stat-lbl">MET Value</div>
                         </div>
                     </div>
 
@@ -281,9 +269,9 @@ export default function CaloriePredictor() {
                     )}
 
                     <div className="result-actions">
-                        <AccessibleButton 
-                            className="save-btn" 
-                            onClick={handleSave} 
+                        <AccessibleButton
+                            className="save-btn"
+                            onClick={handleSave}
                             disabled={saving}
                             disabledReason="Saving prediction..."
                         >
@@ -325,7 +313,7 @@ export default function CaloriePredictor() {
                                         required />
                                 </div>
                                 {getFieldClass('age') === 'invalid' && (
-                                    <div className="field-error">⚠️ {invalidAge ? 'Age must be between 10 and 120 years' : 'Age is required'}</div>
+                                    <div className="field-error"><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> {invalidAge ? 'Age must be between 10 and 120 years' : 'Age is required'}</div>
                                 )}
                             </div>
 
@@ -357,7 +345,7 @@ export default function CaloriePredictor() {
                                         required />
                                 </div>
                                 {getFieldClass('weight_kg') === 'invalid' && (
-                                    <div className="field-error">⚠️ {invalidWeight ? 'Weight must be between 20 and 300 kg' : 'Weight is required'}</div>
+                                    <div className="field-error"><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> {invalidWeight ? 'Weight must be between 20 and 300 kg' : 'Weight is required'}</div>
                                 )}
                             </div>
 
@@ -374,7 +362,7 @@ export default function CaloriePredictor() {
                                         required />
                                 </div>
                                 {getFieldClass('height_cm') === 'invalid' && (
-                                    <div className="field-error">⚠️ {invalidHeight ? 'Height must be between 50 and 250 cm' : 'Height is required'}</div>
+                                    <div className="field-error"><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> {invalidHeight ? 'Height must be between 50 and 250 cm' : 'Height is required'}</div>
                                 )}
                             </div>
 
@@ -399,7 +387,7 @@ export default function CaloriePredictor() {
                                         required />
                                 </div>
                                 {getFieldClass('duration_min') === 'invalid' && (
-                                    <div className="field-error">⚠️ Duration is required</div>
+                                    <div className="field-error"><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Duration is required</div>
                                 )}
                             </div>
 
@@ -414,7 +402,7 @@ export default function CaloriePredictor() {
                                         required />
                                 </div>
                                 {getFieldClass('heart_rate') === 'invalid' && (
-                                    <div className="field-error">⚠️ Heart rate is required (40–220 BPM)</div>
+                                    <div className="field-error"><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Heart rate is required (40–220 BPM)</div>
                                 )}
                             </div>
 
@@ -432,7 +420,7 @@ export default function CaloriePredictor() {
                                     ))}
                                 </div>
                                 {getFieldClass('exercise_type') === 'invalid' && (
-                                    <div className="field-error">⚠️ Please select an exercise type</div>
+                                    <div className="field-error"><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> Please select an exercise type</div>
                                 )}
                             </div>
 
@@ -460,9 +448,9 @@ export default function CaloriePredictor() {
 
                             {/* Submit */}
                             <div className="predict-btn-wrap">
-                                <AccessibleButton 
-                                    className="predict-btn" 
-                                    type="submit" 
+                                <AccessibleButton
+                                    className="predict-btn"
+                                    type="submit"
                                     disabled={!canSubmit || loading}
                                     disabledReason={!canSubmit ? "Fill in all required workout metrics to predict calories burned." : "Predicting calories burned..."}
                                 >
@@ -499,8 +487,8 @@ export default function CaloriePredictor() {
                                     <div>
                                         <div className="history-exercise-name">{item.exercise_type}</div>
                                         <div className="history-exercise-meta">
-                                            <span><Timer size={20} /> {item.duration_min} min</span>
-                                            <span>💓 {item.heart_rate} BPM</span>
+                                            <span><Timer size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '3px' }} /> {item.duration_min} min</span>
+                                            <span><Heart size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '3px' }} /> {item.heart_rate} BPM</span>
                                             <span><BarChart2 size={20} /> {INTENSITY_LABEL[item.intensity] || 'Medium'}</span>
                                             <span><Calendar size={20} /> {item.date}</span>
                                         </div>

@@ -105,7 +105,7 @@ export function PlanProvider({ children }) {
       setFoodPlan(data);
       show({
         type: 'success',
-        message: '🥗 Your Food Plan has been generated successfully!',
+        message: 'Your Food Plan has been generated successfully!',
         duration: 5000,
       });
       return data;
@@ -114,7 +114,7 @@ export function PlanProvider({ children }) {
       setFoodPlanError(errorMsg);
       show({
         type: 'error',
-        message: `⚠️ Food Plan generation failed: ${errorMsg}`,
+        message: `Food Plan generation failed: ${errorMsg}`,
         duration: 5000,
       });
       throw err;
@@ -159,7 +159,7 @@ export function PlanProvider({ children }) {
       }
       show({
         type: 'success',
-        message: '💪 Your Workout Plan has been generated successfully!',
+        message: 'Your Workout Plan has been generated successfully!',
         duration: 5000,
       });
       return data;
@@ -168,7 +168,7 @@ export function PlanProvider({ children }) {
       setWorkoutPlanError(errorMsg);
       show({
         type: 'error',
-        message: `⚠️ Workout Plan generation failed: ${errorMsg}`,
+        message: `Workout Plan generation failed: ${errorMsg}`,
         duration: 5000,
       });
       throw err;
@@ -185,7 +185,7 @@ export function PlanProvider({ children }) {
       setCaloriePrediction(data);
       show({
         type: 'success',
-        message: `🔥 Calorie Prediction Ready: ${data.calories_burned?.toFixed(1)} calories burned!`,
+        message: `Calorie Prediction Ready: ${data.calories_burned?.toFixed(1)} calories burned!`,
         duration: 5000,
       });
       return data;
@@ -194,7 +194,7 @@ export function PlanProvider({ children }) {
       setCaloriePredictionError(errorMsg);
       show({
         type: 'error',
-        message: `⚠️ Calorie prediction failed: ${errorMsg}`,
+        message: `Calorie prediction failed: ${errorMsg}`,
         duration: 5000,
       });
       throw err;
