@@ -54,25 +54,20 @@ export default function Dashboard() {
     const totalBurned = dashData?.total_calories_burned ?? 0;
     const workoutCount = dashData?.workout_count ?? 0;
     const totalEaten = dashData?.total_calories_eaten ?? 0;
-    const DEFAULT_WEEKLY_DATA = [
-        { day: 'Mon', Suggested: 500, Actual: 450, Workouts: 1 },
-        { day: 'Tue', Suggested: 500, Actual: 520, Workouts: 1 },
-        { day: 'Wed', Suggested: 500, Actual: 380, Workouts: 1 },
-        { day: 'Thu', Suggested: 500, Actual: 600, Workouts: 2 },
-        { day: 'Fri', Suggested: 500, Actual: 490, Workouts: 1 },
-        { day: 'Sat', Suggested: 500, Actual: 710, Workouts: 2 },
-        { day: 'Sun', Suggested: 500, Actual: 400, Workouts: 1 },
-    ];
-
-    const rawBarData = dashData?.weekly_workouts && dashData.weekly_workouts.length > 0
-        ? dashData.weekly_workouts
-        : DEFAULT_WEEKLY_DATA;
-
-    const barData = rawBarData.map((d) => ({
-        ...d,
-        Workouts: d.Workouts ?? (d.Actual > 0 ? 1 : 0),
-        Suggested: d.Suggested ?? 500,
-    }));
+    const barData = (dashData?.weekly_workouts && dashData.weekly_workouts.length > 0)
+        ? dashData.weekly_workouts.map((d) => ({
+            day: d.day,
+            date: d.date,
+            Suggested: d.Suggested ?? 500,
+            Actual: d.Actual ?? 0,
+            Workouts: d.Workouts ?? 0,
+        }))
+        : Array.from({ length: 7 }, (_, i) => {
+            const date = new Date();
+            date.setDate(date.getDate() - (6 - i));
+            const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+            return { day: dayName, Suggested: 500, Actual: 0, Workouts: 0 };
+        });
 
     // Net Calories calculation
     const netCalories = totalEaten - totalBurned;
@@ -171,7 +166,7 @@ export default function Dashboard() {
             <div className="dashboard-grid">
                 <div className="main-col">
                     {/* Weekly Analytics Chart Panel */}
-                    <div className="glass-panel glow-card" style={{ padding: '2rem' }}>
+                    <div className="glow-card" style={{ padding: '2rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
                             <div>
                                 <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: 700 }}>
@@ -234,7 +229,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Recent Activity Timeline Feed */}
-                    <div className="glass-panel glow-card" style={{ padding: '2rem' }}>
+                    <div className="glow-card" style={{ padding: '2rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                             <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                                 <Zap size={20} style={{ color: 'var(--accent-cyan)' }} /> Recent Activity Log
@@ -311,7 +306,7 @@ export default function Dashboard() {
                 {/* Right Side Column */}
                 <div className="side-col">
                     {/* Net Calories Card */}
-                    <div className="glass-panel glow-card net-calories-card" style={{ padding: '1.5rem' }}>
+                    <div className="glow-card net-calories-card" style={{ padding: '1.5rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                             <span style={{ fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                                 <Target size={14} /> Net Energy Balance
@@ -341,7 +336,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Stat Card: Calories Burned */}
-                    <div className="glass-panel glow-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                    <div className="glow-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
                         <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             <Flame size={24} />
                         </div>
@@ -352,7 +347,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Stat Card: Workouts Done */}
-                    <div className="glass-panel glow-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                    <div className="glow-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
                         <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.12)', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             <Activity size={24} />
                         </div>
@@ -363,7 +358,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Stat Card: Calories Eaten */}
-                    <div className="glass-panel glow-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                    <div className="glow-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
                         <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             <Utensils size={24} />
                         </div>
@@ -374,7 +369,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Streak Motivation Card */}
-                    <div className="glass-panel glow-card streak-card" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%)' }}>
+                    <div className="glow-card streak-card" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(0, 240, 255, 0.05) 0%, rgba(124, 58, 237, 0.05) 100%)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
                             <Award size={22} style={{ color: 'var(--accent-cyan)' }} />
                             <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Weekly Fitness Streak</h4>

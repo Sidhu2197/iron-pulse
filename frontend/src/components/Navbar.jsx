@@ -5,6 +5,7 @@ import {
   User, Flame, LogOut, ChevronDown, Keyboard,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { usePlan } from '../context/PlanContext';
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -16,6 +17,7 @@ const NAV_ITEMS = [
 
 export default function Navbar({ onOpenShortcuts }) {
   const { user, logout } = useAuth();
+  const { foodPlanLoading, workoutPlanLoading, caloriePredictionLoading } = usePlan();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -195,17 +197,38 @@ export default function Navbar({ onOpenShortcuts }) {
             }}
           />
 
-          {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              ref={(el) => { linkRefs.current[to] = el; }}
-              style={({ isActive }) => linkStyle(isActive)}
-            >
-              <Icon size={16} />
-              <span className="nav-label">{label}</span>
-            </NavLink>
-          ))}
+          {NAV_ITEMS.map(({ to, label, icon: Icon }) => {
+            const isGenerating =
+              (to === '/workout' && workoutPlanLoading) ||
+              (to === '/food-plan' && foodPlanLoading) ||
+              ((to === '/calorie-predictor' || to === '/calorie_predictor') && caloriePredictionLoading);
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                ref={(el) => { linkRefs.current[to] = el; }}
+                style={({ isActive }) => linkStyle(isActive)}
+              >
+                <Icon size={16} />
+                <span className="nav-label">{label}</span>
+                {isGenerating && (
+                  <span
+                    title="Generating plan in background..."
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      backgroundColor: '#10b981',
+                      boxShadow: '0 0 10px #10b981',
+                      animation: 'pulse 1s infinite alternate',
+                      marginLeft: 4,
+                      display: 'inline-block',
+                    }}
+                  />
+                )}
+              </NavLink>
+            );
+          })}
         </div>
 
         {/* ── Actions & Profile ───────────────── */}

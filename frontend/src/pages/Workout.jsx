@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { logWorkout, generateWorkoutPlan } from '../api/auth';
+import { usePlan } from '../context/PlanContext';
+import { logWorkout } from '../api/auth';
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
 import './Workout.css';
@@ -64,12 +65,8 @@ const WIZARD_STEPS = [
 
 export default function Workout() {
     const { token } = useAuth();
+    const { workoutPlan: plan, workoutPlanLoading: planLoading, workoutPlanError: planError, triggerGenerateWorkoutPlan } = usePlan();
     const [activeTab, setActiveTab] = useState('Suggested Plan');
-
-    // Suggested Plan state
-    const [plan, setPlan] = useState(null);
-    const [planLoading, setPlanLoading] = useState(false);
-    const [planError, setPlanError] = useState('');
 
     // Wizard state
     const [wizardActive, setWizardActive] = useState(false);
@@ -159,8 +156,6 @@ export default function Workout() {
         setWizardStep(0);
         setWizardAttemptedNext(false);
         setWizardData({ age: '', weight: '', height: '', gender: '', fitnessLevel: '', equipment: [], goal: '', daysPerWeek: '', duration: '' });
-        setPlan(null);
-        setPlanError('');
     };
 
     // Wizard Keyboard Shortcuts (Enter -> Next, Esc -> Close)
@@ -188,28 +183,21 @@ export default function Workout() {
     }, [wizardActive, wizardStep, wizardData]);
 
     // -- Generate plan from wizard data --
-    const handleGeneratePlan = async () => {
+    const handleGeneratePlan = () => {
         setWizardActive(false);
-        setPlanLoading(true);
-        setPlanError('');
-        try {
-            const data = await generateWorkoutPlan(token, {
-                age: parseInt(wizardData.age),
-                weight: parseFloat(wizardData.weight),
-                height: parseFloat(wizardData.height),
-                gender: wizardData.gender,
-                fitness_level: wizardData.fitnessLevel,
-                equipment: wizardData.equipment,
-                goal: wizardData.goal,
-                days_per_week: parseInt(wizardData.daysPerWeek),
-                duration: parseInt(wizardData.duration),
-            });
-            setPlan(data);
-        } catch (err) {
-            setPlanError(err.message);
-        } finally {
-            setPlanLoading(false);
-        }
+        triggerGenerateWorkoutPlan(token, {
+            age: parseInt(wizardData.age),
+            weight: parseFloat(wizardData.weight),
+            height: parseFloat(wizardData.height),
+            gender: wizardData.gender,
+            fitness_level: wizardData.fitnessLevel,
+            equipment: wizardData.equipment,
+            goal: wizardData.goal,
+            days_per_week: parseInt(wizardData.daysPerWeek),
+            duration: parseInt(wizardData.duration),
+        }).catch((err) => {
+            console.error('Workout plan generation background error:', err);
+        });
     };
 
     // -- Log Workout handlers --

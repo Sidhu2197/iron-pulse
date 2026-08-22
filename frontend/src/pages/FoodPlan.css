@@ -103,8 +103,8 @@
 }
 
 .log-food-methods {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: var(--space-lg);
 }
 
@@ -172,26 +172,6 @@
     border-radius: var(--radius-full);
     background: rgba(255, 255, 255, 0.06);
     font-size: var(--font-xs);
-}
-
-.upload-area {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius-md);
-    padding: var(--space-2xl) var(--space-lg);
-    text-align: center;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: border-color var(--transition-fast);
-}
-
-.upload-area:hover {
-    border-color: var(--border-accent);
-}
-
-.upload-area .upload-icon {
-    font-size: 2rem;
-    margin-bottom: var(--space-sm);
-    opacity: 0.5;
 }
 
 /* Today's Meals */

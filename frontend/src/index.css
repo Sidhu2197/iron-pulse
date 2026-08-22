@@ -280,23 +280,9 @@ input[type="number"] {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-default);
-  border-top: 1px solid transparent;
-  background-clip: padding-box;
   position: relative;
   border-radius: var(--radius-lg);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.glass-panel::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--gradient-card-border);
-  z-index: 0;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .glass-panel:hover {

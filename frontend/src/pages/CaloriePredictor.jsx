@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { usePlan } from '../context/PlanContext';
 import { predictCalories, saveCaloriePrediction, fetchCaloriePredictions, checkMLHealth, getSupportedExercises } from '../api/auth';
 import './CaloriePredictor.css';
 import PageReveal from '../components/PageReveal';
@@ -29,6 +30,13 @@ const INTENSITY_LABEL = { 1: 'Low', 2: 'Medium', 3: 'High' };
 
 export default function CaloriePredictor() {
     const { token } = useAuth();
+    const {
+        caloriePrediction: result,
+        caloriePredictionLoading: loading,
+        caloriePredictionError: error,
+        triggerPredictCalories,
+        clearCaloriePrediction,
+    } = usePlan();
 
     const [form, setForm] = useState({
         age: '', gender: 1, weight_kg: '', height_cm: '',
@@ -36,9 +44,6 @@ export default function CaloriePredictor() {
         heart_rate: '120', intensity: 2,
     });
 
-    const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState(null);
-    const [error, setError] = useState('');
     const [saveMsg, setSaveMsg] = useState('');
     const [saving, setSaving] = useState(false);
 
@@ -140,7 +145,6 @@ export default function CaloriePredictor() {
     const handlePredict = async (e) => {
         e.preventDefault();
         setSubmitted(true);
-        setError('');
 
         const invalidFields = [];
         if (!isAgeValid) invalidFields.push({ name: 'age', ref: ageRef, msg: invalidAge ? 'Age must be 10–120' : 'Age is required' });
@@ -164,32 +168,26 @@ export default function CaloriePredictor() {
             return;
         }
 
-        setLoading(true);
-        setError('');
-        setResult(null);
         setSaveMsg('');
+        const payload = {
+            age: parseInt(form.age),
+            gender: form.gender,
+            weight_kg: parseInt(form.weight_kg),
+            height_cm: parseInt(form.height_cm),
+            body_fat_pct: parseInt(form.body_fat_pct) || 20,
+            exercise_type: form.exercise_type,
+            duration_min: parseInt(form.duration_min),
+            heart_rate: parseInt(form.heart_rate),
+            intensity: form.intensity,
+        };
 
-        try {
-            const payload = {
-                age: parseInt(form.age),
-                gender: form.gender,
-                weight_kg: parseInt(form.weight_kg),
-                height_cm: parseInt(form.height_cm),
-                body_fat_pct: parseInt(form.body_fat_pct) || 20,
-                exercise_type: form.exercise_type,
-                duration_min: parseInt(form.duration_min),
-                heart_rate: parseInt(form.heart_rate),
-                intensity: form.intensity,
-            };
-            const data = await predictCalories(payload);
-            setResult(data);
-            setLiveAnnouncement(`Prediction ready: ${data.calories_burned?.toFixed(1)} calories burned.`);
-        } catch (err) {
-            setError(err.message || 'Prediction failed. Please try again.');
-            setLiveAnnouncement(`Prediction failed: ${err.message || 'Please try again.'}`);
-        } finally {
-            setLoading(false);
-        }
+        triggerPredictCalories(payload)
+            .then((data) => {
+                setLiveAnnouncement(`Prediction ready: ${data.calories_burned?.toFixed(1)} calories burned.`);
+            })
+            .catch((err) => {
+                setLiveAnnouncement(`Prediction failed: ${err.message || 'Please try again.'}`);
+            });
     };
 
     const handleSave = async () => {
@@ -220,8 +218,7 @@ export default function CaloriePredictor() {
     };
 
     const handleReset = () => {
-        setResult(null);
-        setError('');
+        clearCaloriePrediction();
         setSaveMsg('');
     };
 

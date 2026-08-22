@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { searchFoods, logMeal, fetchMeals, fetchMealSummary, generateFoodPlan } from '../api/auth';
+import { usePlan } from '../context/PlanContext';
+import { searchFoods, logMeal, fetchMeals, fetchMealSummary } from '../api/auth';
 import './FoodPlan.css';
 import AccessibleButton from '../components/AccessibleButton';
-import { Search, Ruler, User, Scale, Cake, Flame, Target, Utensils, Leaf, Zap, Sunrise, Sun, Moon, Camera, Sparkles } from 'lucide-react';
+import { Search, Ruler, User, Scale, Cake, Flame, Target, Utensils, Leaf, Zap, Sunrise, Sun, Moon, Sparkles } from 'lucide-react';
 
 const FOOD_WIZARD_STEPS = [
     { key: 'age', label: 'How old are you?', icon: <Cake size={20} /> },
@@ -33,6 +34,7 @@ const DIET_TYPE_OPTIONS = [
 
 export default function FoodPlan() {
     const { token } = useAuth();
+    const { foodPlan, foodPlanLoading, foodPlanError, triggerGenerateFoodPlan } = usePlan();
     const [macros, setMacros] = useState(null);
     const [meals, setMeals] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -55,9 +57,6 @@ export default function FoodPlan() {
         age: '', gender: '', height: '', weight: '',
         goal: '', mealType: '', dietType: '',
     });
-    const [foodPlan, setFoodPlan] = useState(null);
-    const [foodPlanLoading, setFoodPlanLoading] = useState(false);
-    const [foodPlanError, setFoodPlanError] = useState('');
 
     const loadData = useCallback(async () => {
         if (!token) return;
@@ -155,8 +154,6 @@ export default function FoodPlan() {
         setWizardStep(0);
         setWizardAttemptedNext(false);
         setWizardData({ age: '', gender: '', height: '', weight: '', goal: '', mealType: '', dietType: '' });
-        setFoodPlan(null);
-        setFoodPlanError('');
     };
 
     // Wizard Keyboard Shortcuts (Enter -> Next, Esc -> Close)
@@ -183,26 +180,19 @@ export default function FoodPlan() {
         return () => window.removeEventListener('keydown', handleWizardKeyDown, true);
     }, [wizardActive, wizardStep, wizardData]);
 
-    const handleGenerateFoodPlan = async () => {
+    const handleGenerateFoodPlan = () => {
         setWizardActive(false);
-        setFoodPlanLoading(true);
-        setFoodPlanError('');
-        try {
-            const data = await generateFoodPlan(token, {
-                age: parseInt(wizardData.age),
-                gender: wizardData.gender,
-                height: parseFloat(wizardData.height),
-                weight: parseFloat(wizardData.weight),
-                goal: wizardData.goal,
-                meal_type: wizardData.mealType,
-                diet_type: wizardData.dietType,
-            });
-            setFoodPlan(data);
-        } catch (err) {
-            setFoodPlanError(err.message);
-        } finally {
-            setFoodPlanLoading(false);
-        }
+        triggerGenerateFoodPlan(token, {
+            age: parseInt(wizardData.age),
+            gender: wizardData.gender,
+            height: parseFloat(wizardData.height),
+            weight: parseFloat(wizardData.weight),
+            goal: wizardData.goal,
+            meal_type: wizardData.mealType,
+            diet_type: wizardData.dietType,
+        }).catch((err) => {
+            console.error('Food plan generation background error:', err);
+        });
     };
 
     const renderWizardContent = () => {
@@ -518,16 +508,6 @@ export default function FoodPlan() {
                         {query.length >= 2 && results.length === 0 && !searching && (
                             <p className="search-hint">No results found for "{query}"</p>
                         )}
-                    </div>
-                    <div className="log-method">
-                        <h4><Camera size={20} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> Upload Image</h4>
-                        <div className="upload-area">
-                            <div className="upload-icon"><Camera size={32} /></div>
-                            <p>Drag & drop or click to upload</p>
-                            <p style={{ fontSize: 'var(--font-xs)', marginTop: '4px' }}>
-                                AI will recognize the food automatically
-                            </p>
-                        </div>
                     </div>
                 </div>
             </div>
