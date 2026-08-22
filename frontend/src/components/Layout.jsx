@@ -35,7 +35,7 @@ const pageVariants = {
 export default function Layout() {
     const location = useLocation();
     const { user } = useAuth();
-    const { hasConfiguredMacros } = useMacros();
+    const { shouldShowOnboardingWizard } = useMacros();
     const { isModalOpen, closeModal, toggleModal } = useKeyboardShortcuts();
 
     return (
@@ -61,8 +61,8 @@ export default function Layout() {
 
             <KeyboardShortcutsModal isOpen={isModalOpen} onClose={closeModal} />
             
-            {/* Onboarding gate on first login + modal for recalculations */}
-            <MacroCalculatorModal forceOpen={Boolean(user && !hasConfiguredMacros)} />
+            {/* Onboarding wizard ONLY for newly registered users on first login */}
+            <MacroCalculatorModal forceOpen={shouldShowOnboardingWizard} />
         </div>
     );
 }

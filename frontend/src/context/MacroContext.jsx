@@ -60,13 +60,17 @@ export function MacroProvider({ children }) {
   const { user } = useAuth();
   const [userMacros, setUserMacros] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [isNewlyRegistered, setIsNewlyRegistered] = useState(false);
 
   // Storage key based on user email
-  const storageKey = user?.email ? `iron_macros_${user.email}` : 'iron_macros_guest';
+  const storageKey = user?.email ? `iron_macros_${user.email.toLowerCase()}` : 'iron_macros_guest';
+  const newRegKey = user?.email ? `iron_newly_registered_${user.email.toLowerCase()}` : null;
 
   useEffect(() => {
     if (user?.email) {
       const saved = localStorage.getItem(storageKey);
+      const isNew = newRegKey ? localStorage.getItem(newRegKey) === 'true' : false;
+
       if (saved) {
         try {
           setUserMacros(JSON.parse(saved));
@@ -76,15 +80,22 @@ export function MacroProvider({ children }) {
       } else {
         setUserMacros(null);
       }
+
+      setIsNewlyRegistered(isNew);
     } else {
       setUserMacros(null);
+      setIsNewlyRegistered(false);
     }
-  }, [user?.email, storageKey]);
+  }, [user?.email, storageKey, newRegKey]);
 
   const saveMacros = (formData) => {
     const calculated = calculateMacroTargets(formData);
     setUserMacros(calculated);
     localStorage.setItem(storageKey, JSON.stringify(calculated));
+    if (newRegKey) {
+      localStorage.removeItem(newRegKey);
+    }
+    setIsNewlyRegistered(false);
     setModalOpen(false);
     return calculated;
   };
@@ -93,6 +104,7 @@ export function MacroProvider({ children }) {
   const closeMacroCalculator = () => setModalOpen(false);
 
   const hasConfiguredMacros = Boolean(userMacros && userMacros.calories);
+  const shouldShowOnboardingWizard = Boolean(user && isNewlyRegistered && !hasConfiguredMacros);
 
   return (
     <MacroContext.Provider
@@ -103,6 +115,7 @@ export function MacroProvider({ children }) {
         openMacroCalculator,
         closeMacroCalculator,
         hasConfiguredMacros,
+        shouldShowOnboardingWizard,
         calculateMacroTargets,
       }}
     >

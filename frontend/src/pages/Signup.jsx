@@ -189,6 +189,7 @@ export default function Signup() {
         password: form.password,
         age: form.age,
       });
+      localStorage.setItem(`iron_newly_registered_${form.email.toLowerCase()}`, 'true');
       navigate('/login');
     } catch (err) {
       setError(err.message);
