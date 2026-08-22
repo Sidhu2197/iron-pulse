@@ -4,6 +4,7 @@ import Navbar from './Navbar';
 import Silk from './Silk';
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import MacroCalculatorModal from './MacroCalculatorModal';
+import ChatbotWidget from './ChatbotWidget';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useMacros } from '../context/MacroContext';
 import { useAuth } from '../context/AuthContext';
@@ -63,6 +64,9 @@ export default function Layout() {
             
             {/* Onboarding wizard ONLY for newly registered users on first login */}
             <MacroCalculatorModal forceOpen={shouldShowOnboardingWizard} />
+
+            {/* Floating Chatbot Assistant */}
+            <ChatbotWidget />
         </div>
     );
 }
