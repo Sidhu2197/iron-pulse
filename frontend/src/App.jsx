@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { PlanProvider } from './context/PlanContext';
+import { MacroProvider } from './context/MacroContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 import Cursor from './components/Cursor/Cursor';
@@ -24,42 +25,44 @@ const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 export default function App() {
     return (
         <AuthProvider>
-            <ToastProvider>
-                <PlanProvider>
-                    <BrowserRouter>
-                        {/* Custom cursor — outside router tree per design.md */}
-                        <Cursor />
+            <MacroProvider>
+                <ToastProvider>
+                    <PlanProvider>
+                        <BrowserRouter>
+                            {/* Custom cursor — outside router tree per design.md */}
+                            <Cursor />
 
-                        <div className="app-container">
-                            <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>}>
-                                <Routes>
-                                    {/* Public routes */}
-                                    <Route path="/" element={<Landing />} />
-                                    <Route path="/login" element={<Login />} />
-                                    <Route path="/signup" element={<Signup />} />
-                                    <Route path="/verify-email" element={<VerifyEmail />} />
-                                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                                    <Route path="/reset-password/:token" element={<ResetPassword />} />
+                            <div className="app-container">
+                                <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>Loading...</div>}>
+                                    <Routes>
+                                        {/* Public routes */}
+                                        <Route path="/" element={<Landing />} />
+                                        <Route path="/login" element={<Login />} />
+                                        <Route path="/signup" element={<Signup />} />
+                                        <Route path="/verify-email" element={<VerifyEmail />} />
+                                        <Route path="/forgot-password" element={<ForgotPassword />} />
+                                        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-                                    {/* Protected routes with navbar layout */}
-                                    <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-                                        <Route path="/dashboard" element={<Dashboard />} />
-                                        <Route path="/workout" element={<Workout />} />
-                                        <Route path="/food-plan" element={<FoodPlan />} />
-                                        <Route path="/bmi" element={<BMICalculator />} />
-                                        <Route path="/calorie-predictor" element={<CaloriePredictor />} />
-                                        <Route path="/calorie_predictor" element={<CaloriePredictor />} />
-                                        <Route path="/profile" element={<Profile />} />
-                                    </Route>
+                                        {/* Protected routes with navbar layout */}
+                                        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+                                            <Route path="/dashboard" element={<Dashboard />} />
+                                            <Route path="/workout" element={<Workout />} />
+                                            <Route path="/food-plan" element={<FoodPlan />} />
+                                            <Route path="/bmi" element={<BMICalculator />} />
+                                            <Route path="/calorie-predictor" element={<CaloriePredictor />} />
+                                            <Route path="/calorie_predictor" element={<CaloriePredictor />} />
+                                            <Route path="/profile" element={<Profile />} />
+                                        </Route>
 
-                                    {/* 404 */}
-                                    <Route path="*" element={<NotFound />} />
-                                </Routes>
-                            </Suspense>
-                        </div>
-                    </BrowserRouter>
-                </PlanProvider>
-            </ToastProvider>
+                                        {/* 404 */}
+                                        <Route path="*" element={<NotFound />} />
+                                    </Routes>
+                                </Suspense>
+                            </div>
+                        </BrowserRouter>
+                    </PlanProvider>
+                </ToastProvider>
+            </MacroProvider>
         </AuthProvider>
     );
 }

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { usePlan } from '../context/PlanContext';
+import { useMacros } from '../context/MacroContext';
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -18,6 +19,7 @@ const NAV_ITEMS = [
 export default function Navbar({ onOpenShortcuts }) {
   const { user, logout } = useAuth();
   const { foodPlanLoading, workoutPlanLoading, caloriePredictionLoading } = usePlan();
+  const { openMacroCalculator } = useMacros();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -338,6 +340,38 @@ export default function Navbar({ onOpenShortcuts }) {
                 <User size={16} />
                 Profile
               </NavLink>
+
+              {/* Macro Targets Button (Below Profile, Above Sign Out) */}
+              <button
+                onClick={() => {
+                  setDropdownOpen(false);
+                  openMacroCalculator();
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  color: '#00f0ff',
+                  fontSize: '0.875rem',
+                  width: '100%',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(0, 240, 255, 0.08)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                <Flame size={16} />
+                Macro Targets
+              </button>
 
               {/* Logout */}
               <button

@@ -3,7 +3,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Navbar from './Navbar';
 import Silk from './Silk';
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
+import MacroCalculatorModal from './MacroCalculatorModal';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
+import { useMacros } from '../context/MacroContext';
+import { useAuth } from '../context/AuthContext';
 import './Layout.css';
 
 const pageVariants = {
@@ -31,6 +34,8 @@ const pageVariants = {
 
 export default function Layout() {
     const location = useLocation();
+    const { user } = useAuth();
+    const { hasConfiguredMacros } = useMacros();
     const { isModalOpen, closeModal, toggleModal } = useKeyboardShortcuts();
 
     return (
@@ -55,6 +60,9 @@ export default function Layout() {
             </main>
 
             <KeyboardShortcutsModal isOpen={isModalOpen} onClose={closeModal} />
+            
+            {/* Onboarding gate on first login + modal for recalculations */}
+            <MacroCalculatorModal forceOpen={Boolean(user && !hasConfiguredMacros)} />
         </div>
     );
 }
