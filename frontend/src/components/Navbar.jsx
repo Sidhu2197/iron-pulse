@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Dumbbell, Utensils, BrainCircuit, Scale,
-  User, Flame, LogOut, ChevronDown, Keyboard,
+  User, Flame, LogOut, ChevronDown, Keyboard, Activity,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { usePlan } from '../context/PlanContext';
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { to: '/workout', label: 'Workout', icon: Dumbbell },
   { to: '/food-plan', label: 'Food Plan', icon: Utensils },
   { to: '/calorie-predictor', label: 'Calorie AI', icon: BrainCircuit },
+  { to: '/recovery', label: 'Recovery AI', icon: Activity },
   { to: '/bmi', label: 'BMI', icon: Scale },
 ];
 

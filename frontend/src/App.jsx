@@ -19,6 +19,7 @@ const FoodPlan = lazy(() => import('./pages/FoodPlan'));
 const Profile = lazy(() => import('./pages/Profile'));
 const BMICalculator = lazy(() => import('./pages/BMICalculator'));
 const CaloriePredictor = lazy(() => import('./pages/CaloriePredictor'));
+const RecoveryPredictor = lazy(() => import('./pages/RecoveryPredictor'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
 
@@ -51,6 +52,8 @@ export default function App() {
                                             <Route path="/bmi" element={<BMICalculator />} />
                                             <Route path="/calorie-predictor" element={<CaloriePredictor />} />
                                             <Route path="/calorie_predictor" element={<CaloriePredictor />} />
+                                            <Route path="/recovery" element={<RecoveryPredictor />} />
+                                            <Route path="/recovery-predictor" element={<RecoveryPredictor />} />
                                             <Route path="/profile" element={<Profile />} />
                                         </Route>
 

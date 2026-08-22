@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import './Landing.css';
 import PageReveal from '../components/PageReveal';
 import Silk from '../components/Silk';
-import { Flame, Dumbbell, Camera, Utensils, Zap } from 'lucide-react';
+import { Flame, Dumbbell, Sparkles, Utensils, Zap } from 'lucide-react';
 
 /* ── Floating ambient glow circles ────────────────────────── */
 function FloatingGlows() {
@@ -58,7 +58,7 @@ export default function Landing() {
                     </h1>
 
                     <p className="hero-subtitle">
-                        Personalized workouts, real-time posture correction, and intelligent
+                        Personalized workouts, AI calorie burn predictions, and intelligent
                         food tracking — all in one app.
                     </p>
 
@@ -80,9 +80,9 @@ export default function Landing() {
                     </div>
 
                     <div className="glass-card feature-card">
-                        <div className="feature-icon red"><Camera size={24} /></div>
-                        <h3>Live Posture Check</h3>
-                        <p>Real-time form correction using MediaPipe during your exercises.</p>
+                        <div className="feature-icon red"><Sparkles size={24} /></div>
+                        <h3>Calorie AI</h3>
+                        <p>Estimate calories burned accurately using your workout intensity and body metrics.</p>
                     </div>
 
                     <div className="glass-card feature-card">

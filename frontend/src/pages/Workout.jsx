@@ -5,9 +5,9 @@ import { logWorkout, fetchWorkouts } from '../api/auth';
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
 import './Workout.css';
-import { Dumbbell, Timer, Ruler, User, Activity, Scale, Cake, Flame, Calendar, BarChart2, Target, Zap, HeartPulse, Sprout, Camera, Sparkles, Rocket, AlertCircle, CheckCircle2, Sunrise, Moon, X } from 'lucide-react';
+import { Dumbbell, Timer, Ruler, User, Activity, Scale, Cake, Flame, Calendar, BarChart2, Target, Zap, HeartPulse, Sprout, Sparkles, Rocket, AlertCircle, CheckCircle2, Sunrise, Moon, X } from 'lucide-react';
 
-const TABS = ['Live Posture', 'Suggested Plan', 'Log Workout'];
+const TABS = ['Suggested Plan', 'Log Workout'];
 
 const EQUIPMENT_OPTIONS = [
     'No Equipment',
@@ -182,21 +182,6 @@ export default function Workout() {
     };
     const [logMsg, setLogMsg] = useState('');
     const [logError, setLogError] = useState('');
-
-    // Posture state
-    const [cameraActive, setCameraActive] = useState(false);
-
-    // Stop camera when switching away from Live Posture tab
-    useEffect(() => {
-        if (activeTab !== 'Live Posture' && cameraActive) {
-            const video = document.getElementById('posture-video');
-            if (video && video.srcObject) {
-                video.srcObject.getTracks().forEach(t => t.stop());
-                video.srcObject = null;
-            }
-            setCameraActive(false);
-        }
-    }, [activeTab]);
 
     // -- Wizard helpers --
     const currentStep = WIZARD_STEPS[wizardStep];
@@ -378,31 +363,6 @@ export default function Workout() {
         } finally {
             setLogLoading(false);
         }
-    };
-
-    // -- Posture handler --
-    const handleStartCamera = async () => {
-        setCameraActive(true);
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            const video = document.getElementById('posture-video');
-            if (video) {
-                video.srcObject = stream;
-                video.play();
-            }
-        } catch (err) {
-            setCameraActive(false);
-            alert('Camera access denied. Please allow camera permissions.');
-        }
-    };
-
-    const handleStopCamera = () => {
-        const video = document.getElementById('posture-video');
-        if (video && video.srcObject) {
-            video.srcObject.getTracks().forEach(t => t.stop());
-            video.srcObject = null;
-        }
-        setCameraActive(false);
     };
 
     // -- Render wizard step content --
@@ -687,7 +647,7 @@ export default function Workout() {
     return (
         <PageReveal className="workout-page">
             <h1>Workout</h1>
-            <p className="subtitle">Track exercises and check your form in real-time</p>
+            <p className="subtitle">Generate custom fitness plans and track your daily workouts</p>
 
             <div className="workout-tabs">
                 {TABS.map((tab) => (
@@ -988,38 +948,6 @@ export default function Workout() {
                                     </>
                                 )}
                             </div>
-                        )}
-                    </div>
-                )}
-
-                {/* ========== LIVE POSTURE ========== */}
-                {activeTab === 'Live Posture' && (
-                    <div className="glass-card posture-card">
-                        {!cameraActive ? (
-                            <>
-                                <div className="cam-placeholder">
-                                    <span className="cam-icon"><Camera size={32} /></span>
-                                    <p>Camera feed will appear here</p>
-                                    <p style={{ fontSize: 'var(--font-xs)', color: 'var(--text-muted)' }}>
-                                        Uses MediaPipe for real-time pose detection
-                                    </p>
-                                </div>
-                                <button className="btn-primary" onClick={handleStartCamera}>
-                                    Start Posture Check
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <div className="posture-video-wrapper">
-                                    <video id="posture-video" className="posture-video" autoPlay playsInline muted />
-                                    <div className="posture-overlay">
-                                        <span className="posture-status live"><Activity size={12} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> LIVE</span>
-                                    </div>
-                                </div>
-                                <button className="btn-secondary" onClick={handleStopCamera} style={{ marginTop: 'var(--space-md)' }}>
-                                    Stop Camera
-                                </button>
-                            </>
                         )}
                     </div>
                 )}

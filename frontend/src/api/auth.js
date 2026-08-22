@@ -329,6 +329,36 @@ export async function generateFoodPlan(credentials, { age, gender, height, weigh
     return data;
 }
 
+// ---- Recovery Score Prediction (ML Model) ----
+
+export async function predictRecoveryScore({ sleep_hours, resting_heart_rate, previous_workout_intensity, muscle_soreness, water_intake_liters }) {
+    const payload = {
+        sleep_hours: parseFloat(sleep_hours),
+        resting_heart_rate: parseInt(resting_heart_rate),
+        previous_workout_intensity: parseInt(previous_workout_intensity),
+        muscle_soreness: parseInt(muscle_soreness),
+        water_intake_liters: parseFloat(water_intake_liters),
+    };
+
+    const res = await fetch('/workout-service/predict_recovery_score', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+        let errorData;
+        try {
+            errorData = await res.json();
+        } catch {
+            throw new Error('Failed to predict recovery score from service');
+        }
+        throw new Error(errorData.detail?.[0]?.msg || errorData.message || 'Recovery prediction failed');
+    }
+
+    return await res.json();
+}
+
 // ---- Calorie Burn Prediction (ML Model) ----
 
 export async function predictCalories({ age, gender, weight_kg, height_cm, body_fat_pct, exercise_type, duration_min, heart_rate, intensity }) {
