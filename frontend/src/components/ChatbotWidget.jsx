@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import './ChatbotWidget.css';
-import { Bot, X, Send, Sparkles, MessageSquare, Minimize2, RefreshCw } from 'lucide-react';
+import { Bot, X, Send, Sparkles, Minimize2, GripHorizontal } from 'lucide-react';
 
 const QUICK_PROMPTS = [
     'Good morning!',
@@ -56,6 +57,7 @@ export default function ChatbotWidget() {
         },
     ]);
     const [isTyping, setIsTyping] = useState(false);
+    const widgetRef = useRef(null);
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -67,6 +69,31 @@ export default function ChatbotWidget() {
             scrollToBottom();
         }
     }, [messages, isOpen, isTyping]);
+
+    // Close on outside click or Escape key
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (widgetRef.current && !widgetRef.current.contains(e.target)) {
+                setIsOpen(false);
+            }
+        };
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                setIsOpen(false);
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            document.addEventListener('keydown', handleKeyDown);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isOpen]);
 
     const handleSendMessage = (textToSend) => {
         const text = textToSend || input;
@@ -94,7 +121,7 @@ export default function ChatbotWidget() {
             };
             setMessages((prev) => [...prev, botMsg]);
             setIsTyping(false);
-        }, 450);
+        }, 400);
     };
 
     const handleFormSubmit = (e) => {
@@ -103,120 +130,142 @@ export default function ChatbotWidget() {
     };
 
     return (
-        <div className="chatbot-widget-container">
-            {/* Floating Trigger Button */}
-            {!isOpen && (
-                <button
-                    className="chatbot-trigger-btn"
-                    onClick={() => setIsOpen(true)}
-                    title="Open IronPulse AI Assistant"
-                    aria-label="Open Chatbot"
-                >
-                    <Bot size={26} />
-                    <span className="trigger-pulse" />
-                    <span className="unread-badge">1</span>
-                </button>
-            )}
-
-            {/* Expandable Chat Window */}
-            {isOpen && (
-                <div className="chatbot-window glass-card animate-scale-up">
-                    {/* Header */}
-                    <div className="chatbot-header">
-                        <div className="header-info">
-                            <div className="bot-avatar">
-                                <Bot size={20} />
+        <div className="chatbot-widget-container" ref={widgetRef}>
+            {/* Expandable Draggable Chat Window */}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        key="chat-window"
+                        drag
+                        dragMomentum={false}
+                        dragElastic={0.05}
+                        initial={{ opacity: 0, scale: 0.8, y: 20, transformOrigin: 'bottom right' }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.8, y: 20 }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 320 }}
+                        className="chatbot-window glass-card draggable-window"
+                    >
+                        {/* Header (Drag Handle) */}
+                        <div className="chatbot-header drag-handle" title="Drag to move widget anywhere">
+                            <div className="header-info">
+                                <div className="bot-avatar">
+                                    <Bot size={20} />
+                                </div>
+                                <div>
+                                    <h3 className="bot-name">
+                                        IronPulse AI Assistant
+                                        <GripHorizontal size={14} className="drag-grip-icon" />
+                                    </h3>
+                                    <span className="bot-status"><span className="status-dot" /> Online</span>
+                                </div>
                             </div>
-                            <div>
-                                <h3 className="bot-name">IronPulse AI Assistant</h3>
-                                <span className="bot-status"><span className="status-dot" /> Online</span>
+
+                            <div className="header-actions">
+                                <button
+                                    className="icon-btn"
+                                    onClick={() => setIsOpen(false)}
+                                    title="Minimize"
+                                >
+                                    <Minimize2 size={16} />
+                                </button>
+                                <button
+                                    className="icon-btn"
+                                    onClick={() => setIsOpen(false)}
+                                    title="Close"
+                                >
+                                    <X size={16} />
+                                </button>
                             </div>
                         </div>
 
-                        <div className="header-actions">
-                            <button
-                                className="icon-btn"
-                                onClick={() => setIsOpen(false)}
-                                title="Minimize"
-                            >
-                                <Minimize2 size={16} />
-                            </button>
-                            <button
-                                className="icon-btn"
-                                onClick={() => setIsOpen(false)}
-                                title="Close"
-                            >
-                                <X size={16} />
-                            </button>
-                        </div>
-                    </div>
+                        {/* Messages Body */}
+                        <div className="chatbot-body">
+                            {messages.map((msg) => (
+                                <div
+                                    key={msg.id}
+                                    className={`chat-bubble-row ${msg.sender === 'user' ? 'user-row' : 'bot-row'}`}
+                                >
+                                    {msg.sender === 'bot' && (
+                                        <div className="bubble-avatar">
+                                            <Sparkles size={14} />
+                                        </div>
+                                    )}
+                                    <div className={`chat-bubble ${msg.sender === 'user' ? 'user-bubble' : 'bot-bubble'}`}>
+                                        <p>{msg.text}</p>
+                                        <span className="bubble-time">{msg.time}</span>
+                                    </div>
+                                </div>
+                            ))}
 
-                    {/* Messages Body */}
-                    <div className="chatbot-body">
-                        {messages.map((msg) => (
-                            <div
-                                key={msg.id}
-                                className={`chat-bubble-row ${msg.sender === 'user' ? 'user-row' : 'bot-row'}`}
-                            >
-                                {msg.sender === 'bot' && (
+                            {/* Typing Indicator */}
+                            {isTyping && (
+                                <div className="chat-bubble-row bot-row">
                                     <div className="bubble-avatar">
                                         <Sparkles size={14} />
                                     </div>
-                                )}
-                                <div className={`chat-bubble ${msg.sender === 'user' ? 'user-bubble' : 'bot-bubble'}`}>
-                                    <p>{msg.text}</p>
-                                    <span className="bubble-time">{msg.time}</span>
+                                    <div className="chat-bubble bot-bubble typing-bubble">
+                                        <span className="dot" />
+                                        <span className="dot" />
+                                        <span className="dot" />
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            )}
+                            <div ref={messagesEndRef} />
+                        </div>
 
-                        {/* Typing Indicator */}
-                        {isTyping && (
-                            <div className="chat-bubble-row bot-row">
-                                <div className="bubble-avatar">
-                                    <Sparkles size={14} />
-                                </div>
-                                <div className="chat-bubble bot-bubble typing-bubble">
-                                    <span className="dot" />
-                                    <span className="dot" />
-                                    <span className="dot" />
-                                </div>
-                            </div>
-                        )}
-                        <div ref={messagesEndRef} />
-                    </div>
+                        {/* Quick Prompts */}
+                        <div className="quick-prompts">
+                            {QUICK_PROMPTS.map((prompt, idx) => (
+                                <button
+                                    key={idx}
+                                    className="prompt-chip"
+                                    onClick={() => handleSendMessage(prompt)}
+                                >
+                                    {prompt}
+                                </button>
+                            ))}
+                        </div>
 
-                    {/* Quick Prompts */}
-                    <div className="quick-prompts">
-                        {QUICK_PROMPTS.map((prompt, idx) => (
+                        {/* Input Form */}
+                        <form onSubmit={handleFormSubmit} className="chatbot-input-form">
+                            <input
+                                type="text"
+                                placeholder="Type a message or greeting..."
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                            />
                             <button
-                                key={idx}
-                                className="prompt-chip"
-                                onClick={() => handleSendMessage(prompt)}
+                                type="submit"
+                                className="send-btn"
+                                disabled={!input.trim()}
+                                title="Send Message"
                             >
-                                {prompt}
+                                <Send size={18} />
                             </button>
-                        ))}
-                    </div>
+                        </form>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
-                    {/* Input Form */}
-                    <form onSubmit={handleFormSubmit} className="chatbot-input-form">
-                        <input
-                            type="text"
-                            placeholder="Type a message or greeting..."
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                        />
-                        <button
-                            type="submit"
-                            className="send-btn"
-                            disabled={!input.trim()}
-                            title="Send Message"
-                        >
-                            <Send size={18} />
-                        </button>
-                    </form>
-                </div>
+            {/* Floating Draggable Launcher Button */}
+            {!isOpen && (
+                <motion.button
+                    drag
+                    dragMomentum={false}
+                    dragElastic={0.05}
+                    className="chatbot-trigger-btn draggable-btn"
+                    onClick={() => setIsOpen(true)}
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.92 }}
+                    title="Drag to move or click to open assistant"
+                    aria-label="Open Chatbot"
+                >
+                    <div className="icon-wrapper">
+                        <Bot size={26} />
+                    </div>
+                    <span className="trigger-pulse" />
+                    <span className="unread-badge">1</span>
+                </motion.button>
             )}
         </div>
     );
