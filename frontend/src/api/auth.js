@@ -15,7 +15,7 @@ function getAuthHeader(credentials) {
 }
 
 function checkAuthError(res) {
-    if (res.status === 401) {
+    if (res.status === 401 || res.status === 403) {
         window.dispatchEvent(new Event('auth-expired'));
     }
     if (res.status === 429) {

@@ -81,7 +81,7 @@ public class SecurityConfig {
                                 "/api/forgot-password/**", "/api/auth/**", "/csrf-token", "/error")
                         .permitAll()
                         .requestMatchers("/api/calorie-predictions/predict", "/api/calorie-predictions/health",
-                                "/api/calorie-predictions/exercises", "/api/foods/**")
+                                "/api/calorie-predictions/exercises", "/api/foods/**", "/api/food-plan/**")
                         .permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/**.html", "/**.css", "/**.js").permitAll()

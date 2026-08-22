@@ -1,0 +1,12 @@
+# Embedded microservices / sub-repositories to ignore
+Rule-Based-Workout-Planner/
+
+# Build targets & dependencies
+backend/target/
+frontend/dist/
+frontend/node_modules/
+
+# Environment & logs
+*.log
+.DS_Store
+Thumbs.db
