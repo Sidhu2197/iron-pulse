@@ -122,8 +122,9 @@ export async function verifyEmail(token) {
 // ---- Dashboard ----
 
 export async function fetchDashboard(credentials) {
-    const res = await fetch(`${API_BASE}/dashboard`, {
+    const res = await fetch(`${API_BASE}/dashboard?_t=${Date.now()}`, {
         headers: { ...getAuthHeader(credentials) },
+        cache: 'no-store',
     });
     checkAuthError(res);
     if (!res.ok) throw new Error('Failed to fetch dashboard');

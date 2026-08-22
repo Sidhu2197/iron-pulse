@@ -54,20 +54,58 @@ export default function Dashboard() {
     const totalBurned = dashData?.total_calories_burned ?? 0;
     const workoutCount = dashData?.workout_count ?? 0;
     const totalEaten = dashData?.total_calories_eaten ?? 0;
-    const barData = (dashData?.weekly_workouts && dashData.weekly_workouts.length > 0)
-        ? dashData.weekly_workouts.map((d) => ({
-            day: d.day,
-            date: d.date,
-            Suggested: d.Suggested ?? 500,
-            Actual: d.Actual ?? 0,
-            Workouts: d.Workouts ?? 0,
-        }))
-        : Array.from({ length: 7 }, (_, i) => {
-            const date = new Date();
-            date.setDate(date.getDate() - (6 - i));
-            const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-            return { day: dayName, Suggested: 500, Actual: 0, Workouts: 0 };
+    const barData = (() => {
+        // 1. If backend returned weekly_workouts with data
+        const hasBackendWeeklyData = dashData?.weekly_workouts && dashData.weekly_workouts.some(d => (d.Actual > 0 || d.Eaten > 0 || d.Workouts > 0));
+        if (hasBackendWeeklyData) {
+            return dashData.weekly_workouts.map((d) => ({
+                day: d.day,
+                date: d.date,
+                Suggested: d.Suggested ?? 500,
+                Actual: d.Actual ?? 0,
+                Eaten: d.Eaten ?? 0,
+                Workouts: d.Workouts ?? 0,
+            }));
+        }
+
+        // 2. Fallback: Dynamically aggregate last 7 days from recentWorkouts and recentMeals lists
+        const workoutCalMap = {};
+        const workoutCountMap = {};
+        const mealCalMap = {};
+
+        (recentWorkouts || []).forEach((w) => {
+            const dateStr = (w.date || new Date().toISOString()).split('T')[0];
+            const cal = Number(w.calories_burned || 0);
+            workoutCalMap[dateStr] = (workoutCalMap[dateStr] || 0) + cal;
+            workoutCountMap[dateStr] = (workoutCountMap[dateStr] || 0) + 1;
         });
+
+        (recentMeals || []).forEach((m) => {
+            const dateStr = (m.date || new Date().toISOString()).split('T')[0];
+            const cal = Number(m.calories || 0);
+            mealCalMap[dateStr] = (mealCalMap[dateStr] || 0) + cal;
+        });
+
+        const today = new Date();
+        const days = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(today.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+
+            days.push({
+                day: dayName,
+                date: dateStr,
+                Suggested: 500,
+                Actual: workoutCalMap[dateStr] || 0,
+                Eaten: Math.round(mealCalMap[dateStr] || 0),
+                Workouts: workoutCountMap[dateStr] || 0,
+            });
+        }
+
+        return days;
+    })();
 
     // Net Calories calculation
     const netCalories = totalEaten - totalBurned;
@@ -192,37 +230,42 @@ export default function Dashboard() {
                             </div>
                         </div>
 
-                        <div style={{ width: '100%', height: 320, minWidth: 0 }}>
-                            <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={barData} barGap={6} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                                    <XAxis dataKey="day" stroke="#64748b" fontSize={12} axisLine={false} tickLine={false} dy={10} />
-                                    <YAxis stroke="#64748b" fontSize={12} axisLine={false} tickLine={false} dx={-10} />
+                        <div style={{ width: '100%', height: 320, minWidth: 0, position: 'relative' }}>
+                            <ResponsiveContainer key={chartMode} width="100%" height="100%">
+                                <BarChart data={barData} barGap={6} barCategoryGap="20%" margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#00f0ff" stopOpacity={1}/>
+                                            <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.8}/>
+                                        </linearGradient>
+                                        <linearGradient id="colorEaten" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#f59e0b" stopOpacity={1}/>
+                                            <stop offset="100%" stopColor="#d97706" stopOpacity={0.8}/>
+                                        </linearGradient>
+                                        <linearGradient id="colorWorkouts" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
+                                            <stop offset="100%" stopColor="#059669" stopOpacity={0.8}/>
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                    <XAxis dataKey="day" stroke="#94a3b8" fontSize={12} axisLine={false} tickLine={false} dy={10} />
+                                    <YAxis stroke="#94a3b8" fontSize={12} axisLine={false} tickLine={false} dx={-5} />
                                     <Tooltip
-                                        cursor={{ fill: 'rgba(255,255,255,0.03)' }}
-                                        contentStyle={{ background: '#0a0c10', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, boxShadow: 'var(--shadow-md)' }}
+                                        cursor={{ fill: 'rgba(255,255,255,0.04)' }}
+                                        contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, boxShadow: 'var(--shadow-md)' }}
                                         itemStyle={{ fontFamily: 'var(--font-mono)', fontSize: '0.875rem' }}
                                         labelStyle={{ color: '#f1f5f9', fontFamily: 'var(--font-body)', fontWeight: 'bold', marginBottom: '0.5rem' }}
                                     />
                                     <Legend wrapperStyle={{ paddingTop: '20px', fontSize: '0.875rem', color: 'var(--text-muted)' }} />
                                     {chartMode === 'calories' ? (
                                         <>
-                                            <Bar dataKey="Suggested" fill="rgba(255, 255, 255, 0.08)" radius={[6, 6, 0, 0]} />
-                                            <Bar dataKey="Actual" fill="url(#colorActual)" radius={[6, 6, 0, 0]} />
+                                            <Bar dataKey="Suggested" name="Target (500 cal)" fill="rgba(255, 255, 255, 0.12)" radius={[6, 6, 0, 0]} />
+                                            <Bar dataKey="Actual" name="Burned Cal" fill="url(#colorActual)" radius={[6, 6, 0, 0]} />
+                                            <Bar dataKey="Eaten" name="Food Cal" fill="url(#colorEaten)" radius={[6, 6, 0, 0]} />
                                         </>
                                     ) : (
-                                        <Bar dataKey="Workouts" fill="url(#colorWorkouts)" radius={[6, 6, 0, 0]} />
+                                        <Bar dataKey="Workouts" name="Workouts Count" fill="url(#colorWorkouts)" radius={[6, 6, 0, 0]} />
                                     )}
-                                    <defs>
-                                        <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="var(--accent-cyan)" stopOpacity={1}/>
-                                            <stop offset="100%" stopColor="#7c3aed" stopOpacity={0.7}/>
-                                        </linearGradient>
-                                        <linearGradient id="colorWorkouts" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor="#10b981" stopOpacity={1}/>
-                                            <stop offset="100%" stopColor="#059669" stopOpacity={0.7}/>
-                                        </linearGradient>
-                                    </defs>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>

@@ -46,9 +46,9 @@ public class HttpCacheConfig implements WebMvcConfigurer {
                 return true;
             }
 
-            // Dashboard — private, short cache
+            // Dashboard — dynamic user summary, no cache
             if (path.startsWith("/api/dashboard")) {
-                response.setHeader("Cache-Control", "private, max-age=120");
+                response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
                 return true;
             }
 
