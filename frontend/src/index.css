@@ -258,6 +258,18 @@ input[type="number"] {
   appearance: textfield !important;
 }
 
+/* Dropdown menu dark background styling */
+select option {
+  background-color: #0b1329 !important;
+  color: #f8fafc !important;
+  padding: 10px 14px;
+}
+
+select option:disabled {
+  color: #64748b !important;
+  background-color: #080d1e !important;
+}
+
 /* ================================================================
    Scrollbar (hidden)
    ================================================================ */

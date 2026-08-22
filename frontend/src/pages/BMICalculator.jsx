@@ -105,15 +105,14 @@ export default function BMICalculator() {
     const gaugePercent = result ? Math.min(100, Math.max(0, ((result.bmi - 10) / 30) * 100)) : 0;
 
     return (
-        <PageReveal className="ml-container page-enter" style={{ minHeight: '100vh', padding: '2rem 1.5rem' }}>
-            <div className="bmi-header">
-                <h1>BMI Calculator</h1>
-                <p className="subtitle">Body Mass Index estimate based on height and weight</p>
-            </div>
+        <PageReveal className="bmi-page">
+            <h1>BMI Calculator</h1>
+            <p className="subtitle">Calculate your Body Mass Index</p>
 
-            <div className="bmi-grid bmi-layout">
+            <div className="bmi-layout">
                 {/* Form Card */}
                 <div className="glass-card bmi-form-card">
+                    <h3><BarChart2 size={20} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px' }} /> Enter Your Details</h3>
                     <form onSubmit={handleCalculate} noValidate>
                         <div className="input-group">
                             <label htmlFor="bmi-age">Age</label>

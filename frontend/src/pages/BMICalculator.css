@@ -1,68 +1,42 @@
-.bmi-header {
-    margin-bottom: 2.5rem;
-}
-
-.bmi-header h1 {
-    font-size: 2.25rem;
-    font-weight: 800;
-    margin-bottom: 0.75rem;
-    color: var(--text-primary);
-}
-
-.bmi-header .subtitle {
-    color: var(--text-muted);
-    font-size: 1.05rem;
-    line-height: 1.5;
+.bmi-page {
+    animation: fadeIn 0.5s ease;
 }
 
 .bmi-page > h1 {
-    font-size: 2.25rem;
-    font-weight: 800;
-    margin-bottom: 0.75rem;
+    font-size: var(--font-2xl);
+    font-weight: 700;
+    margin-bottom: 4px;
 }
 
 .bmi-page > .subtitle {
-    color: var(--text-muted);
-    font-size: 1.05rem;
-    margin-bottom: 2.5rem;
+    color: var(--text-accent);
+    font-size: var(--font-sm);
+    margin-bottom: var(--space-xl);
 }
 
-.bmi-layout,
-.bmi-grid {
+.bmi-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+    gap: var(--space-lg);
     align-items: start;
 }
 
 /* Form Card */
 .bmi-form-card {
-    padding: 2rem;
+    padding: var(--space-xl);
 }
 
 .bmi-form-card h3 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 1.75rem;
+    font-size: var(--font-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-lg);
 }
 
 .bmi-form-card .input-group {
-    margin-bottom: 1.6rem;
+    margin-bottom: var(--space-md);
 }
 
-.bmi-form-card .input-group label {
-    font-size: 0.95rem;
-    font-weight: 600;
-    margin-bottom: 0.6rem;
-    display: inline-block;
-}
-
-.bmi-form-card .input-field {
-    min-height: 48px;
-    font-size: 1rem;
-}
-
-/* Dark-themed select dropdown */
+/* Dark-themed select dropdown and options */
 .bmi-form-card select {
     appearance: none;
     -webkit-appearance: none;
@@ -70,24 +44,17 @@
     background: transparent;
     color: var(--text-primary);
     cursor: pointer;
-    padding-right: 28px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8.5L1 3.5h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 8px center;
 }
 
 .bmi-form-card select option {
-    background: #0e1224;
-    color: var(--text-primary);
-    padding: 10px;
-}
-
-.bmi-form-card select option:checked {
-    background: rgba(0, 240, 255, 0.15);
+    background-color: #0b1329;
+    color: #f8fafc;
+    padding: 10px 14px;
 }
 
 .bmi-form-card select option:disabled {
-    color: var(--text-muted);
+    color: #64748b;
+    background-color: #080d1e;
 }
 
 .bmi-unit {
@@ -129,6 +96,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    font-size: 3rem;
     margin-bottom: var(--space-md);
     animation: float 3s ease-in-out infinite;
     color: var(--accent-cyan);
