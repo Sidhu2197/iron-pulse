@@ -231,16 +231,8 @@ export async function generateWorkoutPlan(credentials, payload) {
         heart_rate: payload.heart_rate ? parseInt(payload.heart_rate) : null,
     };
 
-    // --- Active: Direct Local FastAPI Microservice via Vite Proxy ---
-    const res = await fetch('/workout-service/generate-workout-plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody),
-    });
-
-    /* 
-    // --- Spring Boot Backend Endpoint (Uncomment when Spring Boot POST /api/workouts/plan/generate is ready) ---
-    const res = await fetch(`${API_BASE}/workouts/plan/generate`, {
+    // --- Active: Spring Boot Backend Endpoint ---
+    let res = await fetch(`${API_BASE}/workouts/plan/generate`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -248,14 +240,25 @@ export async function generateWorkoutPlan(credentials, payload) {
         },
         body: JSON.stringify(requestBody),
     });
-    */
+
+    if (res.status === 404) {
+        res = await fetch(`${API_BASE}/workouts/generate-plan`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...getAuthHeader(credentials),
+            },
+            body: JSON.stringify(requestBody),
+        });
+    }
     
     if (!res.ok) {
+        checkAuthError(res);
         let errorData;
         try {
             errorData = await res.json();
         } catch {
-            throw new Error('Failed to generate workout plan from service');
+            throw new Error('Failed to generate workout plan from backend service');
         }
         throw new Error(errorData.detail?.[0]?.msg || errorData.message || 'Workout plan generation failed');
     }
