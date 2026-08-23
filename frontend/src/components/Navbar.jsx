@@ -60,21 +60,29 @@ export default function Navbar({ onOpenShortcuts }) {
   }, [location.pathname]);
 
   useEffect(() => {
-    // Use rAF for smooth measurement after layout
+    // Measure layout immediately and across transition steps
+    updatePill();
+    const t1 = setTimeout(updatePill, 50);
+    const t2 = setTimeout(updatePill, 150);
+    const t3 = setTimeout(updatePill, 300);
+    const t4 = setTimeout(updatePill, 450);
+
+    // Re-measure on resize
     const measure = () => {
       rafRef.current = requestAnimationFrame(() => {
         updatePill();
       });
     };
-    measure();
-
-    // Re-measure on resize
     window.addEventListener('resize', measure);
     return () => {
       window.removeEventListener('resize', measure);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
     };
-  }, [updatePill]);
+  }, [isScrolled, updatePill, location.pathname]);
 
   /* ── Close dropdown on outside click ─────────────────── */
   const dropdownRef = useRef(null);
@@ -134,7 +142,7 @@ export default function Navbar({ onOpenShortcuts }) {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
-    padding: '8px 14px',
+    padding: isScrolled ? '8px 12px' : '8px 14px',
     borderRadius: '9999px',
     fontSize: '0.875rem',
     fontWeight: isActive ? 600 : 500,
@@ -142,12 +150,12 @@ export default function Navbar({ onOpenShortcuts }) {
     textDecoration: 'none',
     position: 'relative',
     zIndex: 2,
-    transition: 'color 0.25s ease',
+    transition: 'color 0.25s ease, padding 0.3s ease',
   });
 
   return (
     <div style={navOuter}>
-      <nav style={navInner}>
+      <nav className={`nav-inner ${isScrolled ? 'nav-compressed' : ''}`} style={navInner}>
         {/* ── Brand ─────────────────────────────── */}
         <NavLink
           to="/dashboard"
@@ -170,17 +178,19 @@ export default function Navbar({ onOpenShortcuts }) {
               filter: 'drop-shadow(0 0 8px rgba(0, 240, 255, 0.4))',
             }}
           />
-          <span>Iron Pulse</span>
+          <span className="brand-text">Iron Pulse</span>
         </NavLink>
 
         {/* ── Nav Links with sliding pill ──────── */}
         <div
           ref={navContainerRef}
+          className="nav-links-wrap"
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '2px',
+            gap: isScrolled ? '12px' : '6px',
             position: 'relative',
+            transition: 'gap 0.3s ease',
           }}
         >
           {/* Sliding pill background */}
@@ -209,23 +219,29 @@ export default function Navbar({ onOpenShortcuts }) {
               <NavLink
                 key={to}
                 to={to}
+                title={label}
+                aria-label={label}
+                className="nav-item-link"
                 ref={(el) => { linkRefs.current[to] = el; }}
                 style={({ isActive }) => linkStyle(isActive)}
               >
-                <Icon size={16} />
+                <Icon size={18} />
                 <span className="nav-label">{label}</span>
                 {isGenerating && (
                   <span
                     title="Generating plan in background..."
                     style={{
-                      width: 8,
-                      height: 8,
+                      position: 'absolute',
+                      top: '4px',
+                      right: '4px',
+                      width: 7,
+                      height: 7,
                       borderRadius: '50%',
                       backgroundColor: '#10b981',
-                      boxShadow: '0 0 10px #10b981',
+                      boxShadow: '0 0 8px #10b981',
                       animation: 'pulse 1s infinite alternate',
-                      marginLeft: 4,
-                      display: 'inline-block',
+                      pointerEvents: 'none',
+                      zIndex: 3,
                     }}
                   />
                 )}
@@ -408,10 +424,24 @@ export default function Navbar({ onOpenShortcuts }) {
       </div>
     </nav>
 
-      {/* ── Responsive mobile styles ────────── */}
+      {/* ── Responsive mobile & compressed styles ────────── */}
       <style>{`
-        @media (max-width: 768px) {
-          .nav-label { display: none; }
+        @media (max-width: 960px) {
+          .nav-label { display: none !important; }
+          .nav-links-wrap { gap: 12px !important; }
+          .nav-item-link { padding: 8px 12px !important; }
+        }
+        .nav-compressed .nav-label {
+          display: none !important;
+        }
+        .nav-compressed .nav-links-wrap {
+          gap: 12px !important;
+        }
+        .nav-compressed .nav-item-link {
+          padding: 8px 12px !important;
+        }
+        @media (max-width: 520px) {
+          .brand-text { display: none !important; }
         }
       `}</style>
     </div>

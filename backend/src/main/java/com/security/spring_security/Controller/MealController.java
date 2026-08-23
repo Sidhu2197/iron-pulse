@@ -90,7 +90,8 @@ public class MealController {
     }
 
     @GetMapping("/summary")
-    public ResponseEntity<Map<String, Object>> getSummary(Authentication authentication) {
+    public ResponseEntity<Map<String, Object>> getSummary(Authentication authentication,
+                                                           @RequestParam(value = "date", required = false) String date) {
         if (authentication == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Collections.emptyMap());
         }
@@ -101,7 +102,7 @@ public class MealController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Collections.emptyMap());
         }
 
-        Map<String, Object> summary = mealService.getTodaySummary(user.getId());
+        Map<String, Object> summary = mealService.getTodaySummary(user.getId(), date);
         return ResponseEntity.ok(summary);
     }
 }

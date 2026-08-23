@@ -179,7 +179,11 @@ export default function MacroCalculatorModal({ forceOpen = false, onClose }) {
                   type="number"
                   placeholder="e.g. 25"
                   value={formData.age}
-                  onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, age: e.target.value.slice(0, 2) })}
+                  onKeyDown={(e) => {
+                    if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
+                    if (e.target.value.length >= 2 && /^[0-9]$/.test(e.key)) e.preventDefault();
+                  }}
                   min="10"
                   max="120"
                   autoFocus
@@ -198,7 +202,11 @@ export default function MacroCalculatorModal({ forceOpen = false, onClose }) {
                   type="number"
                   placeholder="Height e.g. 175"
                   value={formData.height}
-                  onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, height: e.target.value.slice(0, 3) })}
+                  onKeyDown={(e) => {
+                    if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
+                    if (e.target.value.length >= 3 && /^[0-9]$/.test(e.key)) e.preventDefault();
+                  }}
                   min="50"
                   max="250"
                   autoFocus
@@ -212,7 +220,11 @@ export default function MacroCalculatorModal({ forceOpen = false, onClose }) {
                   type="number"
                   placeholder="Weight e.g. 70"
                   value={formData.weight}
-                  onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, weight: e.target.value.slice(0, 3) })}
+                  onKeyDown={(e) => {
+                    if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
+                    if (e.target.value.length >= 3 && /^[0-9]$/.test(e.key)) e.preventDefault();
+                  }}
                   min="20"
                   max="300"
                 />

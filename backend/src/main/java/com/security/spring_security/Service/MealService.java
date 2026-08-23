@@ -34,9 +34,14 @@ public class MealService {
     @Autowired
     private com.security.spring_security.dao.UserRepo userRepo;
 
-    public Map<String, Object> getTodaySummary(int userId) {
-        String today = LocalDate.now().toString();
-        List<Meal> todayMeals = repo.findByUserIdAndDate(userId, today);
+    public Map<String, Object> getTodaySummary(int userId, String dateParam) {
+        String targetDate = (dateParam != null && !dateParam.isBlank()) ? dateParam : LocalDate.now().toString();
+        List<Meal> todayMeals = repo.findByUserIdAndDate(userId, targetDate);
+
+        // Fallback: If no meals found for client date, check server local date
+        if (todayMeals.isEmpty() && !targetDate.equals(LocalDate.now().toString())) {
+            todayMeals = repo.findByUserIdAndDate(userId, LocalDate.now().toString());
+        }
 
         double totalCalories = todayMeals.stream().mapToDouble(Meal::getCalories).sum();
         double totalProtein = todayMeals.stream().mapToDouble(Meal::getProtein).sum();
@@ -71,5 +76,9 @@ public class MealService {
         summary.put("carbs", carb);
 
         return summary;
+    }
+
+    public Map<String, Object> getTodaySummary(int userId) {
+        return getTodaySummary(userId, null);
     }
 }

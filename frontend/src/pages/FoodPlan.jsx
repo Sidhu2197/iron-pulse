@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usePlan } from '../context/PlanContext';
 import { useMacros } from '../context/MacroContext';
-import { searchFoods, logMeal, fetchMeals, fetchMealSummary } from '../api/auth';
+import { searchFoods, logMeal, fetchMeals, fetchMealSummary, getLocalDateString } from '../api/auth';
 import './FoodPlan.css';
 import AccessibleButton from '../components/AccessibleButton';
 import { Search, Ruler, User, Scale, Cake, Flame, Target, Utensils, Leaf, Zap, Sunrise, Sun, Moon, Sparkles, CheckCircle2, AlertCircle, Trash2, X } from 'lucide-react';
@@ -75,14 +75,30 @@ export default function FoodPlan() {
 
     const updateMacrosOptimistically = (cal, prot, fat) => {
         setMacros((prev) => {
-            if (!prev) return prev;
+            const base = prev || {
+                calories: { current: 0, target: calTarget },
+                protein: { current: 0, target: proTarget },
+                fats: { current: 0, target: fatTarget },
+            };
             return {
-                ...prev,
-                calories: { ...prev.calories, current: Math.round((prev.calories?.current || 0) + Number(cal || 0)) },
-                protein: { ...prev.protein, current: Math.round((prev.protein?.current || 0) + Number(prot || 0)) },
-                fats: { ...prev.fats, current: Math.round((prev.fats?.current || 0) + Number(fat || 0)) },
+                ...base,
+                calories: { ...base.calories, current: Math.round((base.calories?.current || 0) + Number(cal || 0)) },
+                protein: { ...base.protein, current: Math.round((base.protein?.current || 0) + Number(prot || 0)) },
+                fats: { ...base.fats, current: Math.round((base.fats?.current || 0) + Number(fat || 0)) },
             };
         });
+    };
+
+    const addMealOptimistically = (foodName, cal, prot, fat) => {
+        const tempMeal = {
+            id: 'temp_' + Date.now(),
+            food_name: foodName,
+            calories: Number(cal || 0),
+            protein: Number(prot || 0),
+            fats: Number(fat || 0),
+            date: getLocalDateString(),
+        };
+        setMeals((prev) => [tempMeal, ...(prev || [])]);
     };
 
     const handleLogGeneratedItem = async (item, index) => {
@@ -90,6 +106,7 @@ export default function FoodPlan() {
         setSuccessMsg('');
         setErrorMsg('');
         updateMacrosOptimistically(item.calories, item.protein, item.fats);
+        addMealOptimistically(item.food_name, item.calories, item.protein, item.fats);
         try {
             await logMeal(token, {
                 food_name: item.food_name,
@@ -101,7 +118,7 @@ export default function FoodPlan() {
             setSuccessMsg(`Logged ${item.food_name}!`);
             await loadData();
         } catch (err) {
-            setErrorMsg(err.message);
+            setErrorMsg(sanitizeErrorMessage(err.message, 'Meal Service'));
             await loadData();
         } finally {
             setLoggingItemIndex(null);
@@ -112,18 +129,46 @@ export default function FoodPlan() {
         if (!token) return;
         setLoading(true);
         try {
-            const [summary, mealList] = await Promise.all([
+            const [summaryRes, mealsRes] = await Promise.allSettled([
                 fetchMealSummary(token),
                 fetchMeals(token),
             ]);
-            setMacros(summary);
-            setMeals(mealList);
+
+            let mealList = [];
+            if (mealsRes.status === 'fulfilled' && Array.isArray(mealsRes.value)) {
+                mealList = mealsRes.value;
+                setMeals(mealList);
+            }
+
+            let summaryData = summaryRes.status === 'fulfilled' ? summaryRes.value : null;
+
+            // If summary returns zero current macros but mealList has today's meals, compute totals directly
+            const todayStr = getLocalDateString();
+            const todayMeals = mealList.filter((m) => {
+                if (!m.date) return false;
+                const d = getLocalDateString(m.date);
+                return d === todayStr;
+            });
+
+            const totalCal = todayMeals.reduce((sum, m) => sum + (Number(m.calories) || 0), 0);
+            const totalPro = todayMeals.reduce((sum, m) => sum + (Number(m.protein) || 0), 0);
+            const totalFat = todayMeals.reduce((sum, m) => sum + (Number(m.fats) || 0), 0);
+
+            if (summaryData && (summaryData.calories?.current > 0 || todayMeals.length === 0)) {
+                setMacros(summaryData);
+            } else {
+                setMacros({
+                    calories: { current: totalCal, target: calTarget },
+                    protein: { current: totalPro, target: proTarget },
+                    fats: { current: totalFat, target: fatTarget },
+                });
+            }
         } catch (err) {
-            console.error(err);
+            console.error('Error loading FoodPlan data:', err);
         } finally {
             setLoading(false);
         }
-    }, [token]);
+    }, [token, calTarget, proTarget, fatTarget]);
 
     // Load data on mount
     useEffect(() => {
@@ -156,6 +201,7 @@ export default function FoodPlan() {
         setSuccessMsg('');
         setErrorMsg('');
         updateMacrosOptimistically(food.calories, food.protein, food.fats);
+        addMealOptimistically(food.food_name, food.calories, food.protein, food.fats);
         try {
             await logMeal(token, {
                 food_name: food.food_name,
@@ -168,7 +214,7 @@ export default function FoodPlan() {
             setResults([]);
             await loadData();
         } catch (err) {
-            setErrorMsg(err.message);
+            setErrorMsg(sanitizeErrorMessage(err.message, 'Meal Service'));
             await loadData();
         }
     };
@@ -271,8 +317,16 @@ export default function FoodPlan() {
                             type="number"
                             placeholder={placeholder}
                             value={val}
-                            onChange={(e) => setWizardData({ ...wizardData, [step.key]: e.target.value })}
-                            onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
+                            onChange={(e) => {
+                                const maxLen = step.key === 'age' ? 2 : 3;
+                                const inputVal = e.target.value.slice(0, maxLen);
+                                setWizardData({ ...wizardData, [step.key]: inputVal });
+                            }}
+                            onKeyDown={(e) => {
+                                if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
+                                const maxLen = step.key === 'age' ? 2 : 3;
+                                if (e.target.value.length >= maxLen && /^[0-9]$/.test(e.key)) e.preventDefault();
+                            }}
                             min={minVal}
                             max={maxVal}
                             autoFocus
@@ -581,27 +635,38 @@ export default function FoodPlan() {
             </div>
 
             {/* Today's Meals */}
-            <div className="glass-card meals-card">
-                <h3>Today's Meals ({meals.length})</h3>
-                {meals.length === 0 ? (
-                    <div className="meals-empty">
-                        <p>No meals logged yet. Start by searching a food above!</p>
-                    </div>
-                ) : (
-                    <div className="meals-list">
-                        {meals.map((meal) => (
-                            <div key={meal.id} className="meal-item">
-                                <div className="meal-name">{meal.food_name}</div>
-                                <div className="meal-stats">
-                                    <span className="meal-cal">{meal.calories} cal</span>
-                                    <span>P: {meal.protein}g</span>
-                                    <span>F: {meal.fats}g</span>
-                                </div>
+            {(() => {
+                const todayStr = getLocalDateString();
+                const todayMeals = meals.filter((m) => {
+                    if (!m.date) return false;
+                    const d = getLocalDateString(m.date);
+                    return d === todayStr;
+                });
+
+                return (
+                    <div className="glass-card meals-card">
+                        <h3>Today's Meals ({todayMeals.length})</h3>
+                        {todayMeals.length === 0 ? (
+                            <div className="meals-empty">
+                                <p>No meals logged today yet. Start by searching a food above!</p>
                             </div>
-                        ))}
+                        ) : (
+                            <div className="meals-list">
+                                {todayMeals.map((meal) => (
+                                    <div key={meal.id} className="meal-item">
+                                        <div className="meal-name">{meal.food_name}</div>
+                                        <div className="meal-stats">
+                                            <span className="meal-cal">{meal.calories} cal</span>
+                                            <span>P: {meal.protein}g</span>
+                                            <span>F: {meal.fats}g</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
+                );
+            })()}
         </div>
     );
 }

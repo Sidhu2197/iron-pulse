@@ -149,8 +149,9 @@ export async function logWorkout(credentials, { workout_name, duration, calories
 }
 
 export async function fetchWorkouts(credentials) {
-    const res = await fetch(`${API_BASE}/workouts`, {
+    const res = await fetch(`${API_BASE}/workouts?_t=${Date.now()}`, {
         headers: { ...getAuthHeader(credentials) },
+        cache: 'no-store',
     });
     checkAuthError(res);
     if (!res.ok) throw new Error('Failed to fetch workouts');
@@ -268,6 +269,50 @@ export async function generateWorkoutPlan(credentials, payload) {
 
 // ---- Food / Meals ----
 
+export function sanitizeErrorMessage(msg, serviceName = 'Server') {
+    if (!msg || typeof msg !== 'string') {
+        return `Could not connect to ${serviceName}.`;
+    }
+    const lower = msg.toLowerCase();
+    if (
+        lower.includes('org.springframework') ||
+        lower.includes('throwablewrapper') ||
+        lower.includes('exception') ||
+        lower.includes('connectionrefused') ||
+        lower.includes('failed to fetch') ||
+        lower.includes('internal server error') ||
+        lower.includes('jedis') ||
+        lower.includes('redis') ||
+        lower.includes('hibernate') ||
+        /^[a-zA-Z0-9_.]+\.[a-zA-Z0-9_$]+:/.test(msg)
+    ) {
+        return `Could not connect to ${serviceName}.`;
+    }
+    return msg;
+}
+
+export function getLocalDateString(d = new Date()) {
+    if (!d) d = new Date();
+    if (typeof d === 'string') {
+        const trimmed = d.trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+            return trimmed;
+        }
+        if (trimmed.length >= 10 && /^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+            return trimmed.substring(0, 10);
+        }
+    }
+    const date = (d instanceof Date) ? d : new Date(d);
+    if (isNaN(date.getTime())) {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 export async function searchFoods(query, credentials) {
     const res = await fetch(`${API_BASE}/foods/search?q=${encodeURIComponent(query)}`, {
         headers: { ...getAuthHeader(credentials) },
@@ -278,13 +323,14 @@ export async function searchFoods(query, credentials) {
 }
 
 export async function logMeal(credentials, { food_name, calories, protein, fats, date }) {
+    const localDate = date || getLocalDateString();
     const res = await fetch(`${API_BASE}/meals`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             ...getAuthHeader(credentials),
         },
-        body: JSON.stringify({ food_name, calories, protein, fats, date }),
+        body: JSON.stringify({ food_name, calories, protein, fats, date: localDate }),
     });
     checkAuthError(res);
     const data = await res.json();
@@ -302,8 +348,9 @@ export async function fetchMeals(credentials) {
     return await res.json();
 }
 
-export async function fetchMealSummary(credentials) {
-    const res = await fetch(`${API_BASE}/meals/summary?_t=${Date.now()}`, {
+export async function fetchMealSummary(credentials, date) {
+    const localDate = date || getLocalDateString();
+    const res = await fetch(`${API_BASE}/meals/summary?date=${localDate}&_t=${Date.now()}`, {
         headers: { ...getAuthHeader(credentials) },
         cache: 'no-store',
     });

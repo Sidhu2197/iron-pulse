@@ -120,9 +120,12 @@ export default function BMICalculator() {
                                 <span className="icon"><Cake size={20} /></span>
                                 <input ref={ageRef} id="bmi-age" type="number" placeholder="25"
                                     value={form.age}
-                                    onChange={update('age')}
-                                    onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
-                                    min="10" max="120"
+                                    onChange={(e) => setForm((prev) => ({ ...prev, age: e.target.value.slice(0, 2) }))}
+                                    onKeyDown={(e) => {
+                                        if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
+                                        if (e.target.value.length >= 2 && /^[0-9]$/.test(e.key)) e.preventDefault();
+                                    }}
+                                    min="10" max="99"
                                     aria-invalid={getFieldClass('age') === 'invalid'}
                                     required />
                                 <span className="bmi-unit">years</span>
@@ -153,8 +156,11 @@ export default function BMICalculator() {
                                 <span className="icon"><Ruler size={20} /></span>
                                 <input ref={heightRef} id="bmi-height" type="number" placeholder="175"
                                     value={form.height}
-                                    onChange={update('height')}
-                                    onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, height: e.target.value.slice(0, 3) }))}
+                                    onKeyDown={(e) => {
+                                        if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
+                                        if (e.target.value.length >= 3 && /^[0-9]$/.test(e.key)) e.preventDefault();
+                                    }}
                                     min="50" max="250"
                                     aria-invalid={getFieldClass('height') === 'invalid'}
                                     required />
@@ -171,8 +177,11 @@ export default function BMICalculator() {
                                 <span className="icon"><Scale size={20} /></span>
                                 <input ref={weightRef} id="bmi-weight" type="number" placeholder="70"
                                     value={form.weight}
-                                    onChange={update('weight')}
-                                    onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, weight: e.target.value.slice(0, 3) }))}
+                                    onKeyDown={(e) => {
+                                        if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
+                                        if (e.target.value.length >= 3 && /^[0-9]$/.test(e.key)) e.preventDefault();
+                                    }}
                                     min="20" max="300"
                                     aria-invalid={getFieldClass('weight') === 'invalid'}
                                     required />

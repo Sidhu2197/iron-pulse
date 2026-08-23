@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useMacros } from '../context/MacroContext';
-import { fetchDashboard, fetchWorkouts, fetchMeals } from '../api/auth';
+import { fetchDashboard, fetchWorkouts, fetchMeals, getLocalDateString } from '../api/auth';
 import PageReveal from '../components/PageReveal';
 import {
     BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -32,26 +32,32 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [chartMode, setChartMode] = useState('calories'); // 'calories' | 'workouts'
 
-    useEffect(() => {
-        if (token) {
-            Promise.allSettled([
-                fetchDashboard(token),
-                fetchWorkouts(token),
-                fetchMeals(token),
-            ])
-                .then(([dashRes, workRes, mealRes]) => {
-                    if (dashRes.status === 'fulfilled') setDashData(dashRes.value);
-                    if (workRes.status === 'fulfilled' && Array.isArray(workRes.value)) {
-                        setRecentWorkouts(workRes.value.slice(-4).reverse());
-                    }
-                    if (mealRes.status === 'fulfilled' && Array.isArray(mealRes.value)) {
-                        setRecentMeals(mealRes.value.slice(-4).reverse());
-                    }
-                })
-                .finally(() => setLoading(false));
-        } else {
+    const loadDashboardData = () => {
+        if (!token) {
             setLoading(false);
+            return;
         }
+        Promise.allSettled([
+            fetchDashboard(token),
+            fetchWorkouts(token),
+            fetchMeals(token),
+        ])
+            .then(([dashRes, workRes, mealRes]) => {
+                if (dashRes.status === 'fulfilled') setDashData(dashRes.value);
+                if (workRes.status === 'fulfilled' && Array.isArray(workRes.value)) {
+                    setRecentWorkouts(workRes.value);
+                }
+                if (mealRes.status === 'fulfilled' && Array.isArray(mealRes.value)) {
+                    setRecentMeals(mealRes.value);
+                }
+            })
+            .finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        loadDashboardData();
+        window.addEventListener('workout-logged', loadDashboardData);
+        return () => window.removeEventListener('workout-logged', loadDashboardData);
     }, [token]);
 
     const name = user?.username || 'Champ';
@@ -78,14 +84,14 @@ export default function Dashboard() {
         const mealCalMap = {};
 
         (recentWorkouts || []).forEach((w) => {
-            const dateStr = (w.date || new Date().toISOString()).split('T')[0];
+            const dateStr = getLocalDateString(w.date || new Date());
             const cal = Number(w.calories_burned || 0);
             workoutCalMap[dateStr] = (workoutCalMap[dateStr] || 0) + cal;
             workoutCountMap[dateStr] = (workoutCountMap[dateStr] || 0) + 1;
         });
 
         (recentMeals || []).forEach((m) => {
-            const dateStr = (m.date || new Date().toISOString()).split('T')[0];
+            const dateStr = getLocalDateString(m.date || new Date());
             const cal = Number(m.calories || 0);
             mealCalMap[dateStr] = (mealCalMap[dateStr] || 0) + cal;
         });
@@ -95,7 +101,7 @@ export default function Dashboard() {
         for (let i = 6; i >= 0; i--) {
             const d = new Date();
             d.setDate(today.getDate() - i);
-            const dateStr = d.toISOString().split('T')[0];
+            const dateStr = getLocalDateString(d);
             const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
 
             days.push({
@@ -316,7 +322,7 @@ export default function Dashboard() {
                                     </div>
                                 ) : (
                                     <div className="activity-list">
-                                        {recentWorkouts.map((w, idx) => (
+                                        {recentWorkouts.slice(-4).reverse().map((w, idx) => (
                                             <div key={w.id || idx} className="activity-item">
                                                 <div className="activity-item-icon red">
                                                     <Flame size={16} />
@@ -346,7 +352,7 @@ export default function Dashboard() {
                                     </div>
                                 ) : (
                                     <div className="activity-list">
-                                        {recentMeals.map((m, idx) => (
+                                        {recentMeals.slice(-4).reverse().map((m, idx) => (
                                             <div key={m.id || idx} className="activity-item">
                                                 <div className="activity-item-icon amber">
                                                     <Utensils size={16} />

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useRef } from 'react';
 import Toast from '../components/Toast/Toast';
+import { sanitizeErrorMessage } from '../api/auth';
 
 const ToastContext = createContext(null);
 
@@ -10,8 +11,9 @@ export function ToastProvider({ children }) {
   const toastsRef = useRef([]);
 
   const show = useCallback(({ type = 'info', message, duration = 4000 }) => {
+    const cleanMessage = type === 'error' ? sanitizeErrorMessage(message) : (message ? sanitizeErrorMessage(message) : message);
     const id = ++toastId;
-    const toast = { id, type, message, duration };
+    const toast = { id, type, message: cleanMessage, duration };
     toastsRef.current = [...toastsRef.current, toast];
     setToasts([...toastsRef.current]);
 

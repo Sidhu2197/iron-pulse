@@ -224,7 +224,7 @@ export default function CaloriePredictor() {
 
     return (
         <PageReveal className="calorie-predictor-page">
-            <div style={{ marginBottom: '1.5rem' }}>
+            <div className="calorie-header">
                 <h1>Calorie AI</h1>
                 <p className="subtitle">Estimate calories burned based on exercise intensity and user metrics</p>
             </div>
@@ -306,9 +306,12 @@ export default function CaloriePredictor() {
                                 <div className={`input-field ${getFieldClass('age')}`}>
                                     <span className="icon"><Cake size={20} /></span>
                                     <input ref={ageRef} type="number" placeholder="25" value={form.age}
-                                        onChange={(e) => updateField('age', e.target.value)}
-                                        onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
-                                        min="10" max="120"
+                                        onChange={(e) => updateField('age', e.target.value.slice(0, 2))}
+                                        onKeyDown={(e) => {
+                                            if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
+                                            if (e.target.value.length >= 2 && /^[0-9]$/.test(e.key)) e.preventDefault();
+                                        }}
+                                        min="10" max="99"
                                         aria-invalid={getFieldClass('age') === 'invalid'}
                                         required />
                                 </div>
@@ -338,8 +341,11 @@ export default function CaloriePredictor() {
                                 <div className={`input-field ${getFieldClass('weight_kg')}`}>
                                     <span className="icon"><Scale size={20} /></span>
                                     <input ref={weightRef} type="number" placeholder="70" value={form.weight_kg}
-                                        onChange={(e) => updateField('weight_kg', e.target.value)}
-                                        onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
+                                        onChange={(e) => updateField('weight_kg', e.target.value.slice(0, 3))}
+                                        onKeyDown={(e) => {
+                                            if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
+                                            if (e.target.value.length >= 3 && /^[0-9]$/.test(e.key)) e.preventDefault();
+                                        }}
                                         min="20" max="300"
                                         aria-invalid={getFieldClass('weight_kg') === 'invalid'}
                                         required />
@@ -355,8 +361,11 @@ export default function CaloriePredictor() {
                                 <div className={`input-field ${getFieldClass('height_cm')}`}>
                                     <span className="icon"><Ruler size={20} /></span>
                                     <input ref={heightRef} type="number" placeholder="170" value={form.height_cm}
-                                        onChange={(e) => updateField('height_cm', e.target.value)}
-                                        onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
+                                        onChange={(e) => updateField('height_cm', e.target.value.slice(0, 3))}
+                                        onKeyDown={(e) => {
+                                            if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
+                                            if (e.target.value.length >= 3 && /^[0-9]$/.test(e.key)) e.preventDefault();
+                                        }}
                                         min="50" max="250"
                                         aria-invalid={getFieldClass('height_cm') === 'invalid'}
                                         required />

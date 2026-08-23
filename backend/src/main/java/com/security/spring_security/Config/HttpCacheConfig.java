@@ -58,9 +58,9 @@ public class HttpCacheConfig implements WebMvcConfigurer {
                 return true;
             }
 
-            // Workouts and meals — private, short cache
+            // Workouts and meals — private, no cache
             if (path.startsWith("/api/workouts") || path.startsWith("/api/meals")) {
-                response.setHeader("Cache-Control", "private, max-age=60");
+                response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
                 return true;
             }
 

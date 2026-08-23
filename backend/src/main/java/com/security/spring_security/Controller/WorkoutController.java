@@ -30,7 +30,7 @@ public class WorkoutController {
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> logWorkout(Authentication authentication,
-                                                           @RequestBody Map<String, Object> body) {
+            @RequestBody Map<String, Object> body) {
         Map<String, Object> response = new HashMap<>();
         if (authentication == null) {
             response.put("success", false);
@@ -93,7 +93,7 @@ public class WorkoutController {
 
     @PostMapping("/plan/generate")
     public ResponseEntity<Map<String, Object>> generateWorkoutPlan(Authentication authentication,
-                                                                   @RequestBody Map<String, Object> userProfile) {
+            @RequestBody Map<String, Object> userProfile) {
         Map<String, Object> response = new HashMap<>();
         if (authentication == null) {
             response.put("success", false);

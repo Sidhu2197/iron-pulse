@@ -6,39 +6,23 @@
 }
 
 .calorie-header {
-    margin-bottom: 2.5rem;
+    margin-bottom: 0;
 }
 
 .calorie-header h1 {
-    font-size: 2.25rem;
-    font-weight: 800;
-    margin-bottom: 0.75rem;
-    background: linear-gradient(135deg, #10b981, #34d399, #6ee7b7);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-size: 24px;
+    font-weight: 700;
+    font-family: "DM Sans", sans-serif;
+    color: #F1F5F9;
+    margin: 0px 0px 4px 0px;
 }
 
 .calorie-header .subtitle {
-    color: var(--text-muted);
-    font-size: 1.05rem;
+    font-size: 14px;
+    font-family: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #00F0FF;
+    margin: 0px 0px 32px 0px;
     line-height: 1.5;
-}
-
-.calorie-predictor-page>h1 {
-    font-size: 2.25rem;
-    font-weight: 800;
-    margin-bottom: 0.75rem;
-    background: linear-gradient(135deg, #10b981, #34d399, #6ee7b7);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.calorie-predictor-page>.subtitle {
-    color: var(--text-muted);
-    font-size: 1.05rem;
-    margin-bottom: 2.5rem;
 }
 
 .ml-health-status {

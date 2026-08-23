@@ -1,5 +1,6 @@
 package com.security.spring_security.Exceptions;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -12,6 +13,25 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private String getServiceNameFromRequest(HttpServletRequest request) {
+        if (request == null || request.getRequestURI() == null) {
+            return "Server";
+        }
+        String uri = request.getRequestURI().toLowerCase();
+        if (uri.contains("/meals") || uri.contains("/foods")) {
+            return "Meal Service";
+        } else if (uri.contains("/workouts")) {
+            return "Workout Service";
+        } else if (uri.contains("/calorie")) {
+            return "Calorie AI Service";
+        } else if (uri.contains("/recovery")) {
+            return "Recovery AI Service";
+        } else if (uri.contains("/auth") || uri.contains("/login") || uri.contains("/register") || uri.contains("/verify")) {
+            return "Authentication Service";
+        }
+        return "Server";
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -32,10 +52,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
+    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex, HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);
-        // Only expose safe messages, not internal details
         String message = ex.getMessage();
         if (message != null && (message.contains("account with this email") ||
                 message.contains("User not found") ||
@@ -43,16 +62,18 @@ public class GlobalExceptionHandler {
                 message.contains("already exists"))) {
             response.put("message", message);
         } else {
-            response.put("message", "Request failed. Please try again.");
+            String serviceName = getServiceNameFromRequest(request);
+            response.put("message", "Could not connect to " + serviceName + ".");
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
+    @ExceptionHandler(Throwable.class)
+    public ResponseEntity<Map<String, Object>> handleGenericException(Throwable ex, HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);
-        response.put("message", "An unexpected error occurred. Please try again.");
+        String serviceName = getServiceNameFromRequest(request);
+        response.put("message", "Could not connect to " + serviceName + ".");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 }

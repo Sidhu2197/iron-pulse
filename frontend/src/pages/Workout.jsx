@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usePlan } from '../context/PlanContext';
-import { logWorkout, fetchWorkouts } from '../api/auth';
+import { useToast } from '../context/ToastContext';
+import { logWorkout, fetchWorkouts, getLocalDateString, sanitizeErrorMessage } from '../api/auth';
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
 import './Workout.css';
@@ -94,9 +95,17 @@ const WIZARD_STEPS = [
 
 export default function Workout() {
     const { token } = useAuth();
+    const { show: showToast } = useToast();
     const { workoutPlan: plan, workoutPlanLoading: planLoading, workoutPlanError: planError, triggerGenerateWorkoutPlan } = usePlan();
     const [activeTab, setActiveTab] = useState('Suggested Plan');
-    const [selectedPlanDay, setSelectedPlanDay] = useState('Monday');
+    const [selectedPlanDay, setSelectedPlanDay] = useState('Day 1');
+
+    // Sync selected day when plan updates
+    useEffect(() => {
+        if (plan?.weekly_plan?.length > 0) {
+            setSelectedPlanDay(plan.weekly_plan[0].day);
+        }
+    }, [plan]);
 
     // Confirm Overwrite State
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -131,51 +140,118 @@ export default function Workout() {
     const [workoutSuccessMsg, setWorkoutSuccessMsg] = useState('');
     const [workoutErrorMsg, setWorkoutErrorMsg] = useState('');
 
-    // Fetch previously logged workouts on mount to prevent duplicate logging
+    const normalizeDay = (day) => {
+        if (!day) return '';
+        const d = String(day).trim().toLowerCase();
+        if (d.startsWith('mon')) return 'Monday';
+        if (d.startsWith('tue')) return 'Tuesday';
+        if (d.startsWith('wed')) return 'Wednesday';
+        if (d.startsWith('thu')) return 'Thursday';
+        if (d.startsWith('fri')) return 'Friday';
+        if (d.startsWith('sat')) return 'Saturday';
+        if (d.startsWith('sun')) return 'Sunday';
+        return day;
+    };
+
+    const getExerciseKey = (day, index, name) => `${normalizeDay(day)}_${index}_${name}`;
+
+    // Fetch previously logged workouts on mount/plan change to match logged items for current plan
     useEffect(() => {
-        if (!token) return;
+        if (!token || !plan?.weekly_plan) return;
         fetchWorkouts(token).then((res) => {
             if (Array.isArray(res)) {
-                const todayStr = new Date().toISOString().split('T')[0];
-                const loggedToday = {};
-                res.forEach((w) => {
-                    const wDate = (w.date || '').split('T')[0];
-                    if (wDate === todayStr && w.workout_name) {
-                        loggedToday[w.workout_name] = true;
+                const todayStr = getLocalDateString();
+                const loggedToday = res.filter((w) => getLocalDateString(w.date) === todayStr);
+                const loggedMap = {};
+
+                const todayWeekday = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+
+                loggedToday.forEach((w) => {
+                    // Try matching today's plan day first
+                    let targetDays = plan.weekly_plan.filter(
+                        (d) => normalizeDay(d.day) === normalizeDay(todayWeekday)
+                    );
+                    if (targetDays.length === 0) {
+                        targetDays = plan.weekly_plan;
+                    }
+
+                    let matched = false;
+                    for (const dayObj of targetDays) {
+                        if (Array.isArray(dayObj.exercises)) {
+                            const idx = dayObj.exercises.findIndex(
+                                (ex, i) => ex.name === w.workout_name && !loggedMap[getExerciseKey(dayObj.day, i, ex.name)]
+                            );
+                            if (idx !== -1) {
+                                loggedMap[getExerciseKey(dayObj.day, idx, w.workout_name)] = true;
+                                matched = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Fallback to all days if not matched in today's day
+                    if (!matched) {
+                        for (const dayObj of plan.weekly_plan) {
+                            if (Array.isArray(dayObj.exercises)) {
+                                const idx = dayObj.exercises.findIndex(
+                                    (ex, i) => ex.name === w.workout_name && !loggedMap[getExerciseKey(dayObj.day, i, ex.name)]
+                                );
+                                if (idx !== -1) {
+                                    loggedMap[getExerciseKey(dayObj.day, idx, w.workout_name)] = true;
+                                    break;
+                                }
+                            }
+                        }
                     }
                 });
-                setLoggedExerciseKeys((prev) => ({ ...prev, ...loggedToday }));
+                setLoggedExerciseKeys((prev) => ({ ...prev, ...loggedMap }));
             }
         }).catch((err) => console.warn('Error fetching logged workouts:', err));
-    }, [token]);
+    }, [token, plan]);
+
+    const parseSafeInt = (val, fallback = 100) => {
+        if (typeof val === 'number' && !isNaN(val)) return Math.round(val);
+        if (typeof val === 'string') {
+            const parsed = parseInt(val.replace(/[^0-9]/g, ''), 10);
+            if (!isNaN(parsed) && parsed > 0) return parsed;
+        }
+        return fallback;
+    };
 
     const handleLogExercise = async (ex, dayName, index) => {
-        const key = `${dayName}_${index}_${ex.name}`;
-        if (loggedExerciseKeys[key] || loggedExerciseKeys[ex.name]) {
-            return; // Exercise already logged today
-        }
-        setLoggingExKey(key);
-        setWorkoutSuccessMsg('');
-        setWorkoutErrorMsg('');
+        const normDay = normalizeDay(dayName);
+        const key = getExerciseKey(normDay, index, ex.name);
 
-        const calBurned = parseInt(ex.estimated_calories) || 100;
-        const durationMins = parseInt(plan?.workout_duration_minutes) || 30;
+        // Instant optimistic update for immediate visual feedback
+        setLoggedExerciseKeys((prev) => ({ ...prev, [key]: true }));
+        setLoggingExKey(key);
+        const msg = `Logged ${ex.name} for ${normDay}!`;
+        setWorkoutSuccessMsg(msg);
+        setWorkoutErrorMsg('');
+        showToast({ type: 'success', message: msg });
+
+        const calBurned = parseSafeInt(ex?.estimated_calories || ex?.calories, 100);
+        const durationMins = parseSafeInt(plan?.workout_duration_minutes || ex?.duration, 30);
 
         try {
             await logWorkout(token, {
                 workout_name: ex.name,
                 duration: durationMins,
                 calories_burned: calBurned,
-                date: new Date().toISOString().split('T')[0],
+                date: getLocalDateString(),
             });
-            setLoggedExerciseKeys((prev) => ({ 
-                ...prev, 
-                [key]: true,
-                [ex.name]: true 
-            }));
-            setWorkoutSuccessMsg(`Logged ${ex.name}!`);
+            window.dispatchEvent(new Event('workout-logged'));
         } catch (err) {
-            setWorkoutErrorMsg(err.message || 'Failed to log workout');
+            // Rollback optimistic state on error
+            setLoggedExerciseKeys((prev) => {
+                const copy = { ...prev };
+                delete copy[key];
+                return copy;
+            });
+            setWorkoutSuccessMsg('');
+            const errMsg = sanitizeErrorMessage(err.message, 'Workout Service');
+            setWorkoutErrorMsg(errMsg);
+            showToast({ type: 'error', message: errMsg });
         } finally {
             setLoggingExKey(null);
         }
@@ -320,6 +396,9 @@ export default function Workout() {
     // -- Generate plan from wizard data --
     const handleGeneratePlan = () => {
         setWizardActive(false);
+        setLoggedExerciseKeys({});
+        setWorkoutSuccessMsg('');
+        setWorkoutErrorMsg('');
         triggerGenerateWorkoutPlan(token, {
             age: parseInt(wizardData.age),
             weight: parseFloat(wizardData.weight),
@@ -353,13 +432,16 @@ export default function Workout() {
                 workout_name: logForm.workout_name,
                 duration: parseInt(logForm.duration),
                 calories_burned: parseInt(logForm.calories_burned),
-                date: logForm.date || new Date().toISOString().split('T')[0],
+                date: logForm.date || getLocalDateString(),
             });
             setLoggedExerciseKeys((prev) => ({ ...prev, [logForm.workout_name]: true }));
             setLogMsg('Workout logged successfully!');
+            showToast({ type: 'success', message: `Logged ${logForm.workout_name}!` });
             setLogForm({ workout_name: '', duration: '', calories_burned: '', date: '' });
+            window.dispatchEvent(new Event('workout-logged'));
         } catch (err) {
             setLogError(err.message);
+            showToast({ type: 'error', message: err.message });
         } finally {
             setLogLoading(false);
         }
@@ -390,8 +472,16 @@ export default function Workout() {
                             type="number"
                             placeholder={placeholder}
                             value={val}
-                            onChange={(e) => setWizardData({ ...wizardData, [step.key]: e.target.value })}
-                            onKeyDown={(e) => ['e', 'E', '+', '-', '.'].includes(e.key) && e.preventDefault()}
+                            onChange={(e) => {
+                                const maxLen = step.key === 'age' ? 2 : 3;
+                                const inputVal = e.target.value.slice(0, maxLen);
+                                setWizardData({ ...wizardData, [step.key]: inputVal });
+                            }}
+                            onKeyDown={(e) => {
+                                if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
+                                const maxLen = step.key === 'age' ? 2 : 3;
+                                if (e.target.value.length >= maxLen && /^[0-9]$/.test(e.key)) e.preventDefault();
+                            }}
                             min={minVal}
                             max={maxVal}
                             autoFocus
@@ -721,9 +811,9 @@ export default function Workout() {
                         {/* Header */}
                         <div className="suggested-plan-header">
                             <h3><Dumbbell size={22} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} /> Create Suggested Plan</h3>
-                            <AccessibleButton 
-                                className="create-plan-btn" 
-                                onClick={handleCreatePlanClick} 
+                            <AccessibleButton
+                                className="create-plan-btn"
+                                onClick={handleCreatePlanClick}
                                 disabled={planLoading}
                                 disabledReason="Generating workout plan..."
                             >
@@ -806,7 +896,8 @@ export default function Workout() {
                                                     ) : (
                                                         <div className="plan-exercises">
                                                             {activeDay.exercises.map((ex, i) => {
-                                                                const isLogged = loggedExerciseKeys[`${activeDay.day}_${i}_${ex.name}`] || loggedExerciseKeys[ex.name];
+                                                                const exKey = getExerciseKey(activeDay.day, i, ex.name);
+                                                                const isLogged = Boolean(loggedExerciseKeys[exKey]);
                                                                 return (
                                                                     <div key={i} className="exercise-card-detailed">
                                                                         <div className="exercise-card-header">
@@ -817,41 +908,41 @@ export default function Workout() {
                                                                                 type="button"
                                                                                 className={`log-workout-item-btn ${isLogged ? 'logged' : ''}`}
                                                                                 onClick={() => handleLogExercise(ex, activeDay.day, i)}
-                                                                                disabled={loggingExKey === `${activeDay.day}_${i}_${ex.name}` || isLogged}
+                                                                                disabled={loggingExKey === exKey || isLogged}
                                                                             >
-                                                                                {loggingExKey === `${activeDay.day}_${i}_${ex.name}` ? 'Logging...' : isLogged ? '✓ Logged' : '+ Log Workout'}
+                                                                                {loggingExKey === exKey ? 'Logging...' : isLogged ? '✓ Logged' : '+ Log Workout'}
                                                                             </button>
                                                                         </div>
-                                                                    <div className="exercise-card-body">
-                                                                        <div className="exercise-spec-grid">
-                                                                            <div className="spec-item">
-                                                                                <span className="spec-label">Sets</span>
-                                                                                <span className="spec-val">{ex.sets}</span>
+                                                                        <div className="exercise-card-body">
+                                                                            <div className="exercise-spec-grid">
+                                                                                <div className="spec-item">
+                                                                                    <span className="spec-label">Sets</span>
+                                                                                    <span className="spec-val">{ex.sets}</span>
+                                                                                </div>
+                                                                                <div className="spec-item">
+                                                                                    <span className="spec-label">Reps</span>
+                                                                                    <span className="spec-val">{ex.reps}</span>
+                                                                                </div>
+                                                                                <div className="spec-item">
+                                                                                    <span className="spec-label">Rest</span>
+                                                                                    <span className="spec-val">{ex.rest}</span>
+                                                                                </div>
+                                                                                <div className="spec-item">
+                                                                                    <span className="spec-label">Target</span>
+                                                                                    <span className="spec-val">{ex.target_muscle}</span>
+                                                                                </div>
+                                                                                <div className="spec-item">
+                                                                                    <span className="spec-label">Burn</span>
+                                                                                    <span className="spec-val accent">{ex.estimated_calories}</span>
+                                                                                </div>
                                                                             </div>
-                                                                            <div className="spec-item">
-                                                                                <span className="spec-label">Reps</span>
-                                                                                <span className="spec-val">{ex.reps}</span>
-                                                                            </div>
-                                                                            <div className="spec-item">
-                                                                                <span className="spec-label">Rest</span>
-                                                                                <span className="spec-val">{ex.rest}</span>
-                                                                            </div>
-                                                                            <div className="spec-item">
-                                                                                <span className="spec-label">Target</span>
-                                                                                <span className="spec-val">{ex.target_muscle}</span>
-                                                                            </div>
-                                                                            <div className="spec-item">
-                                                                                <span className="spec-label">Burn</span>
-                                                                                <span className="spec-val accent">{ex.estimated_calories}</span>
-                                                                            </div>
+                                                                            {ex.description && (
+                                                                                <p className="exercise-desc">{ex.description}</p>
+                                                                            )}
                                                                         </div>
-                                                                        {ex.description && (
-                                                                            <p className="exercise-desc">{ex.description}</p>
-                                                                        )}
                                                                     </div>
-                                                                </div>
-                                                            );
-                                                        })}
+                                                                );
+                                                            })}
                                                         </div>
                                                     )}
                                                 </div>
@@ -993,9 +1084,9 @@ export default function Workout() {
                                 </div>
                             </div>
                             <div className="full-width">
-                                <AccessibleButton 
-                                    className="btn-primary" 
-                                    type="submit" 
+                                <AccessibleButton
+                                    className="btn-primary"
+                                    type="submit"
                                     disabled={logLoading}
                                     disabledReason="Logging workout..."
                                 >
