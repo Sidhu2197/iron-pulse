@@ -4,6 +4,7 @@ import com.security.spring_security.Model.User;
 import com.security.spring_security.Model.UserCacheDTO;
 import com.security.spring_security.Model.Workout;
 import com.security.spring_security.Service.UserService;
+import com.security.spring_security.Service.WorkoutPlanService;
 import com.security.spring_security.Service.WorkoutService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,9 @@ public class WorkoutController {
 
     @Autowired
     private WorkoutService workoutService;
+
+    @Autowired
+    private WorkoutPlanService workoutPlanService;
 
     @Autowired
     private UserService userService;
@@ -85,5 +89,27 @@ public class WorkoutController {
             result.add(map);
         }
         return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/plan/generate")
+    public ResponseEntity<Map<String, Object>> generateWorkoutPlan(Authentication authentication,
+                                                                   @RequestBody Map<String, Object> userProfile) {
+        Map<String, Object> response = new HashMap<>();
+        if (authentication == null) {
+            response.put("success", false);
+            response.put("message", "Not authenticated");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+
+        try {
+            Map<String, Object> workoutPlan = workoutPlanService.generateWorkoutPlan(userProfile);
+            response.put("success", true);
+            response.put("data", workoutPlan);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to generate workout plan: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 }

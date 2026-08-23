@@ -39,9 +39,9 @@ export default function RecoveryPredictor() {
 
         try {
             const data = await predictRecoveryScore(form);
-            const score = typeof data.predicted_recovery_score === 'number' 
-                ? data.predicted_recovery_score 
-                : parseFloat(data.predicted_recovery_score || 0);
+            const score = typeof data.recovery_score === 'number' 
+                ? data.recovery_score 
+                : parseFloat(data.recovery_score || 0);
 
             setResultScore(score);
 

@@ -11,7 +11,7 @@ const getStoredWorkoutPlan = () => {
     if (!saved) return null;
     const { plan, timestamp } = JSON.parse(saved);
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-    if (Date.now() - timestamp < SEVEN_DAYS_MS && plan) {
+    if (Date.now() - timestamp < SEVEN_DAYS_MS && plan?.weekly_plan) {
       return plan;
     }
     return null;
@@ -133,7 +133,7 @@ export function PlanProvider({ children }) {
         if (saved) {
           const { plan, timestamp } = JSON.parse(saved);
           const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-          if (Date.now() - timestamp < SEVEN_DAYS_MS && plan) {
+          if (Date.now() - timestamp < SEVEN_DAYS_MS && plan?.weekly_plan) {
             setWorkoutPlan(plan);
             return plan;
           }
@@ -148,10 +148,12 @@ export function PlanProvider({ children }) {
     setWorkoutPlanError('');
     try {
       const data = await generateWorkoutPlan(authToken, payload);
-      setWorkoutPlan(data);
+      // Backend wraps the plan in { success, data } — unwrap so components get { weekly_plan, ... }
+      const planData = data?.weekly_plan ? data : (data?.data?.weekly_plan ? data.data : data);
+      setWorkoutPlan(planData);
       try {
         localStorage.setItem('iron_workout_plan', JSON.stringify({
-          plan: data,
+          plan: planData,
           timestamp: Date.now(),
         }));
       } catch (e) {

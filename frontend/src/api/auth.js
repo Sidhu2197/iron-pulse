@@ -340,9 +340,11 @@ export async function predictRecoveryScore({ sleep_hours, resting_heart_rate, pr
         water_intake_liters: parseFloat(water_intake_liters),
     };
 
-    const res = await fetch('/workout-service/predict_recovery_score', {
+    const res = await fetch(`${API_BASE}/recovery/predict`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+        },
         body: JSON.stringify(payload),
     });
 
@@ -353,8 +355,15 @@ export async function predictRecoveryScore({ sleep_hours, resting_heart_rate, pr
         } catch {
             throw new Error('Failed to predict recovery score from service');
         }
-        throw new Error(errorData.detail?.[0]?.msg || errorData.message || 'Recovery prediction failed');
+        throw new Error(errorData.message || 'Recovery prediction failed');
     }
+    
+    const data = await res.json();
+    if (!data.success) {
+        throw new Error(data.message || 'Recovery prediction failed');
+    }
+    
+    return data.data;
 
     return await res.json();
 }
