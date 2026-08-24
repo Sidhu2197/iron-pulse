@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usePlan } from '../context/PlanContext';
 import { useToast } from '../context/ToastContext';
@@ -6,7 +6,7 @@ import { logWorkout, getLocalDateString, sanitizeErrorMessage } from '../api/aut
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
 import './Workout.css';
-import { Dumbbell, Timer, Ruler, User, Activity, Scale, Cake, Flame, Calendar, BarChart2, Target, Zap, HeartPulse, Sprout, Sparkles, Rocket, AlertCircle, CheckCircle2, X, ExternalLink } from 'lucide-react';
+import { Dumbbell, Timer, Ruler, User, Activity, Scale, Cake, Flame, Calendar, BarChart2, Target, Zap, HeartPulse, Sprout, Sparkles, Rocket, AlertCircle, CheckCircle2, Sunrise, Moon, X, ExternalLink } from 'lucide-react';
 
 const TABS = ['Suggested Plan', 'Log Workout'];
 
@@ -368,18 +368,60 @@ export default function Workout() {
         });
     };
 
-    // Wizard Keyboard Shortcuts (Enter -> Next, Esc -> Close)
+    const workoutWizardCardRef = useRef(null);
+
+    // Auto focus active input/button on workout wizard step change
+    useEffect(() => {
+        if (!wizardActive) return;
+        const timer = setTimeout(() => {
+            if (workoutWizardCardRef.current) {
+                const firstFocusable = workoutWizardCardRef.current.querySelector('input:not([disabled]), button:not([disabled]):not(.wizard-dot)');
+                if (firstFocusable) firstFocusable.focus();
+            }
+        }, 50);
+        return () => clearTimeout(timer);
+    }, [wizardActive, wizardStep]);
+
+    // Wizard Keyboard Shortcuts (Enter -> Next, Esc -> Close, Tab -> Trap Focus)
     useEffect(() => {
         if (!wizardActive) return;
         const handleWizardKeyDown = (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                e.stopPropagation();
-                if (canGoNext()) {
-                    if (wizardStep < WIZARD_STEPS.length - 1) {
-                        setWizardStep((prev) => prev + 1);
+            if (e.key === 'Tab' && workoutWizardCardRef.current) {
+                const focusables = Array.from(
+                    workoutWizardCardRef.current.querySelectorAll(
+                        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                    )
+                );
+                if (focusables.length > 0) {
+                    const firstEl = focusables[0];
+                    const lastEl = focusables[focusables.length - 1];
+
+                    if (e.shiftKey) {
+                        if (document.activeElement === firstEl || !workoutWizardCardRef.current.contains(document.activeElement)) {
+                            e.preventDefault();
+                            lastEl.focus();
+                        }
                     } else {
-                        handleGeneratePlan();
+                        if (document.activeElement === lastEl || !workoutWizardCardRef.current.contains(document.activeElement)) {
+                            e.preventDefault();
+                            firstEl.focus();
+                        }
+                    }
+                }
+                return;
+            }
+
+            if (e.key === 'Enter') {
+                const activeTag = document.activeElement ? document.activeElement.tagName : '';
+                if (activeTag !== 'BUTTON') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (canGoNext()) {
+                        if (wizardStep < WIZARD_STEPS.length - 1) {
+                            setWizardStep((prev) => prev + 1);
+                        } else {
+                            handleGeneratePlan();
+                        }
                     }
                 }
             } else if (e.key === 'Escape') {
@@ -753,7 +795,7 @@ export default function Workout() {
             {/* Wizard overlay — rendered outside glass-card to avoid stacking context issues */}
             {wizardActive && (
                 <div className="wizard-overlay">
-                    <div className="wizard-card glass-card">
+                    <div ref={workoutWizardCardRef} className="wizard-card glass-card">
                         {/* Progress bar */}
                         <div className="wizard-progress">
                             {WIZARD_STEPS.map((s, i) => (

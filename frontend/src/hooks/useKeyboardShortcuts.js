@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMacros } from '../context/MacroContext';
 
 export function useKeyboardShortcuts() {
   const navigate = useNavigate();
+  const { openMacroCalculator } = useMacros();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const toggleModal = () => setIsModalOpen((prev) => !prev);
@@ -60,6 +62,10 @@ export function useKeyboardShortcuts() {
             e.preventDefault();
             navigate('/food-plan');
             break;
+          case 'm':
+            e.preventDefault();
+            openMacroCalculator();
+            break;
           case 'c':
             e.preventDefault();
             navigate('/calorie-predictor');
@@ -84,7 +90,7 @@ export function useKeyboardShortcuts() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [navigate, isModalOpen]);
+  }, [navigate, isModalOpen, openMacroCalculator]);
 
   return { isModalOpen, toggleModal, closeModal };
 }

@@ -12,6 +12,7 @@ export default function KeyboardShortcutsModal({ isOpen, onClose }) {
     { keys: ['Alt', 'D'], action: 'Navigate to Dashboard' },
     { keys: ['Alt', 'W'], action: 'Navigate to Workout Plan' },
     { keys: ['Alt', 'F'], action: 'Navigate to Food Plan' },
+    { keys: ['Alt', 'M'], action: 'Open Macro Calculator' },
     { keys: ['Alt', 'C'], action: 'Navigate to AI Calorie Predictor' },
     { keys: ['Alt', 'B'], action: 'Navigate to BMI Calculator' },
     { keys: ['Alt', 'P'], action: 'Navigate to Profile' },

@@ -254,18 +254,60 @@ export default function FoodPlan() {
         setWizardData({ age: '', gender: '', height: '', weight: '', goal: '', mealType: '', dietType: '' });
     };
 
-    // Wizard Keyboard Shortcuts (Enter -> Next, Esc -> Close)
+    const foodWizardCardRef = useRef(null);
+
+    // Auto focus active input/button on wizard step change
+    useEffect(() => {
+        if (!wizardActive) return;
+        const timer = setTimeout(() => {
+            if (foodWizardCardRef.current) {
+                const firstFocusable = foodWizardCardRef.current.querySelector('input:not([disabled]), button:not([disabled]):not(.fw-dot)');
+                if (firstFocusable) firstFocusable.focus();
+            }
+        }, 50);
+        return () => clearTimeout(timer);
+    }, [wizardActive, wizardStep]);
+
+    // Wizard Keyboard Shortcuts (Enter -> Next, Esc -> Close, Tab -> Trap Focus)
     useEffect(() => {
         if (!wizardActive) return;
         const handleWizardKeyDown = (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                e.stopPropagation();
-                if (canGoNext()) {
-                    if (wizardStep < FOOD_WIZARD_STEPS.length - 1) {
-                        setWizardStep((prev) => prev + 1);
+            if (e.key === 'Tab' && foodWizardCardRef.current) {
+                const focusables = Array.from(
+                    foodWizardCardRef.current.querySelectorAll(
+                        'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                    )
+                );
+                if (focusables.length > 0) {
+                    const firstEl = focusables[0];
+                    const lastEl = focusables[focusables.length - 1];
+
+                    if (e.shiftKey) {
+                        if (document.activeElement === firstEl || !foodWizardCardRef.current.contains(document.activeElement)) {
+                            e.preventDefault();
+                            lastEl.focus();
+                        }
                     } else {
-                        handleGenerateFoodPlan();
+                        if (document.activeElement === lastEl || !foodWizardCardRef.current.contains(document.activeElement)) {
+                            e.preventDefault();
+                            firstEl.focus();
+                        }
+                    }
+                }
+                return;
+            }
+
+            if (e.key === 'Enter') {
+                const activeTag = document.activeElement ? document.activeElement.tagName : '';
+                if (activeTag !== 'BUTTON') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (canGoNext()) {
+                        if (wizardStep < FOOD_WIZARD_STEPS.length - 1) {
+                            setWizardStep((prev) => prev + 1);
+                        } else {
+                            handleGenerateFoodPlan();
+                        }
                     }
                 }
             } else if (e.key === 'Escape') {
@@ -463,7 +505,7 @@ export default function FoodPlan() {
             {/* Wizard Overlay — rendered outside glass-card to avoid stacking context issues */}
             {wizardActive && (
                 <div className="fw-overlay">
-                    <div className="fw-card glass-card">
+                    <div ref={foodWizardCardRef} className="fw-card glass-card">
                         <div className="fw-progress">
                             {FOOD_WIZARD_STEPS.map((s, i) => (
                                 <div key={s.key} className={`fw-dot ${i <= wizardStep ? 'active' : ''} ${i < wizardStep ? 'done' : ''}`}>

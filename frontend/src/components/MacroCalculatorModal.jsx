@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Flame, X, Check, Calculator, Sparkles, User, Activity, Target, Cake, Ruler, Scale, Sunrise, Zap } from 'lucide-react';
 import { useMacros, ACTIVITY_MULTIPLIERS, FITNESS_GOALS, calculateMacroTargets } from '../context/MacroContext';
 import '../pages/FoodPlan.css';
 
 export default function MacroCalculatorModal({ forceOpen = false, onClose }) {
   const { userMacros, saveMacros, modalOpen, closeMacroCalculator } = useMacros();
+  const cardRef = useRef(null);
 
   const isOpen = forceOpen || modalOpen;
 
@@ -39,6 +40,20 @@ export default function MacroCalculatorModal({ forceOpen = false, onClose }) {
       });
     }
   }, [userMacros, isOpen]);
+
+  // Auto focus input/interactive element on step change
+  useEffect(() => {
+    if (!isOpen) return;
+    const timer = setTimeout(() => {
+      if (cardRef.current) {
+        const firstFocusable = cardRef.current.querySelector('input:not([disabled]), button:not([disabled]):not(.fw-dot)');
+        if (firstFocusable) {
+          firstFocusable.focus();
+        }
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [isOpen, step]);
 
   if (!isOpen) return null;
 
@@ -80,6 +95,89 @@ export default function MacroCalculatorModal({ forceOpen = false, onClose }) {
     else closeMacroCalculator();
   };
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e) => {
+      // 1. Esc key to close
+      if (e.key === 'Escape') {
+        if (!forceOpen) {
+          e.preventDefault();
+          handleModalClose();
+        }
+        return;
+      }
+
+      // 2. Tab key focus trapping
+      if (e.key === 'Tab' && cardRef.current) {
+        const focusables = Array.from(
+          cardRef.current.querySelectorAll(
+            'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          )
+        );
+        if (focusables.length > 0) {
+          const firstEl = focusables[0];
+          const lastEl = focusables[focusables.length - 1];
+
+          if (e.shiftKey) {
+            if (document.activeElement === firstEl || !cardRef.current.contains(document.activeElement)) {
+              e.preventDefault();
+              lastEl.focus();
+            }
+          } else {
+            if (document.activeElement === lastEl || !cardRef.current.contains(document.activeElement)) {
+              e.preventDefault();
+              firstEl.focus();
+            }
+          }
+        }
+        return;
+      }
+
+      // 3. Enter key to Next or Save & Finish
+      if (e.key === 'Enter') {
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        if (activeTag !== 'BUTTON') {
+          e.preventDefault();
+          if (step < totalSteps - 1) {
+            if (isCurrentStepValid()) {
+              setStep((prev) => prev + 1);
+            }
+          } else {
+            saveMacros(formData);
+            setStep(0);
+            if (onClose) onClose();
+            else closeMacroCalculator();
+          }
+        }
+        return;
+      }
+
+      // 4. Left Arrow to go back
+      if (e.key === 'ArrowLeft') {
+        const isTextInput = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA');
+        if (!isTextInput) {
+          e.preventDefault();
+          if (step > 0) setStep((prev) => prev - 1);
+        }
+      }
+
+      // 5. Right Arrow to go next
+      if (e.key === 'ArrowRight') {
+        const isTextInput = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA');
+        if (!isTextInput) {
+          e.preventDefault();
+          if (isCurrentStepValid() && step < totalSteps - 1) {
+            setStep((prev) => prev + 1);
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, forceOpen, step, totalSteps, formData, onClose, closeMacroCalculator, saveMacros]);
+
   const stepMeta = [
     { title: 'Select Gender', subtitle: 'Choose biological sex for BMR formula', icon: <User size={28} /> },
     { title: 'Your Age', subtitle: 'Age affects daily metabolic output', icon: <Cake size={28} /> },
@@ -93,7 +191,7 @@ export default function MacroCalculatorModal({ forceOpen = false, onClose }) {
 
   return (
     <div className="fw-overlay">
-      <div className="fw-card glass-card" style={{ position: 'relative' }}>
+      <div ref={cardRef} className="fw-card glass-card" style={{ position: 'relative' }}>
         {/* Close Button */}
         {!forceOpen && (
           <button

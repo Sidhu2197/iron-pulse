@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import {
     Flame, Activity, Utensils, Dumbbell, Sparkles, Calculator,
-    TrendingUp, Target, ChevronRight, Zap, CheckCircle2, Scale
+    TrendingUp, TrendingDown, Target, ChevronRight, Zap, Award, CheckCircle2, Scale
 } from 'lucide-react';
 import './Dashboard.css';
 
