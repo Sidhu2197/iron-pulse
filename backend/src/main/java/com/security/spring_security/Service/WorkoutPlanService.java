@@ -1,14 +1,21 @@
 package com.security.spring_security.Service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.security.spring_security.Model.WorkoutPlan;
+import com.security.spring_security.dao.WorkoutPlanRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.*;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class WorkoutPlanService {
@@ -17,6 +24,12 @@ public class WorkoutPlanService {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private WorkoutPlanRepo workoutPlanRepo;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     // Return the first non-null value found for any of the given keys (frontend sends
     // both raw wizard keys like "height" and pre-mapped keys like "height_cm")
@@ -149,5 +162,67 @@ public class WorkoutPlanService {
         } catch (ResourceAccessException e) {
             throw new RuntimeException("Could not connect to workout plan service. Please check your connection and try again.");
         }
+    }
+
+    @Transactional
+    public Map<String, Object> generateAndSaveWorkoutPlan(int userId, Map<String, Object> userProfile) {
+        Map<String, Object> planData = generateWorkoutPlan(userProfile);
+
+        try {
+            // Delete previous workout plan for this user if exists (single active plan rule)
+            workoutPlanRepo.deleteByUserId(userId);
+
+            WorkoutPlan plan = new WorkoutPlan();
+            plan.setUserId(userId);
+            plan.setGoal(firstValue(userProfile, "goal") != null ? firstValue(userProfile, "goal").toString() : "General Fitness");
+            plan.setFitnessLevel(firstValue(userProfile, "fitness_level", "fitnessLevel") != null ? firstValue(userProfile, "fitness_level", "fitnessLevel").toString() : "Beginner");
+
+            Object days = firstValue(userProfile, "workout_days_per_week", "days_per_week");
+            if (days == null && userProfile.get("workout_days") instanceof java.util.List) {
+                days = ((java.util.List<?>) userProfile.get("workout_days")).size();
+            }
+            plan.setDaysPerWeek(days != null ? ((Number) days).intValue() : 4);
+
+            Object duration = firstValue(userProfile, "duration", "workout_duration_minutes");
+            plan.setDurationMinutes(duration != null ? ((Number) duration).intValue() : 45);
+
+            plan.setPlanJson(objectMapper.writeValueAsString(planData));
+            LocalDateTime now = LocalDateTime.now();
+            plan.setCreatedAt(now);
+            plan.setExpiresAt(now.plusDays(7)); // 7-day expiration policy
+
+            workoutPlanRepo.save(plan);
+        } catch (Exception e) {
+            System.err.println("Failed to persist workout plan for user " + userId + ": " + e.getMessage());
+        }
+
+        return planData;
+    }
+
+    @Transactional
+    public Map<String, Object> getLatestWorkoutPlan(int userId) {
+        Optional<WorkoutPlan> optPlan = workoutPlanRepo.findTopByUserIdOrderByIdDesc(userId);
+        if (optPlan.isEmpty()) {
+            return null;
+        }
+
+        WorkoutPlan plan = optPlan.get();
+        LocalDateTime now = LocalDateTime.now();
+
+        // 7-day expiration check: delete if expired
+        if (plan.getExpiresAt() != null && now.isAfter(plan.getExpiresAt())) {
+            workoutPlanRepo.delete(plan);
+            return null;
+        }
+
+        try {
+            if (plan.getPlanJson() != null && !plan.getPlanJson().isBlank()) {
+                return objectMapper.readValue(plan.getPlanJson(), new TypeReference<Map<String, Object>>() {});
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to deserialize workout plan JSON: " + e.getMessage());
+        }
+
+        return null;
     }
 }

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { fetchWorkouts, generateFoodPlan, generateWorkoutPlan, predictCalories } from '../api/auth';
+import { fetchLatestWorkoutPlan, generateFoodPlan, generateWorkoutPlan, predictCalories } from '../api/auth';
 import { useToast } from './ToastContext';
 import { useAuth } from './AuthContext';
 
@@ -57,20 +57,16 @@ export function PlanProvider({ children }) {
     const checkBackendPlan = async () => {
       setWorkoutPlanLoading(true);
       try {
-        const workouts = await fetchWorkouts(token);
-        if (isMounted && Array.isArray(workouts) && workouts.length > 0) {
-          const latest = workouts[0];
-          const planData = latest?.planData || latest;
-          if (planData && planData.weekly_plan) {
-            setWorkoutPlan(planData);
-            try {
-              localStorage.setItem('iron_workout_plan', JSON.stringify({
-                plan: planData,
-                timestamp: Date.now(),
-              }));
-            } catch (e) {
-              console.warn('Failed to cache backend workout plan:', e);
-            }
+        const planData = await fetchLatestWorkoutPlan(token);
+        if (isMounted && planData && planData.weekly_plan) {
+          setWorkoutPlan(planData);
+          try {
+            localStorage.setItem('iron_workout_plan', JSON.stringify({
+              plan: planData,
+              timestamp: Date.now(),
+            }));
+          } catch (e) {
+            console.warn('Failed to cache backend workout plan:', e);
           }
         }
       } catch (e) {

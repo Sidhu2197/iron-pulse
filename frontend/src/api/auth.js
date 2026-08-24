@@ -158,6 +158,18 @@ export async function fetchWorkouts(credentials) {
     return await res.json();
 }
 
+export async function fetchLatestWorkoutPlan(credentials) {
+    const res = await fetch(`${API_BASE}/workouts/plan?_t=${Date.now()}`, {
+        headers: { ...getAuthHeader(credentials) },
+        cache: 'no-store',
+    });
+    checkAuthError(res);
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error('Failed to fetch workout plan');
+    const data = await res.json();
+    return data?.data || data;
+}
+
 export async function generateWorkoutPlan(credentials, payload) {
     const goalMap = {
         fat_loss: 'Fat Loss',

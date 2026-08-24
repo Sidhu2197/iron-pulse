@@ -1,6 +1,5 @@
 package com.security.spring_security.Controller;
 
-import com.security.spring_security.Model.User;
 import com.security.spring_security.Model.UserCacheDTO;
 import com.security.spring_security.Model.Workout;
 import com.security.spring_security.Service.UserService;
@@ -101,8 +100,16 @@ public class WorkoutController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
+        String email = authentication.getName();
+        UserCacheDTO user = userService.findByEmail(email);
+        if (user == null) {
+            response.put("success", false);
+            response.put("message", "User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
         try {
-            Map<String, Object> workoutPlan = workoutPlanService.generateWorkoutPlan(userProfile);
+            Map<String, Object> workoutPlan = workoutPlanService.generateAndSaveWorkoutPlan(user.getId(), userProfile);
             response.put("success", true);
             response.put("data", workoutPlan);
             return ResponseEntity.ok(response);
@@ -111,5 +118,34 @@ public class WorkoutController {
             response.put("message", "Failed to generate workout plan: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
+    }
+
+    @GetMapping("/plan")
+    public ResponseEntity<Map<String, Object>> getLatestWorkoutPlan(Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+        if (authentication == null) {
+            response.put("success", false);
+            response.put("message", "Not authenticated");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+
+        String email = authentication.getName();
+        UserCacheDTO user = userService.findByEmail(email);
+        if (user == null) {
+            response.put("success", false);
+            response.put("message", "User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        Map<String, Object> workoutPlan = workoutPlanService.getLatestWorkoutPlan(user.getId());
+        if (workoutPlan == null) {
+            response.put("success", false);
+            response.put("message", "No active workout plan found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        response.put("success", true);
+        response.put("data", workoutPlan);
+        return ResponseEntity.ok(response);
     }
 }
