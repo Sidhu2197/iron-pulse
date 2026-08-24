@@ -698,3 +698,21 @@
         align-items: flex-start;
     }
 }
+
+/* ===== TAB FOCUS HOVER BORDER STYLES (Selectable elements only) ===== */
+.fw-select-card:focus-visible,
+.fw-btn-back:focus-visible,
+.fw-btn-next:focus-visible,
+.fw-dot:focus-visible {
+    outline: 1.5px solid #ffffff !important;
+    outline-offset: 1px !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.4) !important;
+}
+
+.fw-select-card:focus,
+.fw-btn-back:focus,
+.fw-btn-next:focus {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.3) !important;
+}

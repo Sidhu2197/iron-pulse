@@ -595,3 +595,26 @@
     color: var(--text-secondary);
     font-size: var(--font-sm);
 }
+
+/* ===== TAB FOCUS HOVER BORDER STYLES (Selectable elements only) ===== */
+.gender-btn:focus-visible,
+.exercise-card:focus-visible,
+.intensity-btn:focus-visible,
+.predict-btn:focus-visible,
+.save-btn:focus-visible,
+.reset-btn:focus-visible {
+    outline: 1.5px solid #ffffff !important;
+    outline-offset: 1px !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.4) !important;
+}
+
+.gender-btn:focus,
+.exercise-card:focus,
+.intensity-btn:focus,
+.predict-btn:focus,
+.save-btn:focus,
+.reset-btn:focus {
+    border-color: #ffffff !important;
+    box-shadow: 0 0 6px rgba(255, 255, 255, 0.3) !important;
+}

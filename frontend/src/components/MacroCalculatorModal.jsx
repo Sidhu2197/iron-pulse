@@ -55,8 +55,6 @@ export default function MacroCalculatorModal({ forceOpen = false, onClose }) {
     return () => clearTimeout(timer);
   }, [isOpen, step]);
 
-  if (!isOpen) return null;
-
   const totalSteps = 6;
   const livePreview = calculateMacroTargets(formData);
 
@@ -186,6 +184,8 @@ export default function MacroCalculatorModal({ forceOpen = false, onClose }) {
     { title: 'Primary Goal', subtitle: 'Select your fitness objective', icon: <Target size={28} /> },
     { title: 'Review Target Macros', subtitle: 'Your calculated personalized daily targets', icon: <Sparkles size={28} /> },
   ];
+
+  if (!isOpen) return null;
 
   const currentStep = stepMeta[step];
 

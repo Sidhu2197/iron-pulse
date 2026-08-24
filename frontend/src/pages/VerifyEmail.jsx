@@ -5,6 +5,40 @@ import Silk from '../components/Silk';
 import { MailCheck, XCircle, Loader2 } from 'lucide-react';
 import './Auth.css';
 
+/* ── Floating ambient glow circles ────────────────────────── */
+function FloatingGlows() {
+    const glows = [
+        { color: 'rgba(0, 240, 255, 0.12)', size: 110, top: '20%', left: '10%', delay: '0s', duration: '9s' },
+        { color: 'rgba(124, 58, 237, 0.10)', size: 90, top: '60%', right: '12%', delay: '2s', duration: '11s' },
+        { color: 'rgba(236, 72, 153, 0.08)', size: 70, bottom: '25%', left: '25%', delay: '3.5s', duration: '10s' },
+    ];
+
+    return (
+        <>
+            {glows.map((g, i) => (
+                <div
+                    key={i}
+                    style={{
+                        position: 'fixed',
+                        width: g.size,
+                        height: g.size,
+                        borderRadius: '50%',
+                        background: g.color,
+                        filter: 'blur(30px)',
+                        top: g.top,
+                        left: g.left,
+                        right: g.right,
+                        bottom: g.bottom,
+                        animation: `floatGlow ${g.duration} ease-in-out ${g.delay} infinite`,
+                        pointerEvents: 'none',
+                        zIndex: 0,
+                    }}
+                />
+            ))}
+        </>
+    );
+}
+
 export default function VerifyEmail() {
     const [searchParams] = useSearchParams();
     const token = searchParams.get('token');
@@ -33,6 +67,7 @@ export default function VerifyEmail() {
     return (
         <>
             <Silk speed={5} scale={1} color="#7B7481" noiseIntensity={1.5} rotation={0} />
+            <FloatingGlows />
             <div className="auth-page page-enter">
                 <div className="glass-panel" style={{ width: '100%', maxWidth: '440px', padding: '3rem 2rem', textAlign: 'center', zIndex: 2 }}>
                     

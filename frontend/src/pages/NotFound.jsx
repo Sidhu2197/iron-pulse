@@ -6,7 +6,7 @@ import Silk from '../components/Silk';
 export default function NotFound() {
     return (
         <>
-            <Silk color="#7c3aed" speed={0.3} scale={3.0} />
+            <Silk speed={5} scale={1} color="#7B7481" noiseIntensity={1.5} rotation={0} />
             <PageReveal className="not-found-page">
                 <div className="nf-code">404</div>
                 <h2>Page Not Found</h2>

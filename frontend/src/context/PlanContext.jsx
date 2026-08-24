@@ -5,9 +5,16 @@ import { useAuth } from './AuthContext';
 
 const PlanContext = createContext(null);
 
-const getStoredWorkoutPlan = () => {
+const getWorkoutStorageKey = (email) => {
+  if (!email) return null;
+  return `iron_workout_plan_${email.toLowerCase().trim()}`;
+};
+
+const getStoredWorkoutPlan = (email) => {
+  const key = getWorkoutStorageKey(email);
+  if (!key) return null;
   try {
-    const saved = localStorage.getItem('iron_workout_plan');
+    const saved = localStorage.getItem(key);
     if (!saved) return null;
     const { plan, timestamp } = JSON.parse(saved);
     const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
@@ -22,15 +29,15 @@ const getStoredWorkoutPlan = () => {
 
 export function PlanProvider({ children }) {
   const { show } = useToast();
-  const { token, loading: authLoading } = useAuth();
+  const { user, token, loading: authLoading } = useAuth();
 
   // Food Plan State
   const [foodPlan, setFoodPlan] = useState(null);
   const [foodPlanLoading, setFoodPlanLoading] = useState(false);
   const [foodPlanError, setFoodPlanError] = useState('');
 
-  // Workout Plan State (persisted in localStorage for 7 days / 1 week across sessions & logout)
-  const [workoutPlan, setWorkoutPlan] = useState(getStoredWorkoutPlan);
+  // Workout Plan State
+  const [workoutPlan, setWorkoutPlan] = useState(null);
   const [workoutPlanLoading, setWorkoutPlanLoading] = useState(false);
   const [workoutPlanError, setWorkoutPlanError] = useState('');
 
@@ -39,20 +46,40 @@ export function PlanProvider({ children }) {
   const [caloriePredictionLoading, setCaloriePredictionLoading] = useState(false);
   const [caloriePredictionError, setCaloriePredictionError] = useState('');
 
-  // On mount/login: check localStorage first, then backend if missing
+  // On mount or when user/token changes: sync user-scoped workout plan
   useEffect(() => {
     if (authLoading) return;
 
-    // 1. Check localStorage first
-    const cachedPlan = getStoredWorkoutPlan();
+    // Clean up legacy global (un-scoped) plan key if present
+    try {
+      localStorage.removeItem('iron_workout_plan');
+    } catch (_) {}
+
+    // If logged out or no user email, clear states immediately
+    if (!token || !user?.email) {
+      setWorkoutPlan(null);
+      setFoodPlan(null);
+      setFoodPlanLoading(false);
+      setFoodPlanError('');
+      setCaloriePrediction(null);
+      setCaloriePredictionLoading(false);
+      setCaloriePredictionError('');
+      return;
+    }
+
+    const email = user.email;
+
+    // 1. Check user-scoped localStorage first
+    const cachedPlan = getStoredWorkoutPlan(email);
     if (cachedPlan) {
       setWorkoutPlan(cachedPlan);
       return;
     }
 
-    // 2. If not in localStorage and user is logged in, check backend
-    if (!token) return;
+    // If no cache for this specific user, start with null
+    setWorkoutPlan(null);
 
+    // 2. Fetch latest plan from backend for this user
     let isMounted = true;
     const checkBackendPlan = async () => {
       setWorkoutPlanLoading(true);
@@ -60,17 +87,23 @@ export function PlanProvider({ children }) {
         const planData = await fetchLatestWorkoutPlan(token);
         if (isMounted && planData && planData.weekly_plan) {
           setWorkoutPlan(planData);
-          try {
-            localStorage.setItem('iron_workout_plan', JSON.stringify({
-              plan: planData,
-              timestamp: Date.now(),
-            }));
-          } catch (e) {
-            console.warn('Failed to cache backend workout plan:', e);
+          const key = getWorkoutStorageKey(email);
+          if (key) {
+            try {
+              localStorage.setItem(key, JSON.stringify({
+                plan: planData,
+                timestamp: Date.now(),
+              }));
+            } catch (e) {
+              console.warn('Failed to cache backend workout plan:', e);
+            }
           }
+        } else if (isMounted) {
+          setWorkoutPlan(null);
         }
       } catch (e) {
-        console.warn('No active backend workout plan found:', e.message);
+        console.warn('No active backend workout plan found for user:', e.message);
+        if (isMounted) setWorkoutPlan(null);
       } finally {
         if (isMounted) setWorkoutPlanLoading(false);
       }
@@ -79,19 +112,7 @@ export function PlanProvider({ children }) {
     checkBackendPlan();
 
     return () => { isMounted = false; };
-  }, [token, authLoading]);
-
-  // Reset transient states on explicit logout (DO NOT delete iron_workout_plan from localStorage)
-  useEffect(() => {
-    if (!authLoading && !token) {
-      setFoodPlan(null);
-      setFoodPlanLoading(false);
-      setFoodPlanError('');
-      setCaloriePrediction(null);
-      setCaloriePredictionLoading(false);
-      setCaloriePredictionError('');
-    }
-  }, [token, authLoading]);
+  }, [user, token, authLoading]);
 
   const triggerGenerateFoodPlan = useCallback(async (authToken, payload) => {
     setFoodPlanLoading(true);
@@ -121,25 +142,18 @@ export function PlanProvider({ children }) {
 
   const triggerGenerateWorkoutPlan = useCallback(async (authToken, payload, options = {}) => {
     const forceRefresh = options?.forceRefresh || false;
-    
-    // 1. Check localStorage first if forceRefresh is false
-    if (!forceRefresh) {
-      try {
-        const saved = localStorage.getItem('iron_workout_plan');
-        if (saved) {
-          const { plan, timestamp } = JSON.parse(saved);
-          const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
-          if (Date.now() - timestamp < SEVEN_DAYS_MS && plan?.weekly_plan) {
-            setWorkoutPlan(plan);
-            return plan;
-          }
-        }
-      } catch (e) {
-        console.warn('Error reading cached workout plan from localStorage:', e);
+    const userEmail = user?.email;
+
+    // 1. Check user-scoped localStorage first if forceRefresh is false
+    if (!forceRefresh && userEmail) {
+      const cached = getStoredWorkoutPlan(userEmail);
+      if (cached) {
+        setWorkoutPlan(cached);
+        return cached;
       }
     }
 
-    // 2. If not found in localStorage (or forceRefresh requested), call backend API
+    // 2. Call backend API to generate user's plan
     setWorkoutPlanLoading(true);
     setWorkoutPlanError('');
     try {
@@ -147,14 +161,21 @@ export function PlanProvider({ children }) {
       // Backend wraps the plan in { success, data } — unwrap so components get { weekly_plan, ... }
       const planData = data?.weekly_plan ? data : (data?.data?.weekly_plan ? data.data : data);
       setWorkoutPlan(planData);
-      try {
-        localStorage.setItem('iron_workout_plan', JSON.stringify({
-          plan: planData,
-          timestamp: Date.now(),
-        }));
-      } catch (e) {
-        console.warn('Failed to save workout plan to localStorage:', e);
+
+      if (userEmail) {
+        const key = getWorkoutStorageKey(userEmail);
+        if (key) {
+          try {
+            localStorage.setItem(key, JSON.stringify({
+              plan: planData,
+              timestamp: Date.now(),
+            }));
+          } catch (e) {
+            console.warn('Failed to save workout plan to localStorage:', e);
+          }
+        }
       }
+
       show({
         type: 'success',
         message: 'Your Workout Plan has been generated successfully!',
@@ -173,7 +194,7 @@ export function PlanProvider({ children }) {
     } finally {
       setWorkoutPlanLoading(false);
     }
-  }, [show]);
+  }, [show, user]);
 
   const triggerPredictCalories = useCallback(async (payload) => {
     setCaloriePredictionLoading(true);

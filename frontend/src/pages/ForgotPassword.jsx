@@ -167,7 +167,7 @@ export default function ForgotPassword() {
     if (sent) {
         return (
             <div className="auth-page page-enter">
-                <Silk color="#10b981" speed={0.3} scale={3.5} />
+                <Silk speed={5} scale={1} color="#7B7481" noiseIntensity={1.5} rotation={0} />
                 <FloatingGlows />
 
                 <div className="auth-header" style={{ flexDirection: 'column', alignItems: 'center', zIndex: 2 }}>
@@ -218,7 +218,7 @@ export default function ForgotPassword() {
     // State 1: Email input
     return (
         <div className="auth-page page-enter">
-            <Silk color="#00f0ff" speed={0.3} scale={3.5} />
+            <Silk speed={5} scale={1} color="#7B7481" noiseIntensity={1.5} rotation={0} />
             <FloatingGlows />
 
             <div className="auth-header" style={{ flexDirection: 'column', alignItems: 'center', zIndex: 2 }}>

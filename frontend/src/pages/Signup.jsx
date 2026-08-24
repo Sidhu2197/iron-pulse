@@ -71,6 +71,9 @@ export default function Signup() {
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
 
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
+
   const fieldRefs = {
     username: useRef(null),
     email: useRef(null),
@@ -190,7 +193,8 @@ export default function Signup() {
         age: form.age,
       });
       localStorage.setItem(`iron_newly_registered_${form.email.toLowerCase()}`, 'true');
-      navigate('/login');
+      setRegisteredEmail(form.email);
+      setShowVerificationModal(true);
     } catch (err) {
       setError(err.message);
       setLiveAnnouncement(`Signup failed: ${err.message}`);
@@ -556,6 +560,87 @@ export default function Signup() {
         </p>
       </form>
     </div>
+
+    {/* Email Verification Required Popup Modal */}
+    {showVerificationModal && (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.82)',
+          backdropFilter: 'blur(10px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px',
+          animation: 'fadeIn 0.25s ease',
+        }}
+        role="dialog"
+        aria-modal="true"
+      >
+        <div
+          className="glass-panel"
+          style={{
+            maxWidth: '440px',
+            width: '100%',
+            padding: '36px 28px',
+            borderRadius: '20px',
+            textAlign: 'center',
+            background: 'rgba(15, 15, 35, 0.95)',
+            border: '1px solid rgba(16, 185, 129, 0.35)',
+            boxShadow: '0 0 40px rgba(16, 185, 129, 0.25)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '20px',
+          }}
+        >
+          <div
+            style={{
+              width: '68px',
+              height: '68px',
+              borderRadius: '50%',
+              background: 'rgba(16, 185, 129, 0.15)',
+              border: '1px solid rgba(16, 185, 129, 0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#10b981',
+              boxShadow: '0 0 24px rgba(16, 185, 129, 0.35)',
+            }}
+          >
+            <Mail size={34} />
+          </div>
+
+          <div>
+            <h2 style={{ fontSize: '1.45rem', fontWeight: 700, color: '#ffffff', marginBottom: '12px' }}>
+              Check Your Inbox
+            </h2>
+            <p style={{ color: '#94a3b8', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 }}>
+              We sent a verification link to <strong style={{ color: '#10b981', wordBreak: 'break-all' }}>{registeredEmail}</strong>.<br />
+              Please verify your email address before signing in.
+            </p>
+          </div>
+
+          <AccessibleButton
+            className="btn-futuristic"
+            onClick={() => navigate('/login')}
+            style={{
+              width: '100%',
+              marginTop: '8px',
+              padding: '14px',
+              fontSize: '0.95rem',
+              fontWeight: 600,
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              boxShadow: '0 0 20px rgba(16, 185, 129, 0.35)',
+            }}
+          >
+            Proceed to Sign In →
+          </AccessibleButton>
+        </div>
+      </div>
+    )}
     </>
   );
 }

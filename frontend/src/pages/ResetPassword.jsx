@@ -215,7 +215,7 @@ export default function ResetPassword() {
 
     return (
         <div className="auth-page page-enter">
-            <Silk color="#7c3aed" speed={0.3} scale={3.5} />
+            <Silk speed={5} scale={1} color="#7B7481" noiseIntensity={1.5} rotation={0} />
             <FloatingGlows />
 
             <div className="auth-header" style={{ flexDirection: 'column', alignItems: 'center', zIndex: 2 }}>
