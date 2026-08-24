@@ -156,7 +156,7 @@ export default function Login() {
   };
 
   /* ── Styles ───────────────────────────────────────────── */
-  const inputWrapperStyle = (focused) => ({
+  const inputWrapperStyle = () => ({
     position: 'relative',
     display: 'flex',
     alignItems: 'center',

@@ -7,7 +7,6 @@ import MacroCalculatorModal from './MacroCalculatorModal';
 import ChatbotWidget from './ChatbotWidget';
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { useMacros } from '../context/MacroContext';
-import { useAuth } from '../context/AuthContext';
 import './Layout.css';
 
 const pageVariants = {
@@ -35,7 +34,6 @@ const pageVariants = {
 
 export default function Layout() {
     const location = useLocation();
-    const { user } = useAuth();
     const { shouldShowOnboardingWizard } = useMacros();
     const { isModalOpen, closeModal, toggleModal } = useKeyboardShortcuts();
 

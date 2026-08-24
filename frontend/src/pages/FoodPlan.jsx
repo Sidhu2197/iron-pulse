@@ -5,7 +5,7 @@ import { useMacros } from '../context/MacroContext';
 import { searchFoods, logMeal, fetchMeals, fetchMealSummary, getLocalDateString } from '../api/auth';
 import './FoodPlan.css';
 import AccessibleButton from '../components/AccessibleButton';
-import { Search, Ruler, User, Scale, Cake, Flame, Target, Utensils, Leaf, Zap, Sunrise, Sun, Moon, Sparkles, CheckCircle2, AlertCircle, Trash2, X } from 'lucide-react';
+import { Search, Ruler, User, Scale, Cake, Flame, Target, Utensils, Leaf, Zap, Sunrise, Sun, Moon, Sparkles, CheckCircle2, AlertCircle, X } from 'lucide-react';
 
 const FOOD_WIZARD_STEPS = [
     { key: 'age', label: 'How old are you?', icon: <Cake size={20} /> },

@@ -5,7 +5,7 @@ import { predictCalories, saveCaloriePrediction, fetchCaloriePredictions, checkM
 import './CaloriePredictor.css';
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
-import { Dumbbell, Timer, Ruler, Activity, Scale, Cake, Heart, BarChart2, Calendar, CheckCircle, XCircle, Target, Utensils, Save, RotateCcw, Sparkles, Zap, Bike, Waves, Footprints, Flame, Repeat, User, ClipboardList, AlertCircle } from 'lucide-react';
+import { Dumbbell, Timer, Ruler, Activity, Scale, Cake, Heart, BarChart2, Calendar, Save, RotateCcw, Sparkles, Zap, Bike, Waves, Footprints, Flame, Repeat, User, ClipboardList, AlertCircle } from 'lucide-react';
 
 const DEFAULT_EXERCISE_TYPES = [
     { value: 'Running', emoji: <Activity size={20} />, label: 'Running' },

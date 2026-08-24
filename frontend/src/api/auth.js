@@ -423,8 +423,6 @@ export async function predictRecoveryScore({ sleep_hours, resting_heart_rate, pr
     }
     
     return data.data;
-
-    return await res.json();
 }
 
 // ---- Calorie Burn Prediction (ML Model) ----

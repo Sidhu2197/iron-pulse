@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useMacros } from '../context/MacroContext';
@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import {
     Flame, Activity, Utensils, Dumbbell, Sparkles, Calculator,
-    TrendingUp, TrendingDown, Target, ChevronRight, Zap, Award, CheckCircle2, Scale
+    TrendingUp, Target, ChevronRight, Zap, CheckCircle2, Scale
 } from 'lucide-react';
 import './Dashboard.css';
 
@@ -32,18 +32,20 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [chartMode, setChartMode] = useState('calories'); // 'calories' | 'workouts'
 
-    const loadDashboardData = () => {
+    const loadDashboardData = useCallback(() => {
         if (!token) {
             setLoading(false);
             return;
         }
+        let isMounted = true;
         Promise.allSettled([
             fetchDashboard(token),
             fetchWorkouts(token),
             fetchMeals(token),
         ])
             .then(([dashRes, workRes, mealRes]) => {
-                if (dashRes.status === 'fulfilled') setDashData(dashRes.value);
+                if (!isMounted) return;
+                if (dashRes.status === 'fulfilled' && dashRes.value) setDashData(dashRes.value);
                 if (workRes.status === 'fulfilled' && Array.isArray(workRes.value)) {
                     setRecentWorkouts(workRes.value);
                 }
@@ -51,14 +53,20 @@ export default function Dashboard() {
                     setRecentMeals(mealRes.value);
                 }
             })
-            .finally(() => setLoading(false));
-    };
+            .finally(() => {
+                if (isMounted) setLoading(false);
+            });
+        return () => { isMounted = false; };
+    }, [token]);
 
     useEffect(() => {
-        loadDashboardData();
+        const cancel = loadDashboardData();
         window.addEventListener('workout-logged', loadDashboardData);
-        return () => window.removeEventListener('workout-logged', loadDashboardData);
-    }, [token]);
+        return () => {
+            if (typeof cancel === 'function') cancel();
+            window.removeEventListener('workout-logged', loadDashboardData);
+        };
+    }, [loadDashboardData]);
 
     const name = user?.username || 'Champ';
     const totalBurned = dashData?.total_calories_burned ?? 0;
@@ -66,7 +74,7 @@ export default function Dashboard() {
     const totalEaten = dashData?.total_calories_eaten ?? 0;
     const barData = (() => {
         // 1. If backend returned weekly_workouts with data
-        const hasBackendWeeklyData = dashData?.weekly_workouts && dashData.weekly_workouts.some(d => (d.Actual > 0 || d.Eaten > 0 || d.Workouts > 0));
+        const hasBackendWeeklyData = Array.isArray(dashData?.weekly_workouts) && dashData.weekly_workouts.some(d => (d.Actual > 0 || d.Eaten > 0 || d.Workouts > 0));
         if (hasBackendWeeklyData) {
             return dashData.weekly_workouts.map((d) => ({
                 day: d.day,
@@ -198,7 +206,7 @@ export default function Dashboard() {
                     <ChevronRight size={18} className="quick-action-arrow" />
                 </Link>
 
-                <Link to="/bmi-calculator" className="quick-action-card glow-card">
+                <Link to="/bmi" className="quick-action-card glow-card">
                     <div className="quick-action-icon green">
                         <Calculator size={22} />
                     </div>

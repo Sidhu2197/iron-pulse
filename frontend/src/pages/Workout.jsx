@@ -6,7 +6,7 @@ import { logWorkout, getLocalDateString, sanitizeErrorMessage } from '../api/aut
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
 import './Workout.css';
-import { Dumbbell, Timer, Ruler, User, Activity, Scale, Cake, Flame, Calendar, BarChart2, Target, Zap, HeartPulse, Sprout, Sparkles, Rocket, AlertCircle, CheckCircle2, Sunrise, Moon, X, ExternalLink } from 'lucide-react';
+import { Dumbbell, Timer, Ruler, User, Activity, Scale, Cake, Flame, Calendar, BarChart2, Target, Zap, HeartPulse, Sprout, Sparkles, Rocket, AlertCircle, CheckCircle2, X, ExternalLink } from 'lucide-react';
 
 const TABS = ['Suggested Plan', 'Log Workout'];
 

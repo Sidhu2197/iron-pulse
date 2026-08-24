@@ -13,7 +13,6 @@ export function AuthProvider({ children }) {
     const justLoggedIn = useRef(false);
 
     useEffect(() => {
-        let active = true;
         setLoading(true);
 
         // 1. Try to restore Basic Auth credentials from sessionStorage
@@ -42,7 +41,6 @@ export function AuthProvider({ children }) {
         window.addEventListener('auth-expired', handleAuthExpired);
 
         return () => {
-            active = false;
             window.removeEventListener('auth-expired', handleAuthExpired);
         };
     }, []);
