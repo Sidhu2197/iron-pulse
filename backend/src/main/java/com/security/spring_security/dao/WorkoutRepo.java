@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface WorkoutRepo extends JpaRepository<Workout, Integer> {
 
-    List<Workout> findByUserIdOrderByDateDesc(int userId);
+    List<Workout> findByUserIdOrderByDateDescIdDesc(int userId);
 }

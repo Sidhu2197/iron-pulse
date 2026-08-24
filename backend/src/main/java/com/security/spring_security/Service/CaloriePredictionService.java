@@ -31,6 +31,6 @@ public class CaloriePredictionService {
     }
 
     public List<CaloriePrediction> getPredictions(int userId) {
-        return repo.findByUserIdOrderByDateDesc(userId);
+        return repo.findByUserIdOrderByDateDescIdDesc(userId);
     }
 }

@@ -28,7 +28,7 @@ public class MealService {
     }
 
     public List<Meal> getMeals(int userId) {
-        return repo.findByUserIdOrderByDateDesc(userId);
+        return repo.findByUserIdOrderByDateDescIdDesc(userId);
     }
 
     @Autowired

@@ -10,7 +10,7 @@ import {
 } from 'recharts';
 import {
     Flame, Activity, Utensils, Dumbbell, Sparkles, Calculator,
-    TrendingUp, TrendingDown, Target, ChevronRight, Zap, Award, CheckCircle2
+    TrendingUp, TrendingDown, Target, ChevronRight, Zap, Award, CheckCircle2, Scale
 } from 'lucide-react';
 import './Dashboard.css';
 
@@ -322,7 +322,15 @@ export default function Dashboard() {
                                     </div>
                                 ) : (
                                     <div className="activity-list">
-                                        {recentWorkouts.slice(-4).reverse().map((w, idx) => (
+                                        {[...recentWorkouts]
+                                            .sort((a, b) => {
+                                                if (a.date && b.date && a.date !== b.date) {
+                                                    return b.date.localeCompare(a.date);
+                                                }
+                                                return (b.id || 0) - (a.id || 0);
+                                            })
+                                            .slice(0, 4)
+                                            .map((w, idx) => (
                                             <div key={w.id || idx} className="activity-item">
                                                 <div className="activity-item-icon red">
                                                     <Flame size={16} />
@@ -352,7 +360,15 @@ export default function Dashboard() {
                                     </div>
                                 ) : (
                                     <div className="activity-list">
-                                        {recentMeals.slice(-4).reverse().map((m, idx) => (
+                                        {[...recentMeals]
+                                            .sort((a, b) => {
+                                                if (a.date && b.date && a.date !== b.date) {
+                                                    return b.date.localeCompare(a.date);
+                                                }
+                                                return (b.id || 0) - (a.id || 0);
+                                            })
+                                            .slice(0, 4)
+                                            .map((m, idx) => (
                                             <div key={m.id || idx} className="activity-item">
                                                 <div className="activity-item-icon amber">
                                                     <Utensils size={16} />

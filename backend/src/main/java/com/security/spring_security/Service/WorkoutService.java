@@ -24,6 +24,6 @@ public class WorkoutService {
     }
 
     public List<Workout> getWorkouts(int userId) {
-        return repo.findByUserIdOrderByDateDesc(userId);
+        return repo.findByUserIdOrderByDateDescIdDesc(userId);
     }
 }

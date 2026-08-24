@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface CaloriePredictionRepo extends JpaRepository<CaloriePrediction, Integer> {
-    List<CaloriePrediction> findByUserIdOrderByDateDesc(int userId);
+    List<CaloriePrediction> findByUserIdOrderByDateDescIdDesc(int userId);
 }

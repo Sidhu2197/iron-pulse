@@ -637,11 +637,13 @@ export default function FoodPlan() {
             {/* Today's Meals */}
             {(() => {
                 const todayStr = getLocalDateString();
-                const todayMeals = meals.filter((m) => {
-                    if (!m.date) return false;
-                    const d = getLocalDateString(m.date);
-                    return d === todayStr;
-                });
+                const todayMeals = meals
+                    .filter((m) => {
+                        if (!m.date) return false;
+                        const d = getLocalDateString(m.date);
+                        return d === todayStr;
+                    })
+                    .sort((a, b) => (b.id || 0) - (a.id || 0));
 
                 return (
                     <div className="glass-card meals-card">
