@@ -189,6 +189,8 @@ export default function MacroCalculatorModal({ forceOpen = false, onClose }) {
 
   const currentStep = stepMeta[step];
 
+  if (!isOpen) return null;
+
   return (
     <div className="fw-overlay">
       <div ref={cardRef} className="fw-card glass-card" style={{ position: 'relative' }}>
@@ -245,106 +247,157 @@ export default function MacroCalculatorModal({ forceOpen = false, onClose }) {
         </div>
 
         {/* Step Body Content */}
-        <div className="fw-step-content" style={{ flexDirection: 'column' }}>
-          {/* STEP 0: Gender */}
+        <div className="fw-step-content" style={{ flexDirection: 'column', gap: '1.5rem' }}>
+          {/* Step 0: Gender Selection */}
           {step === 0 && (
-            <div className="fw-select-grid" style={{ gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              {[
-                { key: 'male', label: 'Male', desc: 'Male biological metrics' },
-                { key: 'female', label: 'Female', desc: 'Female biological metrics' },
-              ].map((item) => (
-                <button
-                  key={item.key}
-                  type="button"
-                  className={`fw-select-card ${formData.gender === item.key ? 'selected' : ''}`}
-                  onClick={() => setFormData({ ...formData, gender: item.key })}
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '20px 16px' }}
-                >
-                  <User size={28} style={{ color: formData.gender === item.key ? 'var(--text-accent)' : 'var(--text-muted)' }} />
-                  <span style={{ fontWeight: 700, fontSize: '1rem' }}>{item.label}</span>
-                  <span style={{ fontSize: '0.72rem', opacity: 0.7 }}>{item.desc}</span>
-                </button>
-              ))}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, gender: 'male' })}
+                className={`fw-option-btn ${formData.gender === 'male' ? 'selected' : ''}`}
+                style={{
+                  padding: '1.25rem',
+                  borderRadius: '12px',
+                  border: formData.gender === 'male' ? '2px solid var(--text-accent)' : '1px solid rgba(255,255,255,0.1)',
+                  background: formData.gender === 'male' ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1rem',
+                }}
+              >
+                <User size={24} />
+                <span style={{ fontSize: '1.1rem', fontWeight: 500 }}>Male</span>
+                {formData.gender === 'male' && <Check size={20} style={{ marginLeft: 'auto', color: 'var(--text-accent)' }} />}
+              </button>
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, gender: 'female' })}
+                className={`fw-option-btn ${formData.gender === 'female' ? 'selected' : ''}`}
+                style={{
+                  padding: '1.25rem',
+                  borderRadius: '12px',
+                  border: formData.gender === 'female' ? '2px solid var(--text-accent)' : '1px solid rgba(255,255,255,0.1)',
+                  background: formData.gender === 'female' ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)',
+                  color: 'var(--text-primary)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1rem',
+                }}
+              >
+                <User size={24} />
+                <span style={{ fontSize: '1.1rem', fontWeight: 500 }}>Female</span>
+                {formData.gender === 'female' && <Check size={20} style={{ marginLeft: 'auto', color: 'var(--text-accent)' }} />}
+              </button>
             </div>
           )}
 
-          {/* STEP 1: Age */}
+          {/* Step 1: Age Input */}
           {step === 1 && (
-            <div className="fw-input-wrap">
-              <div className="input-field fw-number-input">
-                <span className="icon"><Cake size={18} /></span>
-                <input
-                  type="number"
-                  placeholder="e.g. 25"
-                  value={formData.age}
-                  onChange={(e) => setFormData({ ...formData, age: e.target.value.slice(0, 2) })}
-                  onKeyDown={(e) => {
-                    if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
-                    if (e.target.value.length >= 2 && /^[0-9]$/.test(e.key)) e.preventDefault();
-                  }}
-                  min="10"
-                  max="120"
-                  autoFocus
-                />
-                <span className="fw-unit">years</span>
-              </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Your Age</label>
+              <input
+                type="number"
+                value={formData.age}
+                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                placeholder="Enter your age"
+                min="10"
+                max="120"
+                style={{
+                  padding: '1rem',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'rgba(255,255,255,0.02)',
+                  color: 'var(--text-primary)',
+                  fontSize: '1.1rem',
+                  outline: 'none',
+                }}
+              />
+              {formData.age && (Number(formData.age) < 10 || Number(formData.age) > 120) && (
+                <span style={{ color: '#ff6b6b', fontSize: '0.85rem' }}>Please enter a valid age (10-120)</span>
+              )}
             </div>
           )}
 
-          {/* STEP 2: Height & Weight */}
+          {/* Step 2: Height & Weight */}
           {step === 2 && (
-            <div className="fw-input-wrap" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div className="input-field fw-number-input">
-                <span className="icon"><Ruler size={18} /></span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Height (cm)</label>
                 <input
                   type="number"
-                  placeholder="Height e.g. 175"
                   value={formData.height}
-                  onChange={(e) => setFormData({ ...formData, height: e.target.value.slice(0, 3) })}
-                  onKeyDown={(e) => {
-                    if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
-                    if (e.target.value.length >= 3 && /^[0-9]$/.test(e.key)) e.preventDefault();
-                  }}
+                  onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                  placeholder="Enter your height"
                   min="50"
-                  max="250"
-                  autoFocus
+                  max="300"
+                  style={{
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'rgba(255,255,255,0.02)',
+                    color: 'var(--text-primary)',
+                    fontSize: '1.1rem',
+                    outline: 'none',
+                  }}
                 />
-                <span className="fw-unit">cm</span>
               </div>
-
-              <div className="input-field fw-number-input">
-                <span className="icon"><Scale size={18} /></span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <label style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Weight (kg)</label>
                 <input
                   type="number"
-                  placeholder="Weight e.g. 70"
                   value={formData.weight}
-                  onChange={(e) => setFormData({ ...formData, weight: e.target.value.slice(0, 3) })}
-                  onKeyDown={(e) => {
-                    if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
-                    if (e.target.value.length >= 3 && /^[0-9]$/.test(e.key)) e.preventDefault();
-                  }}
+                  onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                  placeholder="Enter your weight"
                   min="20"
                   max="300"
+                  style={{
+                    padding: '1rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'rgba(255,255,255,0.02)',
+                    color: 'var(--text-primary)',
+                    fontSize: '1.1rem',
+                    outline: 'none',
+                  }}
                 />
-                <span className="fw-unit">kg</span>
               </div>
             </div>
           )}
 
-          {/* STEP 3: Activity Level */}
+          {/* Step 3: Activity Level */}
           {step === 3 && (
-            <div className="fw-select-grid" style={{ gridTemplateColumns: '1fr', gap: '10px' }}>
-              {Object.entries(ACTIVITY_MULTIPLIERS).map(([key, item]) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {Object.entries(ACTIVITY_MULTIPLIERS).map(([key, { label, multiplier }]) => (
                 <button
                   key={key}
                   type="button"
-                  className={`fw-select-card ${formData.activity === key ? 'selected' : ''}`}
                   onClick={() => setFormData({ ...formData, activity: key })}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', textAlign: 'left' }}
+                  className={`fw-option-btn ${formData.activity === key ? 'selected' : ''}`}
+                  style={{
+                    padding: '1rem',
+                    borderRadius: '10px',
+                    border: formData.activity === key ? '2px solid var(--text-accent)' : '1px solid rgba(255,255,255,0.1)',
+                    background: formData.activity === key ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                  }}
                 >
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{item.label}</div>
-                    <div style={{ fontSize: '0.78rem', opacity: 0.75, marginTop: '2px' }}>{item.desc}</div>
+                  <Activity size={20} style={{ color: 'var(--text-accent)' }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 500, fontSize: '1rem' }}>{label}</div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                      ×{multiplier} BMR
+                    </div>
                   </div>
                   {formData.activity === key && <Check size={18} style={{ color: 'var(--text-accent)' }} />}
                 </button>
@@ -352,22 +405,35 @@ export default function MacroCalculatorModal({ forceOpen = false, onClose }) {
             </div>
           )}
 
-          {/* STEP 4: Fitness Goal */}
+          {/* Step 4: Fitness Goal */}
           {step === 4 && (
-            <div className="fw-select-grid" style={{ gridTemplateColumns: '1fr', gap: '12px' }}>
-              {Object.entries(FITNESS_GOALS).map(([key, item]) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {Object.entries(FITNESS_GOALS).map(([key, { label, adjustment }]) => (
                 <button
                   key={key}
                   type="button"
-                  className={`fw-select-card ${formData.goal === key ? 'selected' : ''}`}
                   onClick={() => setFormData({ ...formData, goal: key })}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', textAlign: 'left' }}
+                  className={`fw-option-btn ${formData.goal === key ? 'selected' : ''}`}
+                  style={{
+                    padding: '1rem',
+                    borderRadius: '10px',
+                    border: formData.goal === key ? '2px solid var(--text-accent)' : '1px solid rgba(255,255,255,0.1)',
+                    background: formData.goal === key ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    textAlign: 'left',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                  }}
                 >
-                  <div style={{ fontWeight: 700, fontSize: '0.98rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {key === 'fat_loss' && <Flame size={18} style={{ color: '#ef4444' }} />}
-                    {key === 'maintenance' && <Scale size={18} style={{ color: '#00f0ff' }} />}
-                    {key === 'muscle_gain' && <Zap size={18} style={{ color: '#10b981' }} />}
-                    <span>{key === 'fat_loss' ? 'Fat Loss' : key === 'maintenance' ? 'Maintenance' : 'Muscle Gain'}</span>
+                  <Target size={20} style={{ color: 'var(--text-accent)' }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 500, fontSize: '1rem' }}>{label}</div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                      {adjustment > 0 ? `+${adjustment}` : adjustment} kcal
+                    </div>
                   </div>
                   {formData.goal === key && <Check size={18} style={{ color: 'var(--text-accent)' }} />}
                 </button>
@@ -375,84 +441,139 @@ export default function MacroCalculatorModal({ forceOpen = false, onClose }) {
             </div>
           )}
 
-          {/* STEP 5: Final Review */}
+          {/* Step 5: Review & Live Preview */}
           {step === 5 && (
-            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div
-                style={{
-                  background: 'rgba(0, 240, 255, 0.04)',
-                  border: '1px solid rgba(0, 240, 255, 0.2)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: '20px',
-                }}
-              >
-                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--color-accent-cyan)', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Sparkles size={16} /> Recommended Daily Macro Targets
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div style={{
+                background: 'rgba(255,255,255,0.03)',
+                borderRadius: '12px',
+                padding: '1.5rem',
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <Sparkles size={20} style={{ color: 'var(--text-accent)' }} />
+                  <h4 style={{ margin: 0, color: 'var(--text-primary)' }}>Your Daily Targets</h4>
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', textAlign: 'center' }}>
-                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px 8px', borderRadius: 'var(--radius-md)' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Calories</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#00f0ff' }}>
-                      {livePreview.calories} <span style={{ fontSize: '0.65rem' }}>kcal</span>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+                  <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                    <Flame size={24} style={{ color: '#ff6b6b', marginBottom: '0.5rem' }} />
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      {Math.round(livePreview.calories)}
                     </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Calories</div>
                   </div>
-
-                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px 8px', borderRadius: 'var(--radius-md)' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Protein</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#a78bfa' }}>
-                      {livePreview.protein} <span style={{ fontSize: '0.65rem' }}>g</span>
+                  <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#4ecdc4', margin: '0 auto 0.5rem' }} />
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      {Math.round(livePreview.protein)}g
                     </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Protein</div>
                   </div>
-
-                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px 8px', borderRadius: 'var(--radius-md)' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Fats</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f59e0b' }}>
-                      {livePreview.fats} <span style={{ fontSize: '0.65rem' }}>g</span>
+                  <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#ffe66d', margin: '0 auto 0.5rem' }} />
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      {Math.round(livePreview.carbs)}g
                     </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Carbs</div>
                   </div>
-
-                  <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px 8px', borderRadius: 'var(--radius-md)' }}>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Carbs</div>
-                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#10b981' }}>
-                      {livePreview.carbs} <span style={{ fontSize: '0.65rem' }}>g</span>
+                  <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#95e1d3', margin: '0 auto 0.5rem' }} />
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      {Math.round(livePreview.fat)}g
                     </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Fat</div>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                    <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#f38181', margin: '0 auto 0.5rem' }} />
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      {Math.round(livePreview.fiber)}g
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Fiber</div>
+                  </div>
+                  <div style={{ textAlign: 'center', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '8px' }}>
+                    <Sunrise size={24} style={{ color: '#a8e6cf', marginBottom: '0.5rem' }} />
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                      {Math.round(livePreview.bmr)}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>BMR</div>
                   </div>
                 </div>
+              </div>
+
+              <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                These targets are calculated based on your personal metrics and will update your daily nutrition goals.
               </div>
             </div>
           )}
         </div>
 
-        {/* Wizard Footer Navigation */}
-        <div className="fw-nav">
-          <button
-            type="button"
-            className="fw-btn-back"
-            onClick={handleBack}
-            disabled={step === 0}
-            style={{ opacity: step === 0 ? 0.4 : 1, cursor: step === 0 ? 'not-allowed' : 'pointer' }}
-          >
-            Back
-          </button>
-
+        {/* Navigation Buttons */}
+        <div className="fw-nav-buttons">
+          {step > 0 && (
+            <button
+              type="button"
+              onClick={handleBack}
+              style={{
+                padding: '0.75rem 1.5rem',
+                borderRadius: '8px',
+                border: '1px solid rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.02)',
+                color: 'var(--text-primary)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
+            >
+              Back
+            </button>
+          )}
           {step < totalSteps - 1 ? (
             <button
               type="button"
-              className="fw-btn-next"
               onClick={handleNext}
               disabled={!isCurrentStepValid()}
+              style={{
+                padding: '0.75rem 1.5rem',
+                borderRadius: '8px',
+                border: 'none',
+                background: isCurrentStepValid() ? 'var(--text-accent)' : 'rgba(255,255,255,0.1)',
+                color: isCurrentStepValid() ? '#000' : 'var(--text-muted)',
+                cursor: isCurrentStepValid() ? 'pointer' : 'not-allowed',
+                transition: 'all 0.2s',
+                fontWeight: 500,
+                marginLeft: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
             >
-              Next Step
+              Next
+              <Zap size={16} />
             </button>
           ) : (
             <button
               type="button"
-              className="fw-btn-next"
               onClick={handleFinish}
-              style={{ background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 0 20px rgba(16, 185, 129, 0.4)' }}
+              disabled={!isCurrentStepValid()}
+              style={{
+                padding: '0.75rem 1.5rem',
+                borderRadius: '8px',
+                border: 'none',
+                background: isCurrentStepValid() ? 'var(--text-accent)' : 'rgba(255,255,255,0.1)',
+                color: isCurrentStepValid() ? '#000' : 'var(--text-muted)',
+                cursor: isCurrentStepValid() ? 'pointer' : 'not-allowed',
+                transition: 'all 0.2s',
+                fontWeight: 500,
+                marginLeft: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
             >
-              Save & Finish Setup
+              <Check size={16} />
+              Save & Finish
             </button>
           )}
         </div>
