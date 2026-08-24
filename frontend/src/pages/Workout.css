@@ -946,12 +946,44 @@
 
 .exercise-spec-grid {
     display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 16px;
-    flex-wrap: wrap;
     background: rgba(0, 0, 0, 0.2);
     padding: 10px 14px;
     border-radius: var(--radius-sm);
     margin-bottom: 10px;
+}
+
+.spec-items-wrap {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.exercise-link-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--text-accent);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.exercise-link-btn:hover {
+    background: rgba(16, 185, 129, 0.25);
+    color: #fff;
+    border-color: var(--text-accent);
+    transform: translateY(-1px) scale(1.05);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
 }
 
 .spec-item {

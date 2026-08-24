@@ -6,7 +6,7 @@ import { logWorkout, getLocalDateString, sanitizeErrorMessage } from '../api/aut
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
 import './Workout.css';
-import { Dumbbell, Timer, Ruler, User, Activity, Scale, Cake, Flame, Calendar, BarChart2, Target, Zap, HeartPulse, Sprout, Sparkles, Rocket, AlertCircle, CheckCircle2, Sunrise, Moon, X } from 'lucide-react';
+import { Dumbbell, Timer, Ruler, User, Activity, Scale, Cake, Flame, Calendar, BarChart2, Target, Zap, HeartPulse, Sprout, Sparkles, Rocket, AlertCircle, CheckCircle2, Sunrise, Moon, X, ExternalLink } from 'lucide-react';
 
 const TABS = ['Suggested Plan', 'Log Workout'];
 
@@ -158,6 +158,17 @@ export default function Workout() {
         const planId = p.plan_id || p.id || p.created_at || `${p.goal || 'gen'}_${p.weekly_plan?.length || 0}_${p.weekly_plan?.[0]?.exercises?.[0]?.name || 'default'}`;
         const today = getLocalDateString();
         return `iron_plan_logged_${planId}_${today}`;
+    };
+
+    const getExerciseUrl = (ex) => {
+        if (!ex) return 'https://www.youtube.com';
+        if (ex.video_url) return ex.video_url;
+        if (ex.youtube_url) return ex.youtube_url;
+        if (ex.url) return ex.url;
+        if (ex.link) return ex.link;
+        if (ex.tutorial_url) return ex.tutorial_url;
+        if (ex.instructions_url) return ex.instructions_url;
+        return `https://www.youtube.com/results?search_query=${encodeURIComponent(ex.name + ' exercise form tutorial')}`;
     };
 
     const getExerciseKey = (day, index, name) => `${normalizeDay(day)}_${index}_${name}`;
@@ -903,26 +914,39 @@ export default function Workout() {
                                                                         </div>
                                                                         <div className="exercise-card-body">
                                                                             <div className="exercise-spec-grid">
-                                                                                <div className="spec-item">
-                                                                                    <span className="spec-label">Sets</span>
-                                                                                    <span className="spec-val">{ex.sets}</span>
+                                                                                <div className="spec-items-wrap">
+                                                                                    <div className="spec-item">
+                                                                                        <span className="spec-label">Sets</span>
+                                                                                        <span className="spec-val">{ex.sets}</span>
+                                                                                    </div>
+                                                                                    <div className="spec-item">
+                                                                                        <span className="spec-label">Reps</span>
+                                                                                        <span className="spec-val">{ex.reps}</span>
+                                                                                    </div>
+                                                                                    <div className="spec-item">
+                                                                                        <span className="spec-label">Rest</span>
+                                                                                        <span className="spec-val">{ex.rest}</span>
+                                                                                    </div>
+                                                                                    <div className="spec-item">
+                                                                                        <span className="spec-label">Target</span>
+                                                                                        <span className="spec-val">{ex.target_muscle}</span>
+                                                                                    </div>
+                                                                                    <div className="spec-item">
+                                                                                        <span className="spec-label">Burn</span>
+                                                                                        <span className="spec-val accent">{ex.estimated_calories}</span>
+                                                                                    </div>
                                                                                 </div>
-                                                                                <div className="spec-item">
-                                                                                    <span className="spec-label">Reps</span>
-                                                                                    <span className="spec-val">{ex.reps}</span>
-                                                                                </div>
-                                                                                <div className="spec-item">
-                                                                                    <span className="spec-label">Rest</span>
-                                                                                    <span className="spec-val">{ex.rest}</span>
-                                                                                </div>
-                                                                                <div className="spec-item">
-                                                                                    <span className="spec-label">Target</span>
-                                                                                    <span className="spec-val">{ex.target_muscle}</span>
-                                                                                </div>
-                                                                                <div className="spec-item">
-                                                                                    <span className="spec-label">Burn</span>
-                                                                                    <span className="spec-val accent">{ex.estimated_calories}</span>
-                                                                                </div>
+                                                                                <a
+                                                                                    href={getExerciseUrl(ex)}
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    className="exercise-link-btn"
+                                                                                    title={`Open video tutorial & guide for ${ex.name}`}
+                                                                                    aria-label={`Open tutorial link for ${ex.name}`}
+                                                                                    onClick={(e) => e.stopPropagation()}
+                                                                                >
+                                                                                    <ExternalLink size={16} />
+                                                                                </a>
                                                                             </div>
                                                                             {ex.description && (
                                                                                 <p className="exercise-desc">{ex.description}</p>
