@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usePlan } from '../context/PlanContext';
 import { useToast } from '../context/ToastContext';
-import { logWorkout, fetchWorkouts, getLocalDateString, sanitizeErrorMessage } from '../api/auth';
+import { logWorkout, getLocalDateString, sanitizeErrorMessage } from '../api/auth';
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
 import './Workout.css';
@@ -153,61 +153,33 @@ export default function Workout() {
         return day;
     };
 
+    const getPlanStorageKey = (p) => {
+        if (!p) return null;
+        const planId = p.plan_id || p.id || p.created_at || `${p.goal || 'gen'}_${p.weekly_plan?.length || 0}_${p.weekly_plan?.[0]?.exercises?.[0]?.name || 'default'}`;
+        const today = getLocalDateString();
+        return `iron_plan_logged_${planId}_${today}`;
+    };
+
     const getExerciseKey = (day, index, name) => `${normalizeDay(day)}_${index}_${name}`;
 
-    // Fetch previously logged workouts on mount/plan change to match logged items for current plan
+    // Load logged exercises specifically for the active plan on mount/plan change
     useEffect(() => {
-        if (!token || !plan?.weekly_plan) return;
-        fetchWorkouts(token).then((res) => {
-            if (Array.isArray(res)) {
-                const todayStr = getLocalDateString();
-                const loggedToday = res.filter((w) => getLocalDateString(w.date) === todayStr);
-                const loggedMap = {};
-
-                const todayWeekday = new Date().toLocaleDateString('en-US', { weekday: 'long' });
-
-                loggedToday.forEach((w) => {
-                    // Try matching today's plan day first
-                    let targetDays = plan.weekly_plan.filter(
-                        (d) => normalizeDay(d.day) === normalizeDay(todayWeekday)
-                    );
-                    if (targetDays.length === 0) {
-                        targetDays = plan.weekly_plan;
-                    }
-
-                    let matched = false;
-                    for (const dayObj of targetDays) {
-                        if (Array.isArray(dayObj.exercises)) {
-                            const idx = dayObj.exercises.findIndex(
-                                (ex, i) => ex.name === w.workout_name && !loggedMap[getExerciseKey(dayObj.day, i, ex.name)]
-                            );
-                            if (idx !== -1) {
-                                loggedMap[getExerciseKey(dayObj.day, idx, w.workout_name)] = true;
-                                matched = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    // Fallback to all days if not matched in today's day
-                    if (!matched) {
-                        for (const dayObj of plan.weekly_plan) {
-                            if (Array.isArray(dayObj.exercises)) {
-                                const idx = dayObj.exercises.findIndex(
-                                    (ex, i) => ex.name === w.workout_name && !loggedMap[getExerciseKey(dayObj.day, i, ex.name)]
-                                );
-                                if (idx !== -1) {
-                                    loggedMap[getExerciseKey(dayObj.day, idx, w.workout_name)] = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                });
-                setLoggedExerciseKeys((prev) => ({ ...prev, ...loggedMap }));
+        if (!plan?.weekly_plan) {
+            setLoggedExerciseKeys({});
+            return;
+        }
+        const storageKey = getPlanStorageKey(plan);
+        if (storageKey) {
+            try {
+                const saved = localStorage.getItem(storageKey);
+                setLoggedExerciseKeys(saved ? JSON.parse(saved) : {});
+            } catch {
+                setLoggedExerciseKeys({});
             }
-        }).catch((err) => console.warn('Error fetching logged workouts:', err));
-    }, [token, plan]);
+        } else {
+            setLoggedExerciseKeys({});
+        }
+    }, [plan]);
 
     const parseSafeInt = (val, fallback = 100) => {
         if (typeof val === 'number' && !isNaN(val)) return Math.round(val);
@@ -223,8 +195,19 @@ export default function Workout() {
         const key = getExerciseKey(normDay, index, ex.name);
 
         // Instant optimistic update for immediate visual feedback
-        setLoggedExerciseKeys((prev) => ({ ...prev, [key]: true }));
+        const nextLogged = { ...loggedExerciseKeys, [key]: true };
+        setLoggedExerciseKeys(nextLogged);
         setLoggingExKey(key);
+
+        const storageKey = getPlanStorageKey(plan);
+        if (storageKey) {
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(nextLogged));
+            } catch (e) {
+                console.warn('Failed to save plan logged state:', e);
+            }
+        }
+
         const msg = `Logged ${ex.name} for ${normDay}!`;
         setWorkoutSuccessMsg(msg);
         setWorkoutErrorMsg('');
@@ -246,6 +229,11 @@ export default function Workout() {
             setLoggedExerciseKeys((prev) => {
                 const copy = { ...prev };
                 delete copy[key];
+                if (storageKey) {
+                    try {
+                        localStorage.setItem(storageKey, JSON.stringify(copy));
+                    } catch {}
+                }
                 return copy;
             });
             setWorkoutSuccessMsg('');

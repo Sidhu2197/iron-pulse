@@ -186,12 +186,14 @@ public class WorkoutPlanService {
             Object duration = firstValue(userProfile, "duration", "workout_duration_minutes");
             plan.setDurationMinutes(duration != null ? ((Number) duration).intValue() : 45);
 
-            plan.setPlanJson(objectMapper.writeValueAsString(planData));
             LocalDateTime now = LocalDateTime.now();
             plan.setCreatedAt(now);
             plan.setExpiresAt(now.plusDays(7)); // 7-day expiration policy
+            plan.setPlanJson(objectMapper.writeValueAsString(planData));
 
-            workoutPlanRepo.save(plan);
+            WorkoutPlan savedPlan = workoutPlanRepo.save(plan);
+            planData.put("plan_id", savedPlan.getId());
+            planData.put("created_at", now.toString());
         } catch (Exception e) {
             System.err.println("Failed to persist workout plan for user " + userId + ": " + e.getMessage());
         }
@@ -217,7 +219,10 @@ public class WorkoutPlanService {
 
         try {
             if (plan.getPlanJson() != null && !plan.getPlanJson().isBlank()) {
-                return objectMapper.readValue(plan.getPlanJson(), new TypeReference<Map<String, Object>>() {});
+                Map<String, Object> data = objectMapper.readValue(plan.getPlanJson(), new TypeReference<Map<String, Object>>() {});
+                data.put("plan_id", plan.getId());
+                data.put("created_at", plan.getCreatedAt() != null ? plan.getCreatedAt().toString() : null);
+                return data;
             }
         } catch (Exception e) {
             System.err.println("Failed to deserialize workout plan JSON: " + e.getMessage());
