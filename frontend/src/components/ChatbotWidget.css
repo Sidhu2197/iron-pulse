@@ -334,6 +334,7 @@
 }
 
 /* Form Input Bar */
+.chatbot-input-area,
 .chatbot-input-form {
     padding: 10px 12px;
     background: rgba(18, 24, 44, 0.9);
@@ -343,6 +344,7 @@
     gap: 8px;
 }
 
+.chatbot-input-area .chat-input,
 .chatbot-input-form input {
     flex: 1;
     background: rgba(8, 12, 24, 0.6);
@@ -355,6 +357,7 @@
     transition: border-color 0.2s ease;
 }
 
+.chatbot-input-area .chat-input:focus,
 .chatbot-input-form input:focus {
     border-color: var(--border-focus);
 }

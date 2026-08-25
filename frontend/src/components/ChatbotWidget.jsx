@@ -10,39 +10,79 @@ const QUICK_PROMPTS = [
     'How is BMI calculated?',
 ];
 
-function getBotResponse(userText) {
-    const text = userText.toLowerCase().trim();
+const API_URL = 'https://hugging-face-fine-tuned-inference.vercel.app/chat';
+const API_TIMEOUT = 60000; // 1 minute timeout
 
-    if (text.includes('good morning') || text.includes('morning')) {
-        return "Good morning! ☀️ Ready to crush your workout goals today? Let me know if you need help logging workouts, planning meals, or calculating recovery!";
-    }
-    if (text.includes('good afternoon') || text.includes('afternoon')) {
-        return "Good afternoon! 🌤️ Hope your day is going strong! Remember to stay hydrated and hit your daily macro targets.";
-    }
-    if (text.includes('good evening') || text.includes('evening')) {
-        return "Good evening! 🌆 Great time to review your daily dashboard stats or log your evening workout!";
-    }
-    if (text.includes('good night') || text.includes('night') || text.includes('sleep')) {
-        return "Good night! 🌙 Rest well and recharge your muscles! Quality sleep is vital for optimal recovery and readiness.";
-    }
-    if (text.includes('hi') || text.includes('hello') || text.includes('hey') || text.includes('welcome')) {
-        return "Hello there! 👋 Welcome to IronPulse. I am your AI assistant here to guide you with workouts, nutrition, recovery, and fitness stats.";
-    }
-    if (text.includes('workout') || text.includes('exercise') || text.includes('plan')) {
-        return "🏋️ You can generate tailored workout plans or log daily exercises in the Workout section!";
-    }
-    if (text.includes('food') || text.includes('meal') || text.includes('diet') || text.includes('macro')) {
-        return "🥗 Visit the Food Plan page to calculate your target macronutrients and generate custom meal recommendations.";
-    }
-    if (text.includes('recovery') || text.includes('soreness') || text.includes('readiness')) {
-        return "⚡ Check out Recovery AI! Enter your sleep, heart rate, and soreness levels to calculate your daily readiness index.";
-    }
-    if (text.includes('bmi')) {
-        return "📊 Use our 2-panel BMI Calculator to determine your Body Mass Index and view tailored advice.";
-    }
+async function getBotResponse(userText, conversationHistory) {
+    try {
+        // Convert conversation history to API format
+        const history = conversationHistory.map(msg => ({
+            role: msg.sender === 'user' ? 'user' : 'assistant',
+            content: msg.text
+        }));
 
-    // Default fallback message for unhandled model calls
-    return "🚀 AI Engine Integration Coming Soon! Custom model queries will be processed directly through our backend API Gateway in the upcoming update.";
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: userText,
+                history: history
+            }),
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.reply || "I apologize, but I couldn't generate a response. Please try again.";
+    } catch (error) {
+        console.error('Chatbot API Error:', error);
+        
+        if (error.name === 'AbortError') {
+            return "⏱️ The response took too long. The free tier API might be experiencing high traffic. Please try again in a moment.";
+        }
+        
+        // Fallback to rule-based responses on API failure
+        const text = userText.toLowerCase().trim();
+        if (text.includes('good morning') || text.includes('morning')) {
+            return "Good morning! ☀️ Ready to crush your workout goals today? Let me know if you need help logging workouts, planning meals, or calculating recovery!";
+        }
+        if (text.includes('good afternoon') || text.includes('afternoon')) {
+            return "Good afternoon! 🌤️ Hope your day is going strong! Remember to stay hydrated and hit your daily macro targets.";
+        }
+        if (text.includes('good evening') || text.includes('evening')) {
+            return "Good evening! 🌆 Great time to review your daily dashboard stats or log your evening workout!";
+        }
+        if (text.includes('good night') || text.includes('night') || text.includes('sleep')) {
+            return "Good night! 🌙 Rest well and recharge your muscles! Quality sleep is vital for optimal recovery and readiness.";
+        }
+        if (text.includes('hi') || text.includes('hello') || text.includes('hey') || text.includes('welcome')) {
+            return "Hello there! 👋 Welcome to IronPulse. I am your AI assistant here to guide you with workouts, nutrition, recovery, and fitness stats.";
+        }
+        if (text.includes('workout') || text.includes('exercise') || text.includes('plan')) {
+            return "🏋️ You can generate tailored workout plans or log daily exercises in the Workout section!";
+        }
+        if (text.includes('food') || text.includes('meal') || text.includes('diet') || text.includes('macro')) {
+            return "🥗 Visit the Food Plan page to calculate your target macronutrients and generate custom meal recommendations.";
+        }
+        if (text.includes('recovery') || text.includes('soreness') || text.includes('readiness')) {
+            return "⚡ Check out Recovery AI! Enter your sleep, heart rate, and soreness levels to calculate your daily readiness index.";
+        }
+        if (text.includes('bmi')) {
+            return "📊 Use our 2-panel BMI Calculator to determine your Body Mass Index and view tailored advice.";
+        }
+
+        return "� I'm having trouble connecting to the AI service. Please check your connection and try again.";
+    }
 }
 
 export default function ChatbotWidget() {
@@ -95,7 +135,7 @@ export default function ChatbotWidget() {
         };
     }, [isOpen]);
 
-    const handleSendMessage = (textToSend) => {
+    const handleSendMessage = async (textToSend) => {
         const text = textToSend || input;
         if (!text.trim()) return;
 
@@ -110,9 +150,11 @@ export default function ChatbotWidget() {
         if (!textToSend) setInput('');
         setIsTyping(true);
 
-        // Simulate typing delay
-        setTimeout(() => {
-            const botReplyText = getBotResponse(userMsg.text);
+        // Get conversation history excluding the current user message
+        const conversationHistory = messages;
+
+        try {
+            const botReplyText = await getBotResponse(userMsg.text, conversationHistory);
             const botMsg = {
                 id: Date.now() + 1,
                 sender: 'bot',
@@ -120,8 +162,18 @@ export default function ChatbotWidget() {
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             };
             setMessages((prev) => [...prev, botMsg]);
+        } catch (error) {
+            console.error('Error in handleSendMessage:', error);
+            const errorMsg = {
+                id: Date.now() + 1,
+                sender: 'bot',
+                text: "❌ Something went wrong. Please try again.",
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            };
+            setMessages((prev) => [...prev, errorMsg]);
+        } finally {
             setIsTyping(false);
-        }, 400);
+        }
     };
 
     const handleFormSubmit = (e) => {
@@ -191,22 +243,22 @@ export default function ChatbotWidget() {
                                         </div>
                                     )}
                                     <div className={`chat-bubble ${msg.sender === 'user' ? 'user-bubble' : 'bot-bubble'}`}>
-                                        <p>{msg.text}</p>
-                                        <span className="bubble-time">{msg.time}</span>
+                                        <div className="bubble-content">{msg.text}</div>
+                                        <div className="bubble-time">{msg.time}</div>
                                     </div>
                                 </div>
                             ))}
-
-                            {/* Typing Indicator */}
                             {isTyping && (
                                 <div className="chat-bubble-row bot-row">
                                     <div className="bubble-avatar">
                                         <Sparkles size={14} />
                                     </div>
-                                    <div className="chat-bubble bot-bubble typing-bubble">
-                                        <span className="dot" />
-                                        <span className="dot" />
-                                        <span className="dot" />
+                                    <div className="chat-bubble bot-bubble">
+                                        <div className="typing-indicator">
+                                            <span></span>
+                                            <span></span>
+                                            <span></span>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -215,10 +267,10 @@ export default function ChatbotWidget() {
 
                         {/* Quick Prompts */}
                         <div className="quick-prompts">
-                            {QUICK_PROMPTS.map((prompt, idx) => (
+                            {QUICK_PROMPTS.map((prompt) => (
                                 <button
-                                    key={idx}
-                                    className="prompt-chip"
+                                    key={prompt}
+                                    className="quick-prompt-btn"
                                     onClick={() => handleSendMessage(prompt)}
                                 >
                                     {prompt}
@@ -226,19 +278,20 @@ export default function ChatbotWidget() {
                             ))}
                         </div>
 
-                        {/* Input Form */}
-                        <form onSubmit={handleFormSubmit} className="chatbot-input-form">
+                        {/* Input Area */}
+                        <form className="chatbot-input-area" onSubmit={handleFormSubmit}>
                             <input
                                 type="text"
-                                placeholder="Type a message or greeting..."
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
+                                placeholder="Type your message..."
+                                className="chat-input"
+                                disabled={isTyping}
                             />
                             <button
                                 type="submit"
                                 className="send-btn"
-                                disabled={!input.trim()}
-                                title="Send Message"
+                                disabled={isTyping || !input.trim()}
                             >
                                 <Send size={18} />
                             </button>
@@ -247,24 +300,18 @@ export default function ChatbotWidget() {
                 )}
             </AnimatePresence>
 
-            {/* Floating Draggable Launcher Button */}
+            {/* Floating Toggle Button */}
             {!isOpen && (
                 <motion.button
-                    drag
-                    dragMomentum={false}
-                    dragElastic={0.05}
-                    className="chatbot-trigger-btn draggable-btn"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => setIsOpen(true)}
-                    whileHover={{ scale: 1.08 }}
-                    whileTap={{ scale: 0.92 }}
-                    title="Drag to move or click to open assistant"
-                    aria-label="Open Chatbot"
+                    className="chatbot-toggle-btn glass-card"
+                    title="Open AI Assistant"
                 >
-                    <div className="icon-wrapper">
-                        <Bot size={26} />
-                    </div>
-                    <span className="trigger-pulse" />
-                    <span className="unread-badge">1</span>
+                    <Bot size={24} />
                 </motion.button>
             )}
         </div>
