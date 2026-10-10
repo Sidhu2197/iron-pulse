@@ -77,13 +77,19 @@ export default function ForgotPassword() {
         setLoading(true);
         setLiveAnnouncement('Sending password reset email...');
         try {
-            const res = await fetch(`${API_BASE}/auth/forgot-password`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email.trim().toLowerCase() }),
-            });
-            const data = await res.json();
-            if (data.success) {
+           const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email.trim().toLowerCase() }),
+});
+
+const text = await res.text();
+const data = text ? JSON.parse(text) : {};
+
+if (!res.ok) {
+    throw new Error(data.message || `Request failed: ${res.status}`);
+}
+            if (res.ok && (!text || data.success !== false)) {
                 setSent(true);
                 setLiveAnnouncement('Password reset email sent successfully.');
             } else {
