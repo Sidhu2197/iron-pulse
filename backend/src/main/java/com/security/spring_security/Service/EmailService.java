@@ -26,7 +26,7 @@ public class EmailService {
 
     public void sendResetLink(String toEmail, String resetLink) {
         try {
-            log.info("Sending password reset email");
+            log.info("Starting password reset email delivery");
 
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -37,15 +37,23 @@ public class EmailService {
             helper.setText(buildEmailBody(resetLink), true);
 
             mailSender.send(message);
+
             log.info("Password reset email sent successfully");
+
         } catch (Exception e) {
+            log.error("Password reset email failed: {}", e.getMessage(), e);
             throw new RuntimeException("Unable to send password reset email.", e);
         }
     }
 
     public void sendVerificationEmail(String toEmail, String verificationToken) {
         try {
-            String verificationLink = frontendUrl + "/verify-email?token=" + verificationToken;
+            log.info("Starting verification email delivery");
+
+            String verificationLink = frontendUrl
+                    + "/verify-email?token="
+                    + verificationToken;
+
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
@@ -55,7 +63,11 @@ public class EmailService {
             helper.setText(buildVerificationEmailBody(verificationLink), true);
 
             mailSender.send(message);
+
+            log.info("Verification email sent successfully");
+
         } catch (Exception e) {
+            log.error("Verification email failed: {}", e.getMessage(), e);
             throw new RuntimeException("Unable to send verification email.", e);
         }
     }
@@ -79,8 +91,7 @@ public class EmailService {
                         </div>
                     </div>
                 </div>
-                """
-                .formatted(verificationLink);
+                """.formatted(verificationLink);
     }
 
     private String buildEmailBody(String resetLink) {
@@ -116,7 +127,6 @@ public class EmailService {
                         </p>
                     </div>
                 </div>
-                """
-                .formatted(resetLink);
+                """.formatted(resetLink);
     }
 }
