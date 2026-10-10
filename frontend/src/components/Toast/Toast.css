@@ -1,0 +1,194 @@
+/* ================================================================
+   Cyber Toast Notifications
+   ================================================================ */
+
+.toast-container {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.toast {
+  position: relative;
+  min-width: 320px;
+  max-width: 440px;
+  background: rgba(14, 18, 36, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  pointer-events: auto;
+  animation: toastSlideIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Type-specific border gradients ────────────────────────── */
+.toast--success {
+  border-image: linear-gradient(135deg, rgba(16, 185, 129, 0.5) 0%, rgba(0, 240, 255, 0.2) 100%) 1;
+  border-image-slice: 1;
+}
+
+.toast--error {
+  border-image: linear-gradient(135deg, rgba(239, 68, 68, 0.5) 0%, rgba(236, 72, 153, 0.2) 100%) 1;
+  border-image-slice: 1;
+}
+
+.toast--info {
+  border-image: linear-gradient(135deg, rgba(0, 240, 255, 0.4) 0%, rgba(124, 58, 237, 0.2) 100%) 1;
+  border-image-slice: 1;
+}
+
+/* ── Radial glow pulse ─────────────────────────────────────── */
+.toast__glow {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  transform: translate(-40%, -50%);
+  pointer-events: none;
+  animation: toastGlowPulse 2s ease-in-out infinite;
+}
+
+.toast--success .toast__glow {
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
+}
+
+.toast--error .toast__glow {
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.25) 0%, transparent 70%);
+}
+
+.toast--info .toast__glow {
+  background: radial-gradient(circle, rgba(0, 240, 255, 0.2) 0%, transparent 70%);
+}
+
+/* ── Body ──────────────────────────────────────────────────── */
+.toast__body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.toast__icon {
+  flex-shrink: 0;
+}
+
+.toast--success .toast__icon {
+  color: #10b981;
+}
+
+.toast--error .toast__icon {
+  color: #ef4444;
+}
+
+.toast--info .toast__icon {
+  color: #00f0ff;
+}
+
+.toast__message {
+  flex: 1;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #f1f5f9;
+  line-height: 1.4;
+}
+
+.toast__close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.toast__close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+}
+
+/* ── Progress bar ──────────────────────────────────────────── */
+.toast__progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  transform-origin: left;
+  animation: toastProgress linear forwards;
+  border-radius: 0 0 12px 12px;
+}
+
+.toast--success .toast__progress {
+  background: linear-gradient(90deg, #10b981 0%, #00f0ff 100%);
+}
+
+.toast--error .toast__progress {
+  background: linear-gradient(90deg, #ef4444 0%, #ec4899 100%);
+}
+
+.toast--info .toast__progress {
+  background: linear-gradient(90deg, #00f0ff 0%, #7c3aed 100%);
+}
+
+/* ── Animations ────────────────────────────────────────────── */
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes toastGlowPulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: translate(-40%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-40%, -50%) scale(1.2);
+  }
+}
+
+@keyframes toastProgress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .toast-container {
+    left: 12px;
+    right: 12px;
+    top: 12px;
+  }
+
+  .toast {
+    min-width: unset;
+    max-width: unset;
+  }
+}

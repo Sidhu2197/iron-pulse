@@ -1,0 +1,64 @@
+.accessible-btn-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.accessible-btn-wrapper.w-full-wrapper {
+  display: block;
+  width: 100%;
+}
+
+.accessible-btn.is-aria-disabled,
+.accessible-btn[aria-disabled="true"] {
+  cursor: not-allowed !important;
+  opacity: 0.75;
+  filter: saturate(0.75);
+}
+
+.accessible-btn:focus-visible {
+  outline: 3px solid var(--accent-cyan, #00f0ff) !important;
+  outline-offset: 2px !important;
+}
+
+.a11y-btn-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0f172a;
+  color: #f8fafc;
+  border: 1px solid #38bdf8;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.775rem;
+  line-height: 1.35;
+  white-space: nowrap;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  pointer-events: none;
+  animation: a11yTooltipFade 0.2s ease-out;
+}
+
+.a11y-btn-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: #38bdf8 transparent transparent transparent;
+}
+
+.a11y-info-icon {
+  color: #fbbf24;
+  flex-shrink: 0;
+}
+
+@keyframes a11yTooltipFade {
+  from { opacity: 0; transform: translate(-50%, 4px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
