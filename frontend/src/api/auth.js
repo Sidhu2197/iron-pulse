@@ -4,7 +4,7 @@
 // Vite proxy forwards /api/** → http://localhost:8080
 // =============================================
 
-const API_BASE = '/api';
+const API_BASE = 'https://iron-pulse-backend.onrender.com/api';
 export const SESSION_AUTH = 'cookie';
 
 // Authentication cookies are HttpOnly, so JavaScript never receives the JWT.
@@ -353,7 +353,8 @@ export async function logMeal(credentials, { food_name, calories, protein, fats,
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Failed to log meal');
     return data;
-}
+}
+
 
 export async function deleteMeal(credentials, id) {
     const res = await apiFetch(API_BASE + '/meals/' + id, {
