@@ -1,74 +1,99 @@
 package com.security.spring_security.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
-import jakarta.mail.internet.MimeMessage;
+import java.util.Map;
 
 @Service
 public class EmailService {
 
-    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+    private static final Logger log =
+            LoggerFactory.getLogger(EmailService.class);
 
-    @Autowired
-    private JavaMailSender mailSender;
+    private final RestClient restClient;
+    private final ObjectMapper objectMapper;
 
-    @Value("${spring.mail.username}")
-    private String fromEmail;
+    @Value("${RESEND_API_KEY:}")
+    private String resendApiKey;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
 
-    public void sendResetLink(String toEmail, String resetLink) {
-        try {
-            log.info("Starting password reset email delivery");
-
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Iron Pulse — Reset Your Password");
-            helper.setText(buildEmailBody(resetLink), true);
-
-            mailSender.send(message);
-
-            log.info("Password reset email sent successfully");
-
-        } catch (Exception e) {
-            log.error("Password reset email failed: {}", e.getMessage(), e);
-            throw new RuntimeException("Unable to send password reset email.", e);
-        }
+    public EmailService(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+        this.restClient = RestClient.builder()
+                .baseUrl("https://api.resend.com")
+                .build();
     }
 
-    public void sendVerificationEmail(String toEmail, String verificationToken) {
+    public void sendResetLink(String toEmail, String resetLink) {
+        sendEmail(
+                toEmail,
+                "Iron Pulse — Reset Your Password",
+                buildEmailBody(resetLink)
+        );
+    }
+
+    public void sendVerificationEmail(
+            String toEmail,
+            String verificationToken) {
+
+        String verificationLink = frontendUrl
+                + "/verify-email?token="
+                + verificationToken;
+
+        sendEmail(
+                toEmail,
+                "Iron Pulse — Verify Your Email",
+                buildVerificationEmailBody(verificationLink)
+        );
+    }
+
+    private void sendEmail(
+            String toEmail,
+            String subject,
+            String html) {
+
+        if (resendApiKey == null || resendApiKey.isBlank()) {
+            throw new RuntimeException(
+                    "RESEND_API_KEY is missing from the environment."
+            );
+        }
+
         try {
-            log.info("Starting verification email delivery");
+            Map<String, Object> request = Map.of(
+                    "from", "Iron Pulse <onboarding@resend.dev>",
+                    "to", new String[]{toEmail},
+                    "subject", subject,
+                    "html", html
+            );
 
-            String verificationLink = frontendUrl
-                    + "/verify-email?token="
-                    + verificationToken;
+            String response = restClient.post()
+                    .uri("/emails")
+                    .header(
+                            HttpHeaders.AUTHORIZATION,
+                            "Bearer " + resendApiKey
+                    )
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(request)
+                    .retrieve()
+                    .body(String.class);
 
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject("Iron Pulse — Verify Your Email");
-            helper.setText(buildVerificationEmailBody(verificationLink), true);
-
-            mailSender.send(message);
-
-            log.info("Verification email sent successfully");
+            log.info("Resend accepted email request. Response: {}", response);
 
         } catch (Exception e) {
-            log.error("Verification email failed: {}", e.getMessage(), e);
-            throw new RuntimeException("Unable to send verification email.", e);
+            log.error("Resend email delivery request failed: {}", e.getMessage());
+            throw new RuntimeException(
+                    "Unable to send email through Resend.",
+                    e
+            );
         }
     }
 
@@ -82,10 +107,10 @@ public class EmailService {
                     </div>
                     <div style="background: rgba(255,255,255,0.04); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
                         <p style="color: #e2e8f0; font-size: 15px; line-height: 1.6; margin: 0 0 16px;">
-                            Welcome to Iron Pulse! Click the button below to verify your email address and activate your account:
+                            Welcome to Iron Pulse! Click below to verify your email address and activate your account:
                         </p>
                         <div style="text-align: center; margin: 24px 0;">
-                            <a href="%s" style="display: inline-block; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 10px; font-weight: 600; font-size: 15px; letter-spacing: 0.3px;">
+                            <a href="%s" style="display: inline-block; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 10px; font-weight: 600; font-size: 15px;">
                                 Verify Email →
                             </a>
                         </div>
@@ -102,27 +127,22 @@ public class EmailService {
                         <h1 style="color: #10b981; font-size: 22px; margin: 12px 0 4px;">Iron Pulse</h1>
                         <p style="color: #94a3b8; font-size: 14px; margin: 0;">Password Reset Request</p>
                     </div>
-
                     <div style="background: rgba(255,255,255,0.04); border-radius: 12px; padding: 24px; margin-bottom: 24px;">
                         <p style="color: #e2e8f0; font-size: 15px; line-height: 1.6; margin: 0 0 16px;">
-                            We received a request to reset your password. Click the button below to create a new password:
+                            We received a request to reset your password. Click below to create a new password:
                         </p>
-
                         <div style="text-align: center; margin: 24px 0;">
-                            <a href="%s"
-                               style="display: inline-block; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 10px; font-weight: 600; font-size: 15px; letter-spacing: 0.3px;">
+                            <a href="%s" style="display: inline-block; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 10px; font-weight: 600; font-size: 15px;">
                                 Reset Password →
                             </a>
                         </div>
-
-                        <p style="color: #94a3b8; font-size: 13px; line-height: 1.5; margin: 0;">
-                            ⏱ This link expires in <strong style="color: #f59e0b;">10 minutes</strong>.<br>
+                        <p style="color: #94a3b8; font-size: 13px; line-height: 1.5;">
+                            This link expires in <strong style="color: #f59e0b;">10 minutes</strong>.<br>
                             If you didn't request this, you can safely ignore this email.
                         </p>
                     </div>
-
                     <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 16px;">
-                        <p style="color: #64748b; font-size: 12px; margin: 0;">
+                        <p style="color: #64748b; font-size: 12px;">
                             Iron Pulse — Your Fitness Journey Starts Here 💪
                         </p>
                     </div>
