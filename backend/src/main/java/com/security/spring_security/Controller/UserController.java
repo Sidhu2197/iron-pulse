@@ -35,6 +35,11 @@ import java.util.Map;
 @RequestMapping("/api")
 public class UserController {
 
+    @GetMapping("/warmup")
+    public ResponseEntity<String> warmup() {
+        return ResponseEntity.ok("Hello! Iron Pulse backend is warming up.");
+    }
+
     @Autowired
     private UserService userService;
 
