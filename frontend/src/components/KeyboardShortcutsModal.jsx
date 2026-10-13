@@ -1,4 +1,4 @@
-import { Keyboard, X } from 'lucide-react';
+import { Keyboard as Keyboard, X as X } from '@phosphor-icons/react';
 import './KeyboardShortcutsModal.css';
 
 export default function KeyboardShortcutsModal({ isOpen, onClose }) {

@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { loginUser, resendVerificationEmail } from '../api/auth';
 import Silk from '../components/Silk';
 import AccessibleButton from '../components/AccessibleButton';
-import { Flame, Mail, Lock, AlertCircle, Check, RefreshCw, Eye, EyeOff } from 'lucide-react';
+import { Fire as Flame, Envelope as Mail, Lock as Lock, WarningCircle as AlertCircle, Check as Check, ArrowsClockwise as RefreshCw, Eye as Eye, EyeClosed as EyeOff } from '@phosphor-icons/react';
 
 /* ── Inline Google SVG logo ───────────────────────────────── */
 function GoogleLogo() {
@@ -73,6 +73,18 @@ export default function Login() {
 
   const [submitted, setSubmitted] = useState(false);
   const [hadError, setHadError] = useState({});
+    const [touched, setTouched] = useState({});
+    const [focused, setFocused] = useState({});
+
+    const handleBlur = (field) => () => {
+        setTouched((prev) => ({ ...prev, [field]: true }));
+        setFocused((prev) => ({ ...prev, [field]: false }));
+    };
+
+    const handleFocus = (field) => () => {
+        setFocused((prev) => ({ ...prev, [field]: true }));
+    };
+
 
   // Silent warmup of ML services on login page mount
   useEffect(() => {
@@ -102,6 +114,14 @@ export default function Login() {
     } else if (field === 'password') {
       isValid = password.length >= 6;
       isInvalid = (submitted || password.length > 0) && !isValid;
+    }
+
+        if (focused && focused[field] && !submitted) {
+        isInvalid = false;
+        isValid = false;
+    } else if (!submitted && touched && !touched[field]) {
+        isInvalid = false;
+        isValid = false;
     }
 
     if (isInvalid) return 'invalid';
@@ -346,7 +366,10 @@ export default function Login() {
               type="email"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setSubmitted(false);
+              }}
               onFocus={() => setEmailFocused(true)}
               onBlur={() => setEmailFocused(false)}
               style={inputStyle('email')}
@@ -367,7 +390,10 @@ export default function Login() {
               type={showPassword ? 'text' : 'password'}
               placeholder="••••••••"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setSubmitted(false);
+              }}
               onFocus={() => setPasswordFocused(true)}
               onBlur={() => setPasswordFocused(false)}
               style={{ ...inputStyle('password'), paddingRight: '44px' }}

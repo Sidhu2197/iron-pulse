@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { validateEmail, getEmailValidationStatus } from '../utils/emailValidation';
 import Silk from '../components/Silk';
 import AccessibleButton from '../components/AccessibleButton';
-import { Timer, Mail, Key, Check, X } from 'lucide-react';
+import { Timer as Timer, Envelope as Mail, Key as Key, Check as Check, X as X } from '@phosphor-icons/react';
 
-const API_BASE = 'https://iron-pulse-backend.onrender.com/api';
+const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? '/api' : 'https://iron-pulse-backend.onrender.com/api');
 
 /* ── Floating ambient glow circles ────────────────────────── */
 function FloatingGlows() {
@@ -77,18 +77,18 @@ export default function ForgotPassword() {
         setLoading(true);
         setLiveAnnouncement('Sending password reset email...');
         try {
-           const res = await fetch(`${API_BASE}/forgot-password`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: email.trim().toLowerCase() }),
-});
+            const res = await fetch(`${API_BASE}/forgot-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email.trim().toLowerCase() }),
+            });
 
-const text = await res.text();
-const data = text ? JSON.parse(text) : {};
+            const text = await res.text();
+            const data = text ? JSON.parse(text) : {};
 
-if (!res.ok) {
-    throw new Error(data.message || `Request failed: ${res.status}`);
-}
+            if (!res.ok) {
+                throw new Error(data.message || `Request failed: ${res.status}`);
+            }
             if (res.ok && (!text || data.success !== false)) {
                 setSent(true);
                 setLiveAnnouncement('Password reset email sent successfully.');
@@ -301,17 +301,17 @@ if (!res.ok) {
                         <div className={`email-validation ${emailValidation.status}`}>
                             <span className="check">
                                 {emailValidation.status === 'valid' ? <Check size={14} /> :
-                                 emailValidation.status === 'invalid' ? <X size={14} /> : null}
+                                    emailValidation.status === 'invalid' ? <X size={14} /> : null}
                             </span>
                             {emailValidation.message}
                         </div>
                     )}
                 </div>
 
-                <AccessibleButton 
-                    className="btn-futuristic" 
-                    type="submit" 
-                    disabled={loading || emailValidation.status !== 'valid'} 
+                <AccessibleButton
+                    className="btn-futuristic"
+                    type="submit"
+                    disabled={loading || emailValidation.status !== 'valid'}
                     disabledReason="Enter a valid email address to request password reset."
                     style={{ width: '100%' }}
                 >

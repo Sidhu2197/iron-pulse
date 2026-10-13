@@ -1,5 +1,5 @@
 import React, { useState, useId } from 'react';
-import { Lock, Info } from 'lucide-react';
+import { Lock as Lock, Info as Info } from '@phosphor-icons/react';
 import './AccessibleButton.css';
 
 export const AccessibleButton = ({

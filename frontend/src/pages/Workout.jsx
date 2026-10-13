@@ -6,7 +6,7 @@ import { logWorkout, getLocalDateString, sanitizeErrorMessage } from '../api/aut
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
 import './Workout.css';
-import { Dumbbell, Timer, Ruler, User, Activity, Scale, Cake, Flame, Calendar, BarChart2, Target, Zap, HeartPulse, Sprout, Sparkles, Rocket, AlertCircle, CheckCircle2, Sunrise, Moon, X, ExternalLink } from 'lucide-react';
+import { Barbell as Dumbbell, Timer as Timer, Ruler as Ruler, User as User, Pulse as Activity, Scales as Scale, Cake as Cake, Fire as Flame, Calendar as Calendar, ChartBar as BarChart2, Target as Target, Lightning as Zap, Heartbeat as HeartPulse, Plant as Sprout, Sparkle as Sparkles, RocketLaunch as Rocket, WarningCircle as AlertCircle, CheckCircle as CheckCircle2, SunHorizon as Sunrise, Moon as Moon, X as X, ArrowSquareOut as ExternalLink } from '@phosphor-icons/react';
 
 const TABS = ['Suggested Plan', 'Log Workout'];
 
@@ -501,7 +501,7 @@ export default function Workout() {
 
             const val = wizardData[step.key];
             const num = Number(val);
-            const isOutOfRange = val !== '' && (num < minVal || num > maxVal);
+            const isOutOfRange = wizardAttemptedNext && val !== '' && (num < minVal || num > maxVal);
             const isEmptyError = wizardAttemptedNext && val === '';
             const isInvalid = isOutOfRange || isEmptyError;
 
@@ -510,21 +510,18 @@ export default function Workout() {
                     <div className={`input-field wizard-number-input ${isInvalid ? 'invalid' : ''}`}>
                         <span className="icon">{step.icon}</span>
                         <input
-                            type="number"
-                            placeholder={placeholder}
-                            value={val}
-                            onChange={(e) => {
-                                const maxLen = step.key === 'age' ? 2 : 3;
-                                const inputVal = e.target.value.slice(0, maxLen);
-                                setWizardData({ ...wizardData, [step.key]: inputVal });
+                                type="text"
+                                inputMode={step.key === 'age' ? 'numeric' : 'decimal'}
+                                placeholder={placeholder}
+                                value={val}
+                                onChange={(e) => {
+                                    const v = e.target.value;
+                                    const rx = step.key === 'age' ? /^\d{0,2}$/ : /^\d{0,3}(\.\d{0,1})?$/;
+                                    if (v === '' || rx.test(v)) {
+                                        setWizardData({ ...wizardData, [step.key]: v });
+                                    setWizardAttemptedNext(false);
+                                }
                             }}
-                            onKeyDown={(e) => {
-                                if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
-                                const maxLen = step.key === 'age' ? 2 : 3;
-                                if (e.target.value.length >= maxLen && /^[0-9]$/.test(e.key)) e.preventDefault();
-                            }}
-                            min={minVal}
-                            max={maxVal}
                             autoFocus
                         />
                         <span className="wizard-unit">{units}</span>
@@ -1118,16 +1115,26 @@ export default function Workout() {
                                 <label>Duration (minutes)</label>
                                 <div className="input-field">
                                     <span className="icon"><Timer size={20} /></span>
-                                    <input type="number" placeholder="30" value={logForm.duration}
-                                        onChange={updateLog('duration')} required min="1" />
+                                    <input type="text" inputMode="numeric" placeholder="30" value={logForm.duration}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === '' || /^\d{0,3}$/.test(val)) {
+                                                updateLog('duration')({ target: { value: val } });
+                                            }
+                                        }} required />
                                 </div>
                             </div>
                             <div className="input-group">
                                 <label>Calories Burned</label>
                                 <div className="input-field">
                                     <span className="icon"><Flame size={20} /></span>
-                                    <input type="number" placeholder="250" value={logForm.calories_burned}
-                                        onChange={updateLog('calories_burned')} required min="1" />
+                                    <input type="text" inputMode="numeric" placeholder="250" value={logForm.calories_burned}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === '' || /^\d{0,4}$/.test(val)) {
+                                                updateLog('calories_burned')({ target: { value: val } });
+                                            }
+                                        }} required />
                                 </div>
                             </div>
                             <div className="input-group">

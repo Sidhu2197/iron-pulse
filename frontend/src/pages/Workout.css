@@ -136,6 +136,8 @@
     z-index: 1000;
     animation: fadeIn 0.3s ease;
     padding: 20px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 .wizard-card {
@@ -144,6 +146,32 @@
     padding: 32px;
     border-radius: var(--radius-lg);
     animation: fadeInUp 0.4s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.wizard-close-btn {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.wizard-close-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--text-primary);
 }
 
 /* Progress dots */
@@ -515,6 +543,7 @@
     .day-chip-short {
         display: none;
     }
+
     .day-chip-full {
         display: inline;
     }
