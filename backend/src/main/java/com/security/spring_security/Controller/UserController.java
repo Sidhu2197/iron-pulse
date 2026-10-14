@@ -77,7 +77,7 @@ public class UserController {
 
             response.put("success", false);
             response.put("message",
-                    "Unable to complete registration right now.");
+                    e.getMessage() != null ? e.getMessage() : "Unable to complete registration right now.");
 
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(response);
@@ -197,6 +197,14 @@ public class UserController {
                 response.put("age", dbUser.getAge());
                 response.put("height", dbUser.getHeight());
                 response.put("weight", dbUser.getWeight());
+                response.put("gender", dbUser.getGender());
+                response.put("activity", dbUser.getActivity());
+                response.put("goal", dbUser.getGoal());
+                response.put("targetCalories", dbUser.getTargetCalories());
+                response.put("targetProtein", dbUser.getTargetProtein());
+                response.put("targetFats", dbUser.getTargetFats());
+                response.put("targetCarbs", dbUser.getTargetCarbs());
+                response.put("hasConfiguredMacros", dbUser.isHasConfiguredMacros());
 
                 return ResponseEntity.ok()
                         .header(HttpHeaders.SET_COOKIE,

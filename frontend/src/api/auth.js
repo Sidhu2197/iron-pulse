@@ -4,7 +4,7 @@
 // Vite proxy forwards /api/** → http://localhost:8080
 // =============================================
 
-const API_BASE = 'https://iron-pulse-backend.onrender.com/api';
+const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? '/api' : 'https://iron-pulse-backend.onrender.com/api');
 export const SESSION_AUTH = 'cookie';
 
 // Authentication cookies are HttpOnly, so JavaScript never receives the JWT.
@@ -80,7 +80,15 @@ export async function loginUser({ email, password }) {
         email: data.email,
         age: data.age,
         height: data.height,
-        weight: data.weight
+        weight: data.weight,
+        gender: data.gender,
+        activity: data.activity,
+        goal: data.goal,
+        targetCalories: data.targetCalories,
+        targetProtein: data.targetProtein,
+        targetFats: data.targetFats,
+        targetCarbs: data.targetCarbs,
+        hasConfiguredMacros: Boolean(data.hasConfiguredMacros)
     };
     return { user };
 }

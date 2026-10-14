@@ -1,18 +1,44 @@
 .profile-page {
     animation: fadeIn 0.5s ease;
-    max-width: 700px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-.profile-page>h1 {
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-xl);
+}
+
+.profile-header h1 {
     font-size: var(--font-2xl);
     font-weight: 700;
     margin-bottom: 4px;
 }
 
-.profile-page>.subtitle {
+.profile-header .subtitle {
     color: var(--text-accent);
     font-size: var(--font-sm);
-    margin-bottom: var(--space-xl);
+    margin: 0;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+}
+
+@media (max-width: 900px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .profile-header {
+        flex-direction: column;
+        gap: var(--space-md);
+    }
 }
 
 .profile-card {
@@ -52,10 +78,21 @@
     font-size: var(--font-sm);
 }
 
-.profile-details {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--space-md) var(--space-xl);
+.card-heading {
+    font-size: var(--font-base);
+    font-weight: 600;
+    margin-bottom: var(--space-lg);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: var(--space-sm);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.profile-details-inline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--space-md);
 }
 
 .profile-field label {
@@ -72,45 +109,105 @@
     font-weight: 500;
 }
 
-/* Streak Card */
-.streak-card {
+/* Fitness Stats Card */
+.fitness-stats-card {
     padding: var(--space-xl);
-    text-align: center;
+    margin-bottom: var(--space-xl);
 }
 
-.streak-card .streak-number {
-    font-size: var(--font-4xl);
-    font-weight: 800;
-    color: var(--text-accent);
+.summary-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
 }
 
-.streak-card .streak-label {
-    color: var(--text-secondary);
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.summary-row:last-child {
+    border-bottom: none;
+}
+
+.summary-label {
     font-size: var(--font-sm);
-    margin-top: 2px;
+    color: var(--text-muted);
 }
 
-.streak-card .streak-icon {
-    font-size: 2rem;
-    margin-bottom: var(--space-sm);
+.summary-value {
+    font-size: var(--font-base);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.summary-sub {
+    font-size: var(--font-xs);
+    color: var(--text-accent);
+    font-weight: 500;
+    margin-left: 6px;
+}
+
+/* Body & Fitness */
+.section-title {
+    font-size: var(--font-base);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    margin-top: var(--space-2xl);
+    margin-bottom: var(--space-md);
+}
+
+.body-fitness-card {
+    padding: var(--space-xl);
+    margin-bottom: var(--space-xl);
+}
+
+.body-fitness-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-md);
+    text-align: left;
+}
+
+.bf-item label {
+    display: block;
+    font-size: var(--font-xs);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-xs);
+}
+
+.bf-val {
+    font-size: var(--font-base);
+    font-weight: 600;
+}
+
+@media (max-width: 700px) {
+    .body-fitness-grid {
+        grid-template-columns: repeat(2, 1fr);
+        row-gap: var(--space-lg);
+    }
 }
 
 @media (max-width: 550px) {
-    .profile-details {
-        grid-template-columns: 1fr;
+    .profile-details-inline {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-md);
     }
 }
 
 /* Workout History */
-.history-card {
-    padding: var(--space-xl);
-    margin-top: var(--space-lg);
+.bottom-grid {
+    margin-bottom: var(--space-2xl);
 }
 
-.history-card h3 {
-    font-size: var(--font-base);
-    font-weight: 600;
-    margin-bottom: var(--space-lg);
+.history-card {
+    padding: var(--space-xl);
 }
 
 .history-empty {
@@ -173,34 +270,29 @@
     font-weight: 600;
 }
 
+
 /* Logout Button */
 .profile-logout-btn {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: var(--space-sm);
-    width: 100%;
-    max-width: 300px;
-    margin: var(--space-xl) auto 0;
-    padding: 14px 28px;
+    padding: 10px 20px;
     background: rgba(239, 68, 68, 0.1);
     border: 1px solid rgba(239, 68, 68, 0.25);
     color: #ef4444;
     font-weight: 600;
-    font-size: var(--font-base);
+    font-size: var(--font-sm);
     border-radius: var(--radius-md);
     transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .profile-logout-btn:hover {
     background: rgba(239, 68, 68, 0.18);
     border-color: rgba(239, 68, 68, 0.4);
     transform: translateY(-2px);
-}
-
-.profile-logout-btn span {
-    font-size: 1.2rem;
 }
 
 /* Edit Profile Button */

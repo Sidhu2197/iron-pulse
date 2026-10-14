@@ -58,23 +58,69 @@ export function calculateMacroTargets(data) {
 }
 
 export function MacroProvider({ children }) {
-  const { user, token } = useAuth();
-  const [userMacros, setUserMacros] = useState(null);
+  const { user, token, setUser } = useAuth();
+  const [userMacros, setUserMacros] = useState(() => {
+    if (user?.hasConfiguredMacros && user?.targetCalories) {
+      return {
+        age: user.age || 25,
+        height: user.height || 175,
+        weight: user.weight || 70,
+        gender: user.gender || 'male',
+        activity: user.activity || 'moderately_active',
+        goal: user.goal || 'maintenance',
+        calories: user.targetCalories,
+        protein: user.targetProtein || 150,
+        fats: user.targetFats || 70,
+        fat: user.targetFats || 70,
+        carbs: user.targetCarbs || 240,
+      };
+    }
+    return null;
+  });
   const [modalOpen, setModalOpen] = useState(false);
-  const [isNewlyRegistered, setIsNewlyRegistered] = useState(false);
+  const [macrosLoading, setMacrosLoading] = useState(() => {
+    if (!user?.email) return false;
+    return user.hasConfiguredMacros === undefined;
+  });
 
   // Storage key fallback
   const storageKey = user?.email ? `iron_macros_${user.email.toLowerCase()}` : 'iron_macros_guest';
-  const newRegKey = user?.email ? `iron_newly_registered_${user.email.toLowerCase()}` : null;
 
   useEffect(() => {
-    if (user?.email) {
-      const isNew = newRegKey ? localStorage.getItem(newRegKey) === 'true' : false;
-      setIsNewlyRegistered(isNew);
+    let isMounted = true;
 
-      // 1. Try fetching DB macro targets from backend
+    if (user?.email) {
+      // Fast-path: if user object already arrived with configured macros
+      if (user.hasConfiguredMacros && user.targetCalories) {
+        const initialMacros = {
+          age: user.age || 25,
+          height: user.height || 175,
+          weight: user.weight || 70,
+          gender: user.gender || 'male',
+          activity: user.activity || 'moderately_active',
+          goal: user.goal || 'maintenance',
+          calories: user.targetCalories,
+          protein: user.targetProtein || 150,
+          fats: user.targetFats || 70,
+          fat: user.targetFats || 70,
+          carbs: user.targetCarbs || 240,
+        };
+        setUserMacros(initialMacros);
+        localStorage.setItem(storageKey, JSON.stringify(initialMacros));
+        setMacrosLoading(false);
+      } else if (user.hasConfiguredMacros === false) {
+        // Fast-path: user explicitly does not have macros set
+        setUserMacros(null);
+        localStorage.removeItem(storageKey);
+        setMacrosLoading(false);
+      } else {
+        setMacrosLoading(true);
+      }
+
+      // Always verify against database profile
       fetchUserProfile(token)
         .then((profile) => {
+          if (!isMounted) return;
           if (profile && profile.hasConfiguredMacros) {
             const dbMacros = {
               age: profile.age || 25,
@@ -86,41 +132,67 @@ export function MacroProvider({ children }) {
               calories: profile.targetCalories || 2200,
               protein: profile.targetProtein || 150,
               fats: profile.targetFats || 70,
+              fat: profile.targetFats || 70,
               carbs: profile.targetCarbs || 240,
             };
             setUserMacros(dbMacros);
             localStorage.setItem(storageKey, JSON.stringify(dbMacros));
-            setIsNewlyRegistered(false);
+            if (setUser) {
+              setUser((prev) => prev ? { ...prev, hasConfiguredMacros: true } : prev);
+            }
           } else {
-            const saved = localStorage.getItem(storageKey);
-            if (saved) {
-              try { setUserMacros(JSON.parse(saved)); } catch { setUserMacros(null); }
-            } else {
-              setUserMacros(null);
+            // User does NOT have macros configured in DB
+            setUserMacros(null);
+            localStorage.removeItem(storageKey);
+            if (setUser) {
+              setUser((prev) => prev ? { ...prev, hasConfiguredMacros: false } : prev);
             }
           }
         })
         .catch(() => {
-          const saved = localStorage.getItem(storageKey);
-          if (saved) {
-            try { setUserMacros(JSON.parse(saved)); } catch { setUserMacros(null); }
+          if (!isMounted) return;
+          if (!user.hasConfiguredMacros) {
+            setUserMacros(null);
+            localStorage.removeItem(storageKey);
+          }
+        })
+        .finally(() => {
+          if (isMounted) {
+            setMacrosLoading(false);
           }
         });
     } else {
       setUserMacros(null);
-      setIsNewlyRegistered(false);
+      setMacrosLoading(false);
     }
-  }, [user?.email, token, storageKey, newRegKey]);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.email, token, storageKey, setUser]);
 
   const saveMacros = async (formData) => {
     const calculated = calculateMacroTargets(formData);
     setUserMacros(calculated);
     localStorage.setItem(storageKey, JSON.stringify(calculated));
-    if (newRegKey) {
-      localStorage.removeItem(newRegKey);
-    }
-    setIsNewlyRegistered(false);
     setModalOpen(false);
+
+    if (setUser) {
+      setUser((prev) => prev ? {
+        ...prev,
+        hasConfiguredMacros: true,
+        age: calculated.age,
+        height: calculated.height,
+        weight: calculated.weight,
+        gender: calculated.gender,
+        activity: calculated.activity,
+        goal: calculated.goal,
+        targetCalories: calculated.calories,
+        protein: calculated.protein,
+        fats: calculated.fats,
+        carbs: calculated.carbs,
+      } : prev);
+    }
 
     // Save to Database
     try {
@@ -148,8 +220,8 @@ export function MacroProvider({ children }) {
   const openMacroCalculator = () => setModalOpen(true);
   const closeMacroCalculator = () => setModalOpen(false);
 
-  const hasConfiguredMacros = Boolean(userMacros && userMacros.calories);
-  const shouldShowOnboardingWizard = Boolean(user && isNewlyRegistered && !hasConfiguredMacros);
+  const hasConfiguredMacros = Boolean(user && userMacros && userMacros.calories);
+  const shouldShowOnboardingWizard = Boolean(user && !hasConfiguredMacros);
 
   return (
     <MacroContext.Provider
@@ -160,6 +232,7 @@ export function MacroProvider({ children }) {
         openMacroCalculator,
         closeMacroCalculator,
         hasConfiguredMacros,
+        macrosLoading,
         shouldShowOnboardingWizard,
         calculateMacroTargets,
       }}

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import './Landing.css';
 import PageReveal from '../components/PageReveal';
 import Silk from '../components/Silk';
-import { Flame, Dumbbell, Sparkles, Utensils, Zap } from 'lucide-react';
+import { Fire as Flame, Barbell as Dumbbell, Sparkle as Sparkles, ForkKnife as Utensils, Lightning as Zap } from '@phosphor-icons/react';
 
 /* ── Floating ambient glow circles ────────────────────────── */
 function FloatingGlows() {

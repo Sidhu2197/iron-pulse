@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { AlertCircle, CheckCircle, Info, X } from 'lucide-react';
+import { WarningCircle as AlertCircle, CheckCircle as CheckCircle, Info as Info, X as X } from '@phosphor-icons/react';
 import './Toast.css';
 
 const ICONS = {

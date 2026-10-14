@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import './BMICalculator.css';
 import PageReveal from '../components/PageReveal';
 import AccessibleButton from '../components/AccessibleButton';
-import { Ruler, User, Scale, Cake, BarChart2, Lightbulb, AlertCircle } from 'lucide-react';
+import { Ruler as Ruler, User as User, Scales as Scale, Cake as Cake, ChartBar as BarChart2, Lightbulb as Lightbulb, WarningCircle as AlertCircle } from '@phosphor-icons/react';
 
 const BMI_CATEGORIES = [
     { max: 18.5, label: 'Underweight', color: '#60a5fa', advice: 'Consider a calorie-surplus diet with strength training.' },
@@ -20,9 +20,12 @@ export default function BMICalculator() {
     const [form, setForm] = useState({ age: '', gender: '', height: '', weight: '' });
     const [result, setResult] = useState(null);
 
-    const update = (field) => (e) => setForm({ ...form, [field]: e.target.value });
+    const update = (field) => (e) => {
+        setForm({ ...form, [field]: e.target.value });
+        setSubmitted(false);
+    };
 
-    const invalidAge = form.age !== '' && (Number(form.age) < 10 || Number(form.age) > 120);
+    const invalidAge = form.age !== '' && (Number(form.age) < 10 || Number(form.age) > 99);
     const invalidHeight = form.height !== '' && (Number(form.height) < 50 || Number(form.height) > 250);
     const invalidWeight = form.weight !== '' && (Number(form.weight) < 20 || Number(form.weight) > 300);
 
@@ -31,6 +34,18 @@ export default function BMICalculator() {
 
     const [submitted, setSubmitted] = useState(false);
     const [hadError, setHadError] = useState({});
+    const [touched, setTouched] = useState({});
+    const [focused, setFocused] = useState({});
+
+    const handleBlur = (field) => () => {
+        setTouched((prev) => ({ ...prev, [field]: true }));
+        setFocused((prev) => ({ ...prev, [field]: false }));
+    };
+
+    const handleFocus = (field) => () => {
+        setFocused((prev) => ({ ...prev, [field]: true }));
+    };
+
     const [liveAnnouncement, setLiveAnnouncement] = useState('');
     const ageRef = useRef(null);
     const genderRef = useRef(null);
@@ -60,6 +75,14 @@ export default function BMICalculator() {
             isInvalid = (submitted && !form.weight) || invalidWeight;
         }
 
+                if (focused[field] && !submitted) {
+            isInvalid = false;
+            isValid = false;
+        } else if (!submitted && !touched[field]) {
+            isInvalid = false;
+            isValid = false;
+        }
+
         if (isInvalid) return 'invalid';
         if (isValid && hadError[field]) return 'valid'; // Only green if previously red/error
         return '';
@@ -70,7 +93,7 @@ export default function BMICalculator() {
         setSubmitted(true);
 
         const invalidFields = [];
-        if (!isAgeValid) invalidFields.push({ name: 'age', ref: ageRef, msg: invalidAge ? 'Age must be 10–120' : 'Age is required' });
+        if (!isAgeValid) invalidFields.push({ name: 'age', ref: ageRef, msg: invalidAge ? 'Age must be 10–99' : 'Age is required' });
         if (!isGenderValid) invalidFields.push({ name: 'gender', ref: genderRef, msg: 'Gender is required' });
         if (!isHeightValid) invalidFields.push({ name: 'height', ref: heightRef, msg: invalidHeight ? 'Height must be 50–250 cm' : 'Height is required' });
         if (!isWeightValid) invalidFields.push({ name: 'weight', ref: weightRef, msg: invalidWeight ? 'Weight must be 20–300 kg' : 'Weight is required' });
@@ -118,20 +141,26 @@ export default function BMICalculator() {
                             <label htmlFor="bmi-age">Age</label>
                             <div className={`input-field ${getFieldClass('age')}`}>
                                 <span className="icon"><Cake size={20} /></span>
-                                <input ref={ageRef} id="bmi-age" type="number" placeholder="25"
+                                <input ref={ageRef} id="bmi-age" type="text" inputMode="numeric" placeholder="25"
                                     value={form.age}
-                                    onChange={(e) => setForm((prev) => ({ ...prev, age: e.target.value.slice(0, 2) }))}
-                                    onKeyDown={(e) => {
-                                        if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
-                                        if (e.target.value.length >= 2 && /^[0-9]$/.test(e.key)) e.preventDefault();
+                                    onChange={(e) => {
+                                        const v = e.target.value;
+                                        if (v === '' || /^\d{0,2}$/.test(v)) setForm((prev) => ({ ...prev, age: v }));
+                                        setSubmitted(false);
                                     }}
+                                    onKeyDown={(e) => {
+
+
+                                    }}
+                                    onBlur={handleBlur('age')}
+                                    onFocus={handleFocus('age')}
                                     min="10" max="99"
                                     aria-invalid={getFieldClass('age') === 'invalid'}
                                     required />
                                 <span className="bmi-unit">years</span>
                             </div>
                             {getFieldClass('age') === 'invalid' && (
-                                <div className="field-error"><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> {invalidAge ? 'Age must be between 10 and 120 years' : 'Age is required'}</div>
+                                <div className="field-error"><AlertCircle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} /> {invalidAge ? 'Age must be between 10 and 99 years' : 'Age is required'}</div>
                             )}
                         </div>
 
@@ -154,13 +183,19 @@ export default function BMICalculator() {
                             <label htmlFor="bmi-height">Height</label>
                             <div className={`input-field ${getFieldClass('height')}`}>
                                 <span className="icon"><Ruler size={20} /></span>
-                                <input ref={heightRef} id="bmi-height" type="number" placeholder="175"
+                                <input ref={heightRef} id="bmi-height" type="text" inputMode="numeric" placeholder="175"
                                     value={form.height}
-                                    onChange={(e) => setForm((prev) => ({ ...prev, height: e.target.value.slice(0, 3) }))}
-                                    onKeyDown={(e) => {
-                                        if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
-                                        if (e.target.value.length >= 3 && /^[0-9]$/.test(e.key)) e.preventDefault();
+                                    onChange={(e) => {
+                                        const v = e.target.value;
+                                        if (v === '' || /^\d{0,3}$/.test(v)) setForm((prev) => ({ ...prev, height: v }));
+                                        setSubmitted(false);
                                     }}
+                                    onKeyDown={(e) => {
+
+
+                                    }}
+                                    onBlur={handleBlur('height')}
+                                    onFocus={handleFocus('height')}
                                     min="50" max="250"
                                     aria-invalid={getFieldClass('height') === 'invalid'}
                                     required />
@@ -175,13 +210,19 @@ export default function BMICalculator() {
                             <label htmlFor="bmi-weight">Weight</label>
                             <div className={`input-field ${getFieldClass('weight')}`}>
                                 <span className="icon"><Scale size={20} /></span>
-                                <input ref={weightRef} id="bmi-weight" type="number" placeholder="70"
+                                <input ref={weightRef} id="bmi-weight" type="text" inputMode="decimal" placeholder="70"
                                     value={form.weight}
-                                    onChange={(e) => setForm((prev) => ({ ...prev, weight: e.target.value.slice(0, 3) }))}
-                                    onKeyDown={(e) => {
-                                        if (['e', 'E', '+', '-', '.'].includes(e.key)) e.preventDefault();
-                                        if (e.target.value.length >= 3 && /^[0-9]$/.test(e.key)) e.preventDefault();
+                                    onChange={(e) => {
+                                        const v = e.target.value;
+                                        if (v === '' || /^\d{0,3}(\.\d{0,1})?$/.test(v)) setForm((prev) => ({ ...prev, weight: v }));
+                                        setSubmitted(false);
                                     }}
+                                    onKeyDown={(e) => {
+
+
+                                    }}
+                                    onBlur={handleBlur('weight')}
+                                    onFocus={handleFocus('weight')}
                                     min="20" max="300"
                                     aria-invalid={getFieldClass('weight') === 'invalid'}
                                     required />

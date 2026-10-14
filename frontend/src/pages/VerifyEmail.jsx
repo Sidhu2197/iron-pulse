@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { verifyEmail } from '../api/auth';
 import Silk from '../components/Silk';
-import { MailCheck, XCircle, Loader2 } from 'lucide-react';
+import { EnvelopeSimpleOpen as MailCheck, XCircle as XCircle, SpinnerGap as Loader2 } from '@phosphor-icons/react';
 import './Auth.css';
 
 /* ── Floating ambient glow circles ────────────────────────── */

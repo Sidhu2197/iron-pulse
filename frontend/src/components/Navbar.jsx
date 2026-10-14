@@ -1,9 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import {
-  LayoutDashboard, Dumbbell, Utensils, BrainCircuit, Scale,
-  User, Flame, LogOut, ChevronDown, Keyboard, Activity,
-} from 'lucide-react';
+import { SquaresFour as LayoutDashboard, Barbell as Dumbbell, ForkKnife as Utensils, Brain as BrainCircuit, Scales as Scale, User as User, Fire as Flame, SignOut as LogOut, CaretDown as ChevronDown, Keyboard as Keyboard, Pulse as Activity } from '@phosphor-icons/react';
 import { useAuth } from '../context/AuthContext';
 import { usePlan } from '../context/PlanContext';
 import { useMacros } from '../context/MacroContext';
@@ -171,11 +168,15 @@ export default function Navbar({ onOpenShortcuts }) {
             flexShrink: 0,
           }}
         >
-          <Flame
-            size={22}
+          <img
+            src="/favicon.svg"
+            alt="Iron Pulse"
             style={{
-              color: '#00f0ff',
-              filter: 'drop-shadow(0 0 8px rgba(0, 240, 255, 0.4))',
+              width: '26px',
+              height: '26px',
+              borderRadius: '6px',
+              display: 'block',
+              filter: 'drop-shadow(0 0 8px rgba(0, 240, 255, 0.35))',
             }}
           />
           <span className="brand-text">Iron Pulse</span>

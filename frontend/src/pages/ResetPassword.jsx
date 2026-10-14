@@ -2,9 +2,9 @@ import { useState, useRef } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Silk from '../components/Silk';
 import AccessibleButton from '../components/AccessibleButton';
-import { Lock, Check, X, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Lock as Lock, Check as Check, X as X, WarningCircle as AlertCircle, Eye as Eye, EyeClosed as EyeOff } from '@phosphor-icons/react';
 
-const API_BASE = 'https://iron-pulse-backend.onrender.com/api';
+const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.DEV ? '/api' : 'https://iron-pulse-backend.onrender.com/api');
 
 function FloatingGlows() {
     const glows = [
@@ -547,7 +547,7 @@ export default function ResetPassword() {
                             type={showConfirmPassword ? 'text' : 'password'}
                             placeholder="••••••••"
                             value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            onChange={(e) => { setConfirmPassword(e.target.value); setSubmitted(false); }}
                             onFocus={() => setFocusedField('confirmPassword')}
                             onBlur={() => setFocusedField(null)}
                             style={{

@@ -180,6 +180,21 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  /* Disable text selection across all pages by default */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Always allow text selection inside interactive form inputs */
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
 }
 
 /* ── Layered radial gradient background ────────────────────── */
@@ -315,7 +330,7 @@ select option:disabled {
 }
 
 .glow-card:hover {
-  border-color: var(--border-focus);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 /* ================================================================
@@ -934,6 +949,28 @@ select option:disabled {
   padding: 2rem;
   position: relative;
   overflow: hidden;
+  /* Allow text selection on login & registration pages */
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+.auth-page * {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+.auth-page button,
+.auth-page .auth-submit,
+.auth-page .auth-icon,
+.auth-page svg {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 .auth-header {
